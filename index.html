@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>气功学堂 · 八段锦/易筋经/五禽戏/六字诀 3D 在线跟练</title>
+<meta name="description" content="免费气功入门网站：八段锦、易筋经、五禽戏、六字诀四大功法分门别类学习，Three.js 三维示范，在线跟练口令引导，本地打卡不上传任何数据。">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☯️</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">☯️ 气功学堂 <small>QIGONG ACADEMY</small></div>
+  <nav id="nav">
+    <button data-go="home" class="on">首页</button>
+    <button data-go="sets">功法学堂</button>
+    <button data-go="checkin">打卡成就</button>
+    <button data-go="knowledge">气功知识</button>
+  </nav>
+  <button id="soundBtn" class="sound-btn" title="语音口令开关">🔊 口令</button>
+</header>
+
+<main class="layout">
+  <!-- 左：内容列 -->
+  <section class="content">
+
+    <!-- ========== 首页 ========== -->
+    <div class="page on" id="page-home">
+      <div class="hero">
+        <p class="hero-hook">每天 12 分钟，三维师父带你把气练明白</p>
+        <h1>气功 · <em>看得见的</em>入门</h1>
+        <p class="hero-sub">八段锦 / 易筋经 / 五禽戏 / 六字诀，四大经典功法分门别类，3D 示范 · 呼吸口令 · 逐式跟练。</p>
+        <div class="hero-badges">
+          <span class="chip">🔒 打卡数据只存你的设备</span>
+          <span class="chip">🆓 免注册 · 打开即练</span>
+          <span class="chip" id="statMoves">— 个动作</span>
+          <span class="chip" id="statKeys">— 组 3D 姿势</span>
+        </div>
+        <div class="hero-cta">
+          <button class="btn primary big" id="quickStart">▶ 立刻跟练八段锦</button>
+          <button class="btn ghost big" data-go="sets">先逛功法库</button>
+        </div>
+      </div>
+
+      <h2 class="sec-title">四大功法 · 对号入座</h2>
+      <div class="set-cards" id="homeSets"></div>
+
+      <details class="howto">
+        <summary>🧩 它是怎么工作的？（原理透明化）</summary>
+        <div class="howto-body">
+          <p>页面里的"师父"不是录播视频，而是 Three.js 用几何体实时拼出的程序化人形：每个动作被拆成若干关键姿势（关节角度表，见 <code>js/data.js</code>），跟练时姿势间平滑插值，并配合呼吸节律点亮丹田光。</p>
+          <p>口令引导用浏览器内置 Web Speech 语音合成；打卡、连续天数、成就全部由 <code>localStorage</code> 计算，本站没有任何服务器存储你的数据。断网也能练（3D 引擎首次加载需联网取 CDN，之后走缓存）。</p>
+        </div>
+      </details>
+    </div>
+
+    <!-- ========== 功法学堂 ========== -->
+    <div class="page" id="page-sets">
+      <div id="setList">
+        <h2 class="sec-title">功法学堂 · 分门别类学习</h2>
+        <div class="set-cards wide" id="setCards"></div>
+      </div>
+
+      <!-- 功法详情：动作目录 -->
+      <div id="setDetail" class="hidden">
+        <button class="btn back" data-back="sets">← 返回功法列表</button>
+        <div class="set-head" id="setHead"></div>
+        <div class="move-grid" id="moveGrid"></div>
+      </div>
+
+      <!-- 单式详情 -->
+      <div id="moveDetail" class="hidden">
+        <button class="btn back" id="backToSet">← 返回动作目录</button>
+        <div class="move-head" id="moveHead"></div>
+        <div class="move-body">
+          <div class="move-steps">
+            <h4>📋 动作分解</h4>
+            <ol id="moveSteps"></ol>
+            <h4>🌬️ 呼吸配合</h4>
+            <p id="moveBreath" class="pill-text"></p>
+            <h4>✨ 主要功效</h4>
+            <p id="moveBenefit" class="pill-text"></p>
+            <div class="move-actions">
+              <button class="btn primary" id="drillMove">▶ 跟练此式</button>
+              <button class="btn ghost" id="learnMove">✓ 我学会了</button>
+            </div>
+          </div>
+          <div class="key-strip">
+            <h4>🎞️ 关键姿势（点击在 3D 中定格）</h4>
+            <div id="keyBtns"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 打卡成就 ========== -->
+    <div class="page" id="page-checkin">
+      <h2 class="sec-title">打卡成就 · 功夫在日常</h2>
+      <div class="stat-row" id="statRow"></div>
+      <div class="check-grid">
+        <div class="calendar-card">
+          <div class="cal-head">
+            <button class="btn ghost sm" id="calPrev">‹</button>
+            <span id="calTitle"></span>
+            <button class="btn ghost sm" id="calNext">›</button>
+          </div>
+          <div class="cal-week" id="calWeek"></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="badge-card">
+          <h3>🏅 功夫徽章</h3>
+          <div class="badge-grid" id="badgeGrid"></div>
+        </div>
+      </div>
+      <h3 class="sec-sub">最近跟练</h3>
+      <ul class="record-list" id="recordList"></ul>
+    </div>
+
+    <!-- ========== 气功知识 ========== -->
+    <div class="page" id="page-knowledge">
+      <h2 class="sec-title">气功知识 · 先明理，再练功</h2>
+      <div class="know-list" id="knowList"></div>
+    </div>
+
+    <!-- ========== 跟练中 ========== -->
+    <div class="page" id="page-train">
+      <div class="train-panel">
+        <div class="train-top">
+          <div>
+            <div class="train-set" id="trainSetName"></div>
+            <div class="train-move" id="trainMoveName">—</div>
+          </div>
+          <div class="breath-ring-wrap">
+            <div class="breath-ring" id="breathRing"><span id="breathText">预备</span></div>
+          </div>
+        </div>
+        <div class="train-key" id="trainKeyLabel"></div>
+        <div class="train-cue" id="trainCue">调整呼吸，准备起势……</div>
+        <div class="train-progress">
+          <div class="bar"><div id="trainBar"></div></div>
+          <div class="bar-meta"><span id="trainStepIdx"></span><span id="trainTimeLeft"></span></div>
+        </div>
+        <div class="train-ctrls">
+          <button class="btn ghost" id="btnPause">⏸ 暂停</button>
+          <button class="btn ghost" id="btnPrevKey">⏮ 上一动</button>
+          <button class="btn ghost" id="btnNextKey">⏭ 下一动</button>
+          <button class="btn danger" id="btnQuit">✕ 退出</button>
+        </div>
+        <p class="train-tip">💡 也可以拖动/旋转右侧 3D 视图，随时从任何角度看清身型。</p>
+      </div>
+    </div>
+
+    <!-- ========== 练完收功 ========== -->
+    <div class="page" id="page-done">
+      <div class="done-panel">
+        <div class="done-icon">🧘</div>
+        <h2 id="doneTitle">功成！今日打卡已点亮</h2>
+        <p id="doneStats"></p>
+        <div class="done-cta">
+          <button class="btn primary" data-go="checkin">查看打卡日历</button>
+          <button class="btn ghost" data-go="home">回首页</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：常驻 3D 演武台 -->
+  <aside class="stage-col">
+    <div id="stage" class="stage">
+      <div class="stage-loading" id="stageLoading">正在唤醒 3D 师父……</div>
+    </div>
+    <div class="stage-caption">
+      <span id="stageTitle">演武台 · 拖拽旋转视角</span>
+      <label class="spin-toggle"><input type="checkbox" id="spinChk"> 自动环绕</label>
+    </div>
+  </aside>
+</main>
+
+<footer class="foot">
+  气功学堂 · 内容整理自国家体育总局健身气功主流功法与公开文献，仅作养生科普，不构成医疗建议 ·
+  <a href="https://github.com/shixingya/qigong" target="_blank" rel="noopener">GitHub 开源</a>
+</footer>
+
+<!-- 数据与逻辑层（普通脚本） -->
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+<!-- Three.js 场景（ESM，defer 执行） -->
+<script type="module" src="js/scene.js"></script>
+</body>
+</html>
