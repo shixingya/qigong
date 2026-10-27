@@ -160,6 +160,7 @@
         { id: 'all4', icon: '🏔️', name: '四功齐修', desc: '四种功法各练过一遍', got: this.setsPracticed() >= setCount },
         { id: 'learn10', icon: '📖', name: '十式通晓', desc: '学会 10 个动作', got: this.learnedTotal() >= 10 },
         { id: 'hour', icon: '⏳', name: '功满一时', desc: '累计跟练满 60 分钟', got: this.totalSec() >= 3600 },
+        { id: 'dawndusk', icon: '🌗', name: '晨昏不辍', desc: '同一天早起练一场、夜里再练一场', got: this.hasDawnDusk() },
         { id: 'halfmoves', icon: '🧘', name: '过半功夫', desc: '学会一半动作（' + Math.ceil(moveTotal / 2) + ' 式）', got: this.learnedTotal() >= Math.ceil(moveTotal / 2) }
       ];
     },
@@ -168,6 +169,19 @@
       Object.keys(l).forEach(function (k) { n += Object.keys(l[k]).length; });
       return n;
     },
+    /* 早起（5-11）与夜练（23-5）同日各一场才算晨昏不辍 */
+    hasDawnDusk: function () {
+      var early = {}, late = {};
+      this._data.records.forEach(function (r) {
+        if (r.hour == null || !r.d) return;
+        if (r.hour >= 5 && r.hour < 11) early[r.d] = 1;
+        if (r.hour >= 23 || r.hour < 5) late[r.d] = 1;
+      });
+      return Object.keys(early).some(function (d) { return late[d]; });
+    },
+    /* 累计练功分钟（定息也计） */
+    totalMin: function () { return Math.round(this.totalSec() / 60); },
+    totalSess: function () { return this._data.records.length; },
     streakMax: function () {
       var setObj = {};
       this._data.records.forEach(function (r) { setObj[r.d] = 1; });

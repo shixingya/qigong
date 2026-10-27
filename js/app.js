@@ -236,6 +236,14 @@
   function renderHome() {
     $('#statMoves').textContent = moveTotal + ' 个动作';
     $('#statKeys').textContent = keyTotal + ' 组 3D 姿势';
+    /* 自有累计 chip：一练过就把“你的功夫”提到首屏 */
+    var self = $('#statSelf');
+    if (self) {
+      if (S.totalSess()) {
+        self.classList.remove('hidden');
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟';
+      } else self.classList.add('hidden');
+    }
     /* 今日习练推荐：按日期确定性轮换，不随机不骚扰 */
     var st = DATA.sets[dayOfYear() % DATA.sets.length];
     var recs = S.recordsOfDay(S.todayStr());
@@ -1087,6 +1095,18 @@
       e.preventDefault(); toggleHelp(!helpOpen); return;
     }
     if (helpOpen && e.key === 'Escape') { e.preventDefault(); toggleHelp(false); return; }
+    /* 全局小键：R 朗读当前展开的那篇知识，M 换一档演武台晨昏 */
+    if (!inField && !helpOpen && !Train.active && e.code === 'KeyR' && $('#page-knowledge').classList.contains('on')) {
+      e.preventDefault();
+      var opens = $$('.know-card[open]');
+      var tgt = opens.length ? opens[opens.length - 1] : $('.know-card');
+      if (tgt && tgt._kn) {
+        var rb = tgt.querySelector('.rd-btn');
+        if (rb) rdStart(tgt._kn, rb);
+      }
+      return;
+    }
+    if (!inField && !helpOpen && e.code === 'KeyM') { e.preventDefault(); moodNext(); return; }
     if (!Train.active) return;
     if (inField) return;
     if (e.code === 'Space') { e.preventDefault(); Train.togglePause(); }
@@ -1323,6 +1343,7 @@
       var isWrong = S.wrongList().indexOf(kn.id) >= 0 && !S.quizPassed(kn.id);
       var el = document.createElement('details');
       el.className = 'know-card' + (isRead ? ' read' : '');
+      el._kn = kn; /* 供 R 键找到要朗读的那一篇 */
       cardEls[kn.id] = el;
       el.innerHTML = '<summary><span class="ki">' + kn.icon + '</span>' + kn.title +
         (isRead ? '<span class="read-dot" title="已读">✓</span>' : '') +
@@ -1655,12 +1676,13 @@
     if (b) b.textContent = '🌗 ' + MOOD_LABEL[m] + (moodLock ? ' · 锁定' : ' · 随时段');
   }
   var moodBtn = $('#moodBtn');
-  if (moodBtn) moodBtn.addEventListener('click', function () {
+  if (moodBtn) moodBtn.addEventListener('click', moodNext);
+  function moodNext() {
     var cur = (q3d() && q3d().mood) ? q3d().mood() : 'day';
     moodLock = MOOD_ORDER[(MOOD_ORDER.indexOf(cur) + 1) % MOOD_ORDER.length];
     applyMood();
     float3d(MOOD_LABEL[moodLock] + '演武台');
-  });
+  }
   setInterval(applyMood, 60000); /* 跨过时段边界自动换光，锁定过的不抢 */
   $('#acuChk').addEventListener('change', function (e) {
     var q = q3d();

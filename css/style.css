@@ -695,3 +695,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== v2.16 知识全篇朗读 + 晨昏演武台 ===== */
 .rd-btn.on { border-color: var(--jade); color: var(--jade); }
+
+/* ===== v2.17 首页累计 chip ===== */
+.chip.self { border-color: rgba(95, 214, 184, .5); color: var(--jade); }
+.chip.self b { color: var(--gold); }
