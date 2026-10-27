@@ -263,6 +263,30 @@
   function estMin(set) {
     return Math.max(1, Math.round(set.durationMin / (S.tempo() || 1)));
   }
+  /* ================= 时段宜练 ================= */
+  /* 早升发、午养长、晚收敛、夜安眠：推荐按钟点筛，不随便推 */
+  function slotLabel(h) {
+    return h >= 5 && h < 11 ? '早' : h >= 11 && h < 17 ? '午' : h >= 17 && h < 23 ? '晚' : '夜';
+  }
+  var SLOT_TXT = { '早': '☀️ 早晨宜升发', '午': '🌤 日中宜养长', '晚': '🌙 入夜宜收敛', '夜': '⭐ 夜深宜安眠' };
+  var pickIdx = -1; /* 「换一套」的手动偏移；-1 表示按日期确定性轮 */
+  var labLock = ''; /* 手动跳去别的时段时锁住那个 lab，免得重渲染又跳回来 */
+  var lockHour = -1; /* 锁定发生在几点：真跨了时段就自动撒手，不跟时钟拧着来 */
+  function curSlot() {
+    var nowH = new Date().getHours();
+    if (labLock && lockHour >= 0 && slotLabel(nowH) !== slotLabel(lockHour)) {
+      labLock = ''; pickIdx = -1; lockHour = -1; /* 钟点已换，交还给时段自己 */
+    }
+    var lab = labLock || slotLabel(nowH);
+    var withTag = DATA.sets.filter(function (s) { return (s.moods || []).indexOf(lab) >= 0; });
+    var cand = withTag.length ? withTag : DATA.sets.slice(); /* 该时段没标注就退回全量 */
+    return { lab: lab, cand: cand };
+  }
+  function pickSet(cs) {
+    var cand = cs.cand;
+    if (pickIdx < 0 || pickIdx >= cand.length) return cand[dayOfYear() % cand.length];
+    return cand[pickIdx];
+  }
   function renderHome() {
     $('#statMoves').textContent = moveTotal + ' 个动作';
     $('#statKeys').textContent = keyTotal + ' 组 3D 姿势';
@@ -274,8 +298,10 @@
         self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟';
       } else self.classList.add('hidden');
     }
-    /* 今日习练推荐：按日期确定性轮换，不随机不骚扰 */
-    var st = DATA.sets[dayOfYear() % DATA.sets.length];
+    /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
+    var cs = curSlot();
+    var cand = cs.cand, lab = cs.lab;
+    var st = pickSet(cs);
     var recs = S.recordsOfDay(S.todayStr());
     /* 快捷版：今日推荐前 3 式，估算用时随节奏 */
     var quick = st.moves.slice(0, 3);
@@ -287,20 +313,48 @@
       if (lastSet) break;
     }
     $('#todayCard').innerHTML =
-      '<div class="tc-icon">' + st.icon + '</div>' +
-      '<div class="tc-main"><div class="tc-title">今日推荐 · ' + st.name + '：' + st.tagline + '</div>' +
+      '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
+      '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
-        : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') + '</div></div>' +
+        : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
+      ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
+      '<button class="btn ghost sm" id="todaySwap" title="此时段还有别的功法则换一套，否则去下一个时段宜练的">🔄 换一套</button>' +
       '<button class="btn ghost sm" id="todayReview" title="练完温一温：抽卡、难卡、错题、续读一处直达">🧠 复习台</button>' +
       (lastSet ? '<button class="btn ghost sm" id="todayResume" title="接着上次那套练整套">↩️ 接着练' + lastSet.name + '</button>' : '') +
       '</div>';
     $('#todayGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
     $('#todayQuick').addEventListener('click', function () { Train.start(st, quick, 'custom'); });
     $('#todayReview').addEventListener('click', reviewOpen);
+    $('#todaySwap').addEventListener('click', function () {
+      var cur = cand.findIndex(function (s) { return s.id === st.id; });
+      if (cand.length > 1) {
+        /* 本时段还有别的：就地轮下一套，lab 不变 */
+        pickIdx = (cur + 1) % cand.length;
+      } else {
+        /* 本时段只一套：往后找下一个“确实另有别的套子”的时段，否则跳过去也是原地踢空 */
+        var order = ['早', '午', '晚', '夜'];
+        var li = order.indexOf(lab), nxt = '', alt = null;
+        for (var s2 = 1; s2 <= 4; s2++) {
+          var l2 = order[(li + s2) % 4];
+          var pool = DATA.sets.filter(function (x) { return (x.moods || []).indexOf(l2) >= 0; });
+          if (pool.some(function (x) { return x.id !== st.id; })) { nxt = l2; alt = pool; break; }
+        }
+        if (!alt) { /* 全天翻遍都只同一套：不演空跳，明说就好 */
+          float3d('此时段就这一套，练熟了就等时辰换');
+          return;
+        }
+        var ai = alt.findIndex(function (x) { return x.id === st.id; });
+        labLock = nxt;
+        lockHour = new Date().getHours();
+        pickIdx = ai < 0 ? 0 : (ai + 1) % alt.length;
+        float3d(SLOT_TXT[nxt].slice(2) + '·' + alt[pickIdx].name);
+      }
+      renderHome();
+    });
     if (lastSet) $('#todayResume').addEventListener('click', function () { Train.start(lastSet, lastSet.moves, 'full'); });
     var box = $('#homeSets');
     box.innerHTML = '';
@@ -1357,32 +1411,72 @@
     }
     $('#calGrid').innerHTML = html;
   }
-  function hideDayPop() { var p = $('#dayPop'); if (p) { p.classList.add('hidden'); p.innerHTML = ''; } }
+  function hideDayPop() { var p = $('#dayPop'); if (p) { p.classList.add('hidden'); p.innerHTML = ''; } SHOW_ALL = {}; }
+  var SHOW_ALL = {}; /* 当日明细的“展开全部式”开关，按行序号记，收起时清 */
   $('#calPrev').addEventListener('click', function () { calDate.setMonth(calDate.getMonth() - 1); hideDayPop(); renderCalendar(); });
   $('#calNext').addEventListener('click', function () { calDate.setMonth(calDate.getMonth() + 1); hideDayPop(); renderCalendar(); });
 
+  /* 当日明细里的式名 chip：点一下直接重练那一式，旧记录不用从头翻 */
+  function mkMoveChip(st, m) {
+    var b = document.createElement('button');
+    b.className = 'dp-mchip';
+    b.textContent = m.name;
+    b.title = '跟练 ' + m.name + ' 单式';
+    b.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      Train.start(st, [m], 'single');
+    });
+    return b;
+  }
+
   /* 日历当日明细：点练过的格子展开那天的场次清单 */
+  function paintDayPop(ds) {
+    var pop = $('#dayPop');
+    if (!pop) return;
+    var recs = S.recordsOfDay(ds);
+    if (!recs.length) { pop.classList.add('hidden'); return; }
+    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场<button class="btn ghost sm" id="dpX">收起</button></div>' +
+      recs.map(function (r) {
+        var st = DATA.sets.find(function (s) { return s.id === r.set; });
+        var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';
+        var label = r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法');
+        return '<div class="dp-row" data-ri="' + recs.indexOf(r) + '">' + hh + ' ' + label +
+          ' · 约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟 · ' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') +
+          (r.note ? '<i class="dp-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '') + '</div>';
+      }).join('');
+    /* 逐行挂上本场练过的式（最多先露 6 个，想全看再展开） */
+    recs.forEach(function (r, ri) {
+      var st2 = DATA.sets.find(function (s) { return s.id === r.set; });
+      if (!st2 || !(r.moves || []).length) return;
+      var rowEl = pop.querySelector('.dp-row[data-ri="' + ri + '"]');
+      if (!rowEl) return;
+      var box = document.createElement('span');
+      box.className = 'dp-moves';
+      var ms = st2.moves.filter(function (m) { return r.moves.indexOf(m.id) >= 0; });
+      var shown = SHOW_ALL[ds + ':' + ri] ? ms : ms.slice(0, 6);
+      shown.forEach(function (m) { box.appendChild(mkMoveChip(st2, m)); });
+      if (ms.length > shown.length) {
+        var more = document.createElement('button');
+        more.className = 'dp-mchip more';
+        more.textContent = '+' + (ms.length - shown.length);
+        more.title = '展开剩下的式';
+        more.addEventListener('click', function (ev) { ev.stopPropagation(); SHOW_ALL[ds + ':' + ri] = true; paintDayPop(ds); });
+        box.appendChild(more);
+      }
+      rowEl.appendChild(box);
+    });
+    pop.classList.remove('hidden');
+    $('#dpX').addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      pop.classList.add('hidden'); pop.innerHTML = ''; SHOW_ALL = {};
+    });
+  }
   $('#calGrid').addEventListener('click', function (e) {
     var cell = e.target.closest ? e.target.closest('.cal-cell.done') : null;
     var pop = $('#dayPop');
     if (!pop) return;
     if (!cell) { pop.classList.add('hidden'); pop.innerHTML = ''; return; }
-    var recs = S.recordsOfDay(cell.dataset.ds);
-    if (!recs.length) { pop.classList.add('hidden'); return; }
-    pop.innerHTML = '<div class="dp-head">🗓 ' + cell.dataset.ds + ' · 当日 ' + recs.length + ' 场<button class="btn ghost sm" id="dpX">收起</button></div>' +
-      recs.map(function (r) {
-        var st = DATA.sets.find(function (s) { return s.id === r.set; });
-        var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';
-        var label = r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法');
-        return '<div class="dp-row">' + hh + ' ' + label +
-          ' · 约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟 · ' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') +
-          (r.note ? '<i class="dp-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '') + '</div>';
-      }).join('');
-    pop.classList.remove('hidden');
-    $('#dpX').addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      pop.classList.add('hidden'); pop.innerHTML = '';
-    });
+    paintDayPop(cell.dataset.ds);
   });
 
   /* ================= 知识页 ================= */

@@ -719,3 +719,20 @@ button { font-family: inherit; cursor: pointer; }
 .rv-stat { font-size: 12.5px; color: var(--sub); line-height: 1.6; }
 #knowList .know-card.flash { animation: cwFlash 1.6s ease; }
 @media (prefers-reduced-motion: reduce) { #knowList .know-card.flash { animation: none; } }
+
+/* ===== v2.19 时段宜练 ===== */
+.today-card .tc-icon { position: relative; font-size: 30px; }
+.tc-slot {
+  position: absolute; top: -6px; right: -12px;
+  font-size: 10.5px; line-height: 1; color: var(--gold);
+  border: 1px solid var(--gold); border-radius: 999px; padding: 2px 5px;
+}
+/* 当日明细的式名直达 chip */
+.dp-moves { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.dp-mchip {
+  font: inherit; font-size: 12px; line-height: 1.4; cursor: pointer;
+  padding: 3px 9px; border-radius: 999px; color: var(--jade);
+  border: 1px solid rgba(95, 214, 184, .38); background: rgba(95, 214, 184, .07);
+}
+.dp-mchip:hover { border-color: var(--jade); }
+.dp-mchip.more { color: var(--gold); border-color: rgba(230, 190, 110, .5); background: rgba(230, 190, 110, .07); }
