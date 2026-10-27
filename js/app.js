@@ -88,6 +88,34 @@
     b.classList.toggle('off', !S.soundOn());
   }
 
+  /* ================= 磬声音效（Web Audio 合成，无素材） ================= */
+  var AC = null;
+  function ac() {
+    if (!AC) {
+      try { AC = new (global.AudioContext || global.webkitAudioContext)(); } catch (e) { return null; }
+    }
+    if (AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  /* 五音对应五行：宫商角徵羽，随式轮换 */
+  var PENTA = [261.63, 293.66, 329.63, 392.0, 440.0];
+  function chime(freq, vol, decay) {
+    var c = ac();
+    if (!c || !S.soundOn()) return;
+    try {
+      var t = c.currentTime;
+      [[1, 1], [2.01, 0.32], [2.76, 0.12]].forEach(function (part) {
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = 'sine';
+        o.frequency.value = freq * part[0];
+        g.gain.setValueAtTime((vol || 0.16) * part[1], t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + (decay || 1.4));
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + (decay || 1.4) + 0.05);
+      });
+    } catch (e) { /* 音频不可用则静默 */ }
+  }
+
   /* ================= 路由 ================= */
   var lastPage = 'home';
   function showPage(name) {
@@ -108,12 +136,27 @@
   function goBack() { showPage(lastPage || 'home'); }
 
   /* ================= 首页 ================= */
+  function dayOfYear() {
+    var now = new Date();
+    return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  }
   function renderHome() {
     $('#statMoves').textContent = moveTotal + ' 个动作';
     $('#statKeys').textContent = keyTotal + ' 组 3D 姿势';
+    /* 今日习练推荐：按日期确定性轮换，不随机不骚扰 */
+    var st = DATA.sets[dayOfYear() % DATA.sets.length];
+    var recs = S.recordsOfDay(S.todayStr());
+    $('#todayCard').innerHTML =
+      '<div class="tc-icon">' + st.icon + '</div>' +
+      '<div class="tc-main"><div class="tc-title">今日推荐 · ' + st.name + '：' + st.tagline + '</div>' +
+      '<div class="tc-sub">' + (recs.length
+        ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
+        : '今日未练 · 完整一套约 ' + st.durationMin + ' 分钟，练完自动点亮打卡') + '</div></div>' +
+      '<button class="btn primary" id="todayGo">▶ 立即跟练</button>';
+    $('#todayGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
     var box = $('#homeSets');
     box.innerHTML = '';
-    DATA.sets.forEach(function (st) { box.appendChild(setCard(st, false)); });
+    DATA.sets.forEach(function (st2) { box.appendChild(setCard(st2, false)); });
   }
   function setCard(st, showIntro) {
     var el = document.createElement('div');
@@ -133,6 +176,19 @@
 
   /* ================= 功法学堂 ================= */
   var curSet = null, curMove = null, viewingMove = false;
+  var picked = {}, pickedSetId = null; /* 自定义选式状态 */
+
+  function pickedList(set) {
+    return set.moves.filter(function (m) { return picked[m.id]; });
+  }
+  function refreshCustomBtn() {
+    var btn = $('#trainCustom');
+    if (!btn) return;
+    var n = pickedList(curSet).length;
+    btn.classList.toggle('hidden', n < 2);
+    btn.textContent = '▶ 选式跟练（已选 ' + n + ' 式）';
+    if (n >= 2) btn.onclick = function () { Train.start(curSet, pickedList(curSet), 'custom'); };
+  }
 
   function renderSetList() {
     $('#setList').classList.remove('hidden');
@@ -153,8 +209,10 @@
   }
 
   function openSet(setId) {
+    var prev = curSet;
     curSet = DATA.sets.find(function (s) { return s.id === setId; });
     if (!curSet) return;
+    if (!prev || prev.id !== curSet.id || pickedSetId !== curSet.id) { picked = {}; pickedSetId = curSet.id; }
     $('#setList').classList.add('hidden');
     $('#moveDetail').classList.add('hidden');
     $('#setDetail').classList.remove('hidden');
@@ -168,7 +226,8 @@
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="cta-row">' +
       '<button class="btn primary" id="trainFull">▶ 整套跟练（' + curSet.moves.length + ' 式 · 约' + curSet.durationMin + '分钟）</button>' +
-      '<button class="btn ghost" id="learnFrom1">📖 从第一式逐式学习</button></div>';
+      '<button class="btn ghost" id="learnFrom1">📖 从第一式逐式学习</button>' +
+      '<button class="btn ghost hidden" id="trainCustom"></button></div>';
     $('#trainFull').addEventListener('click', function () {
       Train.start(curSet, curSet.moves, 'full');
     });
@@ -187,9 +246,21 @@
         '<div class="no">第 ' + (idx + 1) + ' 式</div>' +
         '<div class="nm">' + m.name + '</div>' +
         (S.isLearned(curSet.id, m.id) ? '<div class="learned-mark">✓</div>' : '');
+      var pb = document.createElement('button');
+      pb.className = 'pick-btn' + (picked[m.id] ? ' on' : '');
+      pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
+      pb.addEventListener('click', function (e) {
+        e.stopPropagation();
+        picked[m.id] = !picked[m.id];
+        pb.classList.toggle('on', !!picked[m.id]);
+        pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
+        refreshCustomBtn();
+      });
+      cell.appendChild(pb);
       cell.addEventListener('click', function () { openMove(m.id); });
       grid.appendChild(cell);
     });
+    refreshCustomBtn();
   }
 
   function openMove(moveId) {
@@ -261,7 +332,8 @@
       this._startWall = 0; this._doneSec = 0;
       this.active = true;
       showPage('train');
-      $('#trainSetName').textContent = set.icon + ' ' + set.name + (mode === 'single' ? ' · 单式' : ' · 整套');
+      $('#trainSetName').textContent = set.icon + ' ' + set.name +
+        (mode === 'single' ? ' · 单式' : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
       $('#btnPause').textContent = '⏸ 暂停';
       this.enterStep(0);
       var self = this;
@@ -300,6 +372,7 @@
         $('#trainKeyLabel').textContent = '第 ' + (st.moveIdx + 1) + '/' + this._countMoves() + ' 式 · ' + st.label + '（' + (st.keyIdx + 1) + '/' + st.totalKeys + ' 动）';
         $('#stageTitle').textContent = st.move.name + ' · ' + st.label;
         speak((st.keyIdx === 0 ? st.move.name + '。' : '') + st.cue);
+        if (st.keyIdx === 0) chime(PENTA[st.moveIdx % PENTA.length], 0.13, 1.6); /* 换式轻磬 */
       } else {
         $('#trainMoveName').textContent = '预备起';
         $('#trainKeyLabel').textContent = st.label;
@@ -349,6 +422,7 @@
       $('#doneStats').textContent =
         '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天';
       speak('收功。' + set.name + '练习完成，今日打卡已记录。');
+      chime(196, 0.2, 2.6); /* 收功大磬 */
       pose3d(idlePoses[1], 1);
       showPage('done');
     }
@@ -361,6 +435,16 @@
   $('#btnQuit').addEventListener('click', function () {
     Train.stop(true);
     goBack();
+  });
+
+  /* 键盘快捷键：空格暂停/继续，←→切换动作，Esc 退出 */
+  document.addEventListener('keydown', function (e) {
+    if (!Train.active) return;
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (e.code === 'Space') { e.preventDefault(); Train.togglePause(); }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); Train.jump(1); }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); Train.jump(-1); }
+    else if (e.code === 'Escape') { Train.stop(true); goBack(); }
   });
 
   /* ================= 打卡成就页 ================= */
