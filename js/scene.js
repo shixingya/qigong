@@ -43,6 +43,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     setAutoRotate: function () {},
     setAuraColor: function () {},
     setAcuShow: function () {},
+    setMood: function () {},
+    mood: function () { return 'day'; },
     floatText: function () {},
     camView: function () {},
     currentPose: function () { return {}; }
@@ -51,6 +53,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     return { failed: true, ready: false,
       setPose: function () {}, snap: function () {}, setBreath: function () {},
       setAutoRotate: function () {}, setAuraColor: function () {}, setAcuShow: function () {},
+      setMood: function () {}, mood: function () { return 'day'; },
       floatText: function () {}, camView: function () {}, currentPose: function () { return {}; } };
   }
 
@@ -83,7 +86,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     controls.autoRotateSpeed = 0.9;
 
     /* ---------- 灯光 ---------- */
-    scene.add(new THREE.HemisphereLight(0xbfd8d2, 0x1a2a26, 0.75));
+    var hemi = new THREE.HemisphereLight(0xbfd8d2, 0x1a2a26, 0.75);
+    scene.add(hemi);
     var key = new THREE.DirectionalLight(0xf2e6c8, 1.35);
     key.position.set(2.5, 4, 3);
     key.castShadow = true;
@@ -430,6 +434,26 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     var acuVisible = false;
 
+    /* ---------- 晨昏演武台：按时段换光色，不靠真太阳 ---------- */
+    var MOODS = {
+      dawn: { bg: 0x1b2029, sky: 0xdcc9ae, gnd: 0x23302c, hi: 0.82, key: 0xffd9a0, ki: 1.28, rim: 0x7fb8c9, ri: 0.62 },
+      day: { bg: 0x14262a, sky: 0xbfd8d2, gnd: 0x1a2a26, hi: 0.75, key: 0xf2e6c8, ki: 1.35, rim: 0x5fd6b8, ri: 0.8 },
+      dusk: { bg: 0x241a22, sky: 0xe0b48a, gnd: 0x2a1e22, hi: 0.62, key: 0xff9f6b, ki: 1.12, rim: 0x9a6fb0, ri: 0.58 },
+      night: { bg: 0x0a1218, sky: 0x7fa8c9, gnd: 0x101a20, hi: 0.46, key: 0xa8c8e8, ki: 0.78, rim: 0x3f8fa8, ri: 0.74 }
+    };
+    var curMood = 'day';
+    function applyMood(name) {
+      var m = MOODS[name];
+      if (!m || name === curMood) return;
+      curMood = name;
+      scene.background.setHex(m.bg);
+      if (scene.fog) scene.fog.color.setHex(m.bg);
+      hemi.color.setHex(m.sky); hemi.groundColor.setHex(m.gnd); hemi.intensity = m.hi;
+      key.color.setHex(m.key); key.intensity = m.ki;
+      rim.color.setHex(m.rim); rim.intensity = m.ri;
+      floorMat.color.setHex(name === 'night' ? 0x0f1e22 : 0x14262a);
+    }
+
     api = {
       ready: true,
       init: function (c) { boot(c); }, /* 幂等：inited 守卫防重复 */
@@ -455,6 +479,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         acuVisible = !!b;
         for (var i = 0; i < acus.length; i++) acus[i].visible = !!b;
       },
+      setMood: function (name) { applyMood(name); },
+      mood: function () { return curMood; },
       floatText: function (txt) {
         if (!txt) { ftHold = 0; return; }
         drawFloatText(txt);

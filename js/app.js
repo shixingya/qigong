@@ -47,6 +47,7 @@
         global.QG3D.init(stage);
         var ld = $('#stageLoading');
         if (ld) ld.style.display = 'none';
+        applyMood();
         idleOn();
         return;
       } catch (e) { console.error('[QG] 3D 启动失败', e); }
@@ -85,20 +86,69 @@
   if ('speechSynthesis' in global) {
     speechSynthesis.onvoiceschanged = function () { voicesReady = true; };
   }
+  function mkUtter(text) {
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = Math.min(1.3, Math.max(0.7, 0.95 * S.tempo())); /* 快节奏口令同步变，钳制在自然区间 */
+    u.pitch = 0.92;
+    var vs = speechSynthesis.getVoices();
+    for (var i = 0; i < vs.length; i++) {
+      if (/zh|Chinese|中文/i.test(vs[i].lang)) { u.voice = vs[i]; break; }
+    }
+    return u;
+  }
   function speak(text) {
     if (!S.soundOn() || !('speechSynthesis' in global) || !text) return;
     try {
+      if (rd.on) rdStop(); /* 口令要开口，先把朗读收了，不留挂着的按钮 */
       speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-CN';
-      u.rate = Math.min(1.3, Math.max(0.7, 0.95 * S.tempo())); /* 快节奏口令同步变，钳制在自然区间 */
-      u.pitch = 0.92;
-      var vs = speechSynthesis.getVoices();
-      for (var i = 0; i < vs.length; i++) {
-        if (/zh|Chinese|中文/i.test(vs[i].lang)) { u.voice = vs[i]; break; }
-      }
-      speechSynthesis.speak(u);
+      speechSynthesis.speak(mkUtter(text));
     } catch (e) { /* 忽略 */ }
+  }
+  /* ---- 知识全篇朗读：逐段入队，一念一念接着读 ---- */
+  var rd = { on: false, id: '', btn: null, keep: 0 };
+  function paintRdBtn() {
+    var b = rd.btn;
+    if (!b) return;
+    b.className = 'btn ghost sm rd-btn' + (rd.on ? ' on' : '');
+    b.textContent = rd.on ? '⏹ 停止朗读' : '🔊 朗读全篇';
+  }
+  function rdStop() {
+    if (rd.keep) { clearInterval(rd.keep); rd.keep = 0; }
+    rd.on = false; rd.id = '';
+    try { if (global.speechSynthesis) speechSynthesis.cancel(); } catch (e) { /* 忽略 */ }
+    paintRdBtn();
+  }
+  function rdStart(kn, btn) {
+    if (rd.on && rd.id === kn.id) { rdStop(); return; }
+    if (!voiceOk() || !S.soundOn()) { showVoiceHint(); return; }
+    rdStop(); /* 换篇先收干净 */
+    rd.btn = btn;
+    var parts = [kn.title + '。'].concat(kn.points || []).concat(['本篇朗读完毕，如理如法。']);
+    rd.on = true; rd.id = kn.id;
+    paintRdBtn();
+    try {
+      speechSynthesis.cancel();
+      parts.forEach(function (t, i) {
+        var u = mkUtter(t);
+        if (i === parts.length - 1) {
+          var fin = function () { if (rd.id === kn.id) { rd.on = false; rd.id = ''; paintRdBtn(); } };
+          u.onend = fin; u.onerror = fin;
+        }
+        speechSynthesis.speak(u);
+      });
+      /* 部分 Chromium 长句会自锁：定期探一下，卡住就推一把 */
+      rd.keep = setInterval(function () {
+        if (!rd.on) return;
+        if (!('speechSynthesis' in global)) { rdStop(); return; }
+        if (speechSynthesis.speaking && !speechSynthesis.paused) return;
+        if (!speechSynthesis.speaking) { rdStop(); } /* 队已空而末句未报 onend，收尾不挂钮 */
+        else speechSynthesis.resume();
+      }, 9000);
+    } catch (e) {
+      rdStop();
+      if (global.console) global.console.warn('朗读失败', e);
+    }
   }
   function syncSoundBtn() {
     var b = $('#soundBtn');
@@ -156,6 +206,7 @@
   /* ================= 路由 ================= */
   var lastPage = 'home';
   function showPage(name) {
+    rdStop(); /* 换页先收朗读，不留个按钮在那空响 */
     if (name !== 'train' && Train.active) Train.stop(true);
     $$('.page').forEach(function (p) { p.classList.remove('on'); });
     $('#page-' + name).classList.add('on');
@@ -1279,6 +1330,12 @@
         '<div class="kb">' + kn.points.map(function (p) { return '<p>· ' + p + '</p>'; }).join('') +
         '<div class="kb-foot"></div></div>';
       var f = el.querySelector('.kb-foot');
+      /* 全篇朗读：眼睛累了让耳朵接一下 */
+      var rb = document.createElement('button');
+      rb.className = 'btn ghost sm rd-btn';
+      rb.textContent = '🔊 朗读全篇';
+      rb.addEventListener('click', function () { rdStart(kn, rb); });
+      f.appendChild(rb);
       var btn = document.createElement('button');
       btn.className = 'btn ' + (isRead ? 'ghost' : 'primary') + ' sm';
       btn.textContent = isRead ? '✓ 已读（点击取消）' : '标记读完';
@@ -1574,13 +1631,37 @@
     var q = q3d();
     if (q && q.setAutoRotate) q.setAutoRotate(e.target.checked);
   });
-  $$('[data-view]').forEach(function (b) {
+  $$('.stage-ctrls [data-view]').forEach(function (b) {
     b.addEventListener('click', function () {
       var q = q3d();
       if (q && q.camView) q.camView(b.dataset.view);
       $('#stageTitle').textContent = '演武台 · ' + b.textContent + '观练';
     });
   });
+
+  /* ---- 晨昏演武台：默认跟真实时段上光，点钮可手动锁定轮播 ---- */
+  var MOOD_ORDER = ['dawn', 'day', 'dusk', 'night'];
+  var MOOD_LABEL = { dawn: '晨光', day: '日朗', dusk: '暮色', night: '夜色' };
+  var moodLock = '';
+  function moodByHour(h) {
+    return h >= 5 && h < 11 ? 'dawn' : h >= 11 && h < 17 ? 'day' : h >= 17 && h < 23 ? 'dusk' : 'night';
+  }
+  function applyMood() {
+    var q = q3d();
+    if (!q || !q.setMood) return;
+    var m = moodLock || moodByHour(new Date().getHours());
+    q.setMood(m);
+    var b = $('#moodBtn');
+    if (b) b.textContent = '🌗 ' + MOOD_LABEL[m] + (moodLock ? ' · 锁定' : ' · 随时段');
+  }
+  var moodBtn = $('#moodBtn');
+  if (moodBtn) moodBtn.addEventListener('click', function () {
+    var cur = (q3d() && q3d().mood) ? q3d().mood() : 'day';
+    moodLock = MOOD_ORDER[(MOOD_ORDER.indexOf(cur) + 1) % MOOD_ORDER.length];
+    applyMood();
+    float3d(MOOD_LABEL[moodLock] + '演武台');
+  });
+  setInterval(applyMood, 60000); /* 跨过时段边界自动换光，锁定过的不抢 */
   $('#acuChk').addEventListener('change', function (e) {
     var q = q3d();
     if (q && q.setAcuShow) q.setAcuShow(e.target.checked);

@@ -190,7 +190,7 @@ button { font-family: inherit; cursor: pointer; }
 .know-progress b { color: var(--gold); }
 .know-card.read > summary { color: var(--jade); }
 .read-dot { margin-left: 8px; color: var(--jade); font-weight: 700; }
-.kb-foot { margin-top: 12px; display: flex; justify-content: flex-end; }
+.kb-foot { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 /* 首访引导 */
 .tour-mask {
   position: fixed; inset: 0; z-index: 120; background: rgba(6, 12, 13, .72);
@@ -692,3 +692,6 @@ button { font-family: inherit; cursor: pointer; }
   30% { background: rgba(230, 190, 110, .22); }
 }
 @media (prefers-reduced-motion: reduce) { .cw-day.flash { animation: none; } }
+
+/* ===== v2.16 知识全篇朗读 + 晨昏演武台 ===== */
+.rd-btn.on { border-color: var(--jade); color: var(--jade); }
