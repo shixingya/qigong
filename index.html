@@ -148,6 +148,7 @@
       <div class="stat-row" id="statRow"></div>
       <div class="week-card" id="weekCard"></div>
       <div class="time-dist" id="timeDist"></div>
+      <div class="move-rank hidden" id="moveRank"></div>
       <div class="check-grid">
         <div class="calendar-card">
           <div class="cal-head">
@@ -172,6 +173,7 @@
         <div class="backup-cta">
           <button class="btn ghost" id="exportBtn">⬇ 导出备份</button>
           <button class="btn ghost" id="importBtn">⬆ 导入备份</button>
+          <button class="btn ghost danger" id="wipeBtn" title="清空本机全部练功痕迹，不可撤销">🗑 清空本机数据</button>
           <input type="file" id="importFile" accept="application/json,.json" class="hidden">
         </div>
         <p id="importMsg" class="import-msg"></p>
@@ -335,6 +337,21 @@
     <div id="rvBody"></div>
     <div class="fc-cta">
       <button class="btn ghost sm" id="rvClose">✕ 收起</button>
+    </div>
+  </div>
+</div>
+
+<!-- 清空本机数据的二次确认浮层 -->
+<div class="calm-mask hidden" id="wipeMask">
+  <div class="calm-box wipe-box">
+    <h3>🗑 清空本机数据</h3>
+    <p class="wp-tip" id="wpTip"></p>
+    <p class="wp-sub">声音与节奏偏好不动；数据只存在这台设备的浏览器里，清空后无法找回，除非你先导过备份。</p>
+    <label class="wp-ck" for="wpWord">请输入下面两个字确认：<b id="wpWord">清空</b></label>
+    <input class="wp-in" type="text" id="wpIn" autocomplete="off" maxlength="6" placeholder="输入“清空”">
+    <div class="fc-cta">
+      <button class="btn ghost sm" id="wpNo">算了，继续练</button>
+      <button class="btn primary sm" id="wpYes" disabled>确认清空</button>
     </div>
   </div>
 </div>

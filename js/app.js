@@ -1235,10 +1235,12 @@
       e.preventDefault(); toggleHelp(!helpOpen); return;
     }
     if (helpOpen && e.key === 'Escape') { e.preventDefault(); toggleHelp(false); return; }
-    /* 复习台浮层开着时，Esc 只收浮层 */
+    /* 复习台/清空确认浮层开着时，Esc 只收浮层 */
     var rv = $('#rvMask');
     var rvOpen = rv && !rv.classList.contains('hidden');
     if (rvOpen && e.key === 'Escape') { e.preventDefault(); rv.classList.add('hidden'); return; }
+    var wm = $('#wipeMask');
+    if (wm && !wm.classList.contains('hidden') && e.key === 'Escape') { e.preventDefault(); closeWipe(); return; }
     /* 全局小键：R 朗读当前展开的那篇知识，M 换一档演武台晨昏 */
     if (!inField && !helpOpen && !Train.active && e.code === 'KeyR' && $('#page-knowledge').classList.contains('on')) {
       e.preventDefault();
@@ -1305,6 +1307,7 @@
     renderCalendar();
     renderWeekCard();
     renderTimeDist();
+    renderMoveRank();
 
     var bg = $('#badgeGrid');
     bg.innerHTML = '';
@@ -1350,6 +1353,51 @@
       row.innerHTML = '<span class="td-lb">' + x.icon + ' ' + x.name + '</span>' +
         '<span class="td-bar"><i style="width:' + w + '%"></i></span>' +
         '<span class="td-n">' + (x.n ? x.n + ' 次' : '—') + '</span>';
+      el.appendChild(row);
+    });
+  }
+
+  /* 式 id 反查所属功法与式本身（功夫榜、旧记录展示都用这一个口径） */
+  function findMove(mid) {
+    var hit = null;
+    DATA.sets.some(function (s) {
+      var m = s.moves.filter(function (x) { return x.id === mid; })[0];
+      if (m) { hit = { set: s, move: m }; return true; }
+      return false;
+    });
+    return hit;
+  }
+
+  /* 我的功夫榜：练得最多的几式排前面，点一下直接重练这一式 */
+  function renderMoveRank() {
+    var el = $('#moveRank');
+    if (!el) return;
+    /* 先取全量（大 n），过滤掉字典里查不到的旧式 id，再截前 8：免脏 id 挤掉好卡、造成序号空洞 */
+    var all = S.moveRank(9999).filter(function (it) { return !!findMove(it.move); });
+    var rk = all.slice(0, 8);
+    el.innerHTML = '';
+    if (!rk.length) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    var medal = ['🥇', '🥈', '🥉'];
+    var head = document.createElement('div');
+    head.className = 'mr-head';
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式，点一下重练这一式）';
+    el.appendChild(head);
+    rk.forEach(function (it, i) {
+      var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
+      var row = document.createElement('div');
+      row.className = 'mr-row';
+      var b = document.createElement('button');
+      b.className = 'mr-name';
+      b.textContent = fm.move.name;
+      b.title = '跟练 ' + fm.move.name + ' 单式';
+      b.addEventListener('click', function () { Train.start(fm.set, [fm.move], 'single'); });
+      row.innerHTML = '<span class="mr-rank">' + (medal[i] || (i + 1)) + '</span>';
+      row.appendChild(b);
+      var meta = document.createElement('span');
+      meta.className = 'mr-meta';
+      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last;
+      row.appendChild(meta);
       el.appendChild(row);
     });
   }
@@ -1947,6 +1995,38 @@
     } else window.prompt('手动复制：', txt);
   });
 
+  /* ================= 清空本机数据（二次确认） ================= */
+  /* 不可逆的动作不拿一个裸按钮吹人：要照着屏上两个字输一遍才放行 */
+  function openWipe() {
+    var n = S.totalSess(), ld = S.learnedTotal(), rd = S.readCount(), qc = S.quizCount();
+    $('#wpTip').innerHTML = '将清掉：<b>' + n + '</b> 场练功记录 · <b>' + ld + '</b> 式已学 · <b>' + rd + '</b> 篇已读 · <b>' + qc + '</b> 题小测过关' +
+      (S.planStatus() ? ' · 21 天挑战进度' : '') + (S.hardCount() ? ' · 难卡包 ' + S.hardCount() + ' 张' : '');
+    var inp = $('#wpIn'); inp.value = '';
+    $('#wpYes').disabled = true;
+    $('#wipeMask').classList.remove('hidden');
+  }
+  function closeWipe() { $('#wipeMask').classList.add('hidden'); $('#wpIn').value = ''; $('#wpYes').disabled = true; }
+  $('#wipeBtn').addEventListener('click', openWipe);
+  $('#wpNo').addEventListener('click', closeWipe);
+  $('#wpIn').addEventListener('input', function () {
+    $('#wpYes').disabled = this.value.trim() !== $('#wpWord').textContent.trim();
+  });
+  $('#wpYes').addEventListener('click', function () {
+    if (this.disabled) return;
+    if (Train.active) Train.stop(true);
+    S.wipeAll();
+    closeWipe();
+    /* 各个页面都得回到空数据的样子，不留上一份的残留数字 */
+    renderHome(); renderCheckin(); renderKnowledge(); paintKnowHead(); renderFavMoves(); renderFavs(); renderPlan();
+    if ($('#page-course').classList.contains('on')) renderCourse();
+    var msg = $('#importMsg');
+    msg.textContent = '✓ 已清空本机数据（声音与节奏偏好保留）';
+    msg.className = 'import-msg ok';
+    var sw = $('#soundBtn'); if (sw) syncSoundBtn();
+    paintCalmBtn(); paintAmbBtn();
+    if (global.console) global.console.log('已按用户确认清空本地练功数据');
+  });
+
   /* ================= 备份导出/导入 ================= */
   $('#exportBtn').addEventListener('click', function () {
     var blob = new Blob([S.exportPayload()], { type: 'application/json' });
@@ -1981,6 +2061,7 @@
   renderQuote();
   syncSoundBtn();
   syncTempoBtn();
+  paintAmbBtn(); /* 伴奏钮先跟存档 ambient 对上，不默认显示“无伴奏”骗人 */
   boot3D(60);
   maybeShowTour();
 

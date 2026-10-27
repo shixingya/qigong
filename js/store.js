@@ -182,6 +182,36 @@
     /* 累计练功分钟（定息也计） */
     totalMin: function () { return Math.round(this.totalSec() / 60); },
     totalSess: function () { return this._data.records.length; },
+    /* 我的功夫榜：把每场的 moves 拢起来数场次（定息无式不计） */
+    moveRank: function (n) {
+      var agg = {};
+      this._data.records.forEach(function (r) {
+        (r.moves || []).forEach(function (mid) {
+          var a = agg[mid] || (agg[mid] = { move: mid, count: 0, last: '' });
+          a.count++;
+          if (r.d > a.last) a.last = r.d;
+        });
+      });
+      var arr = Object.keys(agg).map(function (k) { return agg[k]; });
+      /* 次数多的排前；同次数recent 练过的排前 */
+      arr.sort(function (a, b) { return b.count - a.count || (a.last < b.last ? 1 : a.last > b.last ? -1 : 0); });
+      return arr.slice(0, n || 8);
+    },
+    /* 清空本机全部练功数据（备份导出后可从文件恢复） */
+    wipeAll: function () {
+      var old = this._data.settings || {};
+      /* 清的是练功痕迹（记录/已学/已读/收藏/难卡/错题/课表/挑战），
+         但声音节奏这些偏好留下，新手引导也不再弹第二次扰人 */
+      var ns = { favs: {}, toured: true };
+      ['sound', 'tempo', 'weekGoal', 'ambient'].forEach(function (k) {
+        if (old[k] !== undefined) ns[k] = old[k];
+      });
+      if (ns.sound === undefined) ns.sound = true;
+      if (!ns.tempo) ns.tempo = 1;
+      this._data = { records: [], learned: {}, read: {}, settings: ns, plan: null };
+      save(this._data);
+      return true;
+    },
     streakMax: function () {
       var setObj = {};
       this._data.records.forEach(function (r) { setObj[r.d] = 1; });
