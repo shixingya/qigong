@@ -244,6 +244,15 @@
       save(this._data);
       return this._data.settings.ambient;
     },
+    /* 自定义选式记忆：上次在某套里勾选的式 */
+    pickMem: function () {
+      var p = this._data.settings.pick;
+      return (p && typeof p === 'object' && typeof p.set === 'string') ? p : null;
+    },
+    savePick: function (setId, ids) {
+      this._data.settings.pick = { set: setId, ids: ids };
+      save(this._data);
+    },
     /* 收藏常用功法 */
     isFav: function (setId) { return !!(this._data.settings.favs || {})[setId]; },
     toggleFav: function (setId) {

@@ -383,7 +383,17 @@
     var prev = curSet;
     curSet = DATA.sets.find(function (s) { return s.id === setId; });
     if (!curSet) return;
-    if (!prev || prev.id !== curSet.id || pickedSetId !== curSet.id) { picked = {}; pickedSetId = curSet.id; }
+    if (!prev || prev.id !== curSet.id || pickedSetId !== curSet.id) {
+      pickedSetId = curSet.id;
+      picked = {};
+      /* 恢复上次在这套里勾过的选式（只认当前仍存在的动作 id） */
+      var pm = S.pickMem();
+      if (pm && pm.set === curSet.id && Array.isArray(pm.ids)) {
+        pm.ids.forEach(function (id) {
+          if (curSet.moves.some(function (m) { return m.id === id; })) picked[id] = true;
+        });
+      }
+    }
     $('#setList').classList.add('hidden');
     $('#moveDetail').classList.add('hidden');
     $('#setDetail').classList.remove('hidden');
@@ -464,6 +474,7 @@
           pb.classList.toggle('on', !!picked[m.id]);
           pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
           refreshCustomBtn();
+          S.savePick(curSet.id, Object.keys(picked).filter(function (k) { return picked[k]; }));
         });
         cell.appendChild(pb);
         cell.addEventListener('click', function () { openMove(m.id); });
@@ -562,6 +573,7 @@
         (mode === 'single' ? ' · 单式' : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
       $('#btnPause').textContent = '⏸ 暂停';
       this.enterStep(0);
+      this.renderTick(); /* 开场即刷新步数，不留上一场残值 */
       var self = this;
       this._last = performance.now();
       cancelAnimationFrame(this._raf);
@@ -599,6 +611,8 @@
       breath3d(st.inhale);
       var ring = $('#breathRing');
       ring.className = 'breath-ring ' + (st.inhale === 'hold' ? 'hold' : st.inhale);
+      /* 开合速度跟真实呼吸时长走（慢/常/快节奏下均同步） */
+      ring.style.transitionDuration = Math.max(1.2, Math.min(st._eff - 0.2, 8)) + 's';
       $('#breathText').textContent = st.inhale === 'in' ? '吸' : st.inhale === 'out' ? '呼' : '定';
       if (st.move) {
         $('#trainMoveName').textContent = st.move.name;
