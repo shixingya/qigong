@@ -43,6 +43,7 @@
   </nav>
   <button id="tempoBtn" class="sound-btn" title="跟练节奏：慢/常/快循环切换">🧘 常速</button>
   <button id="soundBtn" class="sound-btn" title="语音口令开关">🔊 口令</button>
+  <button id="helpBtn" class="sound-btn" title="快捷键帮助（按 ? 键）">⌨ 帮助</button>
 </header>
 
 <main class="layout">
@@ -67,6 +68,7 @@
           <button class="btn ghost big" data-go="course">🗓 四周入门计划</button>
           <button class="btn ghost big" data-go="sets">先逛功法库</button>
         </div>
+        <div class="daily-quote" id="dailyQuote"></div>
       </div>
 
       <h2 class="sec-title">四大功法 · 对号入座</h2>
@@ -246,8 +248,32 @@
 <footer class="foot">
   气功学堂 · 内容整理自国家体育总局健身气功主流功法与公开文献，仅作养生科普，不构成医疗建议 ·
   <a href="https://github.com/shixingya/qigong" target="_blank" rel="noopener">GitHub 开源</a> ·
-  <a href="#" id="replayTour">重看新手引导</a>
+  <a href="#" id="replayTour">重看新手引导</a> ·
+  <a href="#" id="footHelp">快捷键帮助</a>
 </footer>
+
+<!-- 快捷键帮助浮层 -->
+<div id="helpMask" class="tour-mask hidden">
+  <div class="tour-card">
+    <div class="tour-step">⌨️ 快捷键与小技巧</div>
+    <div class="tour-title">跟练中</div>
+    <ul class="help-list">
+      <li><kbd>空格</kbd> 暂停 / 继续</li>
+      <li><kbd>→</kbd> 下一动 · <kbd>←</kbd> 上一动</li>
+      <li><kbd>Esc</kbd> 退出跟练回上一页</li>
+    </ul>
+    <div class="tour-title">平时</div>
+    <ul class="help-list">
+      <li><kbd>?</kbd> 随时开关本帮助</li>
+      <li>顶栏可切节奏（慢/常/快）与口令开关</li>
+      <li>功法页可搜动作、按部位标签筛选</li>
+    </ul>
+    <div class="tour-foot">
+      <span class="tour-dots"><i class="on"></i></span>
+      <button class="btn primary sm" id="helpClose">知道啦</button>
+    </div>
+  </div>
+</div>
 
 <!-- 数据与逻辑层（普通脚本） -->
 <script src="js/data.js"></script>

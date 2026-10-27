@@ -42,7 +42,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .brand { font-size: 20px; letter-spacing: 2px; color: var(--ink); }
 .brand small { color: var(--sub); font-size: 11px; letter-spacing: 3px; margin-left: 6px; }
-.topbar nav { display: flex; gap: 6px; flex: 1; flex-wrap: nowrap; min-width: 0; }
+.topbar nav { display: flex; gap: 6px; flex: 1 1 auto; flex-wrap: wrap; min-width: 0; }
 .topbar nav button {
   background: none; border: 1px solid transparent; color: var(--sub);
   padding: 7px 14px; border-radius: 999px; font-size: 15px; transition: .2s; white-space: nowrap;
@@ -425,6 +425,8 @@ button { font-family: inherit; cursor: pointer; }
   .layout { grid-template-columns: 1fr; }
   .stage-col { position: static; height: 400px; min-height: 0; order: -1; }
   .move-body, .check-grid { grid-template-columns: 1fr; }
+  .topbar nav button { padding: 6px 10px; font-size: 14px; }
+  .topbar .sound-btn { padding: 5px 9px; font-size: 12px; }
 }
 @media (max-width: 640px) {
   .topbar { gap: 10px; padding: 10px 14px; }
@@ -469,3 +471,17 @@ button { font-family: inherit; cursor: pointer; }
 .wk-body { display: grid; gap: 4px; font-size: 13px; color: var(--sub); }
 .wk-body b { color: var(--ink); font-size: 15px; }
 .wk-body .wk-empty { color: var(--sub); }
+
+/* ===== 每日一句与帮助浮层 ===== */
+.daily-quote {
+  margin-top: 14px; padding: 10px 14px; border-left: 3px solid #c9a86a;
+  background: rgba(201, 168, 106, .08); border-radius: 0 10px 10px 0;
+  color: var(--ink); font-size: 14px; line-height: 1.7;
+}
+.help-list { margin: 6px 0 14px; padding-left: 0; list-style: none; }
+.help-list li { margin: 6px 0; color: var(--sub); font-size: 14px; }
+.help-list kbd {
+  display: inline-block; min-width: 22px; text-align: center; padding: 2px 8px;
+  border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px;
+  background: var(--panel); color: var(--ink); font-family: inherit; font-size: 12px; margin-right: 6px;
+}

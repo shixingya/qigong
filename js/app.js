@@ -622,13 +622,45 @@
 
   /* 键盘快捷键：空格暂停/继续，←→切换动作，Esc 退出 */
   document.addEventListener('keydown', function (e) {
+    var mask = $('#helpMask');
+    var helpOpen = mask && !mask.classList.contains('hidden');
+    var inField = e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+    /* ? 全局开关帮助（输入框里不打断；开着时 ?/Esc 只关浮层，不落到跟练分支） */
+    if (!inField && (e.key === '?' || (e.code === 'Slash' && e.shiftKey))) {
+      e.preventDefault(); toggleHelp(!helpOpen); return;
+    }
+    if (helpOpen && e.key === 'Escape') { e.preventDefault(); toggleHelp(false); return; }
     if (!Train.active) return;
-    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (inField) return;
     if (e.code === 'Space') { e.preventDefault(); Train.togglePause(); }
     else if (e.code === 'ArrowRight') { e.preventDefault(); Train.jump(1); }
     else if (e.code === 'ArrowLeft') { e.preventDefault(); Train.jump(-1); }
     else if (e.code === 'Escape') { Train.stop(true); resetStage(); goBack(); }
   });
+
+  /* ---- 快捷键帮助浮层 ---- */
+  function toggleHelp(to) {
+    var mask = $('#helpMask');
+    if (!mask) return;
+    var show = to === null ? mask.classList.contains('hidden') : to;
+    mask.classList.toggle('hidden', !show);
+  }
+  $('#helpBtn').addEventListener('click', function () { toggleHelp(null); });
+  $('#footHelp').addEventListener('click', function (e) { e.preventDefault(); toggleHelp(true); });
+  $('#helpClose').addEventListener('click', function () { toggleHelp(false); });
+  $('#helpMask').addEventListener('click', function (e) { if (e.target === this) toggleHelp(false); });
+
+  /* ---- 每日一句养生箴言（按年内天数轮换） ---- */
+  function renderQuote() {
+    var el = $('#dailyQuote');
+    if (!el) return;
+    var qs = DATA.quotes || [];
+    if (!qs.length) { el.classList.add('hidden'); return; }
+    var now = new Date();
+    var doy = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 0)) / 86400000);
+    var q = qs[doy % qs.length];
+    el.textContent = '🍵 今日一句：' + q.t + ' —— ' + q.s;
+  }
 
   /* ================= 打卡成就页 ================= */
   var calDate = new Date();
@@ -1048,6 +1080,7 @@
   /* ================= 启动 ================= */
   renderHome();
   renderKnowledge();
+  renderQuote();
   syncSoundBtn();
   syncTempoBtn();
   boot3D(60);
