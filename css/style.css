@@ -536,3 +536,34 @@ button { font-family: inherit; cursor: pointer; }
 #demoLoop { float: right; margin-top: -2px; }
 #demoLoop:not(:disabled) { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .co-dot { animation: none; } }
+
+/* ===== v2.8 知识随堂小测 + 久未练功提醒 ===== */
+.quiz-box {
+  margin: 14px 0 6px; padding: 12px 14px; border-radius: 12px;
+  background: rgba(95, 214, 184, .06); border: 1px solid rgba(95, 214, 184, .28);
+}
+.q-title { font-size: 14px; color: var(--ink); margin-bottom: 10px; }
+.q-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.q-opt {
+  padding: 7px 14px; border-radius: 999px; font-size: 13.5px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  transition: border-color .2s ease, background .2s ease;
+}
+.q-opt:hover:not(:disabled) { border-color: var(--jade); }
+.q-opt.right {
+  border-color: var(--jade); background: rgba(95, 214, 184, .18);
+  color: var(--jade); font-weight: 600;
+}
+.q-opt.wrong { border-color: #d75f5f; color: #e08585; animation: qShake .5s ease; }
+@keyframes qShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+.q-fb { margin-top: 9px; font-size: 13px; min-height: 0; }
+.q-fb:empty { display: none; }
+.q-fb.ok { color: var(--jade); }
+.q-fb.bad { color: #e08585; }
+.gap-banner {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  margin: 12px 0 2px; padding: 11px 15px; border-radius: 12px;
+  background: rgba(201, 168, 106, .08); border: 1px solid rgba(201, 168, 106, .45);
+}
+.gb-txt { flex: 1; min-width: 200px; font-size: 13.5px; color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .q-opt.wrong { animation: none; } }

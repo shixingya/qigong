@@ -201,6 +201,27 @@
     DATA.sets.forEach(function (st2) { box.appendChild(setCard(st2, false)); });
     renderFavs();
     renderPlan();
+    paintGapBanner();
+  }
+
+  /* ---- 久未练功提醒：≥ 3 天没练露banner，关一下今天不再打扰 ---- */
+  function paintGapBanner() {
+    var el = $('#gapBanner');
+    if (!el) return;
+    var g = S.gapDays();
+    var dismissed = false;
+    try { dismissed = sessionStorage.getItem('qigong_gap_dismiss') === S.todayStr(); } catch (e) { /* 隐私模式退化为每次都提 */ }
+    if (g === null || g < 3 || dismissed) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+    var st = DATA.sets[dayOfYear() % DATA.sets.length];
+    el.innerHTML = '<span class="gb-txt">🍂 已经 ' + g + ' 天没练功了，身体默默记着账——来一套' + st.name + '松松？</span>' +
+      '<button class="btn primary sm" id="gapGo">▶ 这就开练</button>' +
+      '<button class="btn ghost sm" id="gapX">今天先不打扰</button>';
+    el.classList.remove('hidden');
+    $('#gapGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
+    $('#gapX').addEventListener('click', function () {
+      try { sessionStorage.setItem('qigong_gap_dismiss', S.todayStr()); } catch (e) { }
+      el.classList.add('hidden');
+    });
   }
 
   /* ---- 收藏常用：有收藏才在首页露出 ---- */
@@ -937,7 +958,12 @@
     var total = DATA.knowledge.length, rc = S.readCount();
     var head = document.createElement('div');
     head.className = 'know-progress';
-    head.innerHTML = '已读 <b>' + rc + '</b> / ' + total + ' 篇' + (total && rc === total ? ' · 明理圆满 🎉' : '');
+    function paintKnowHead() {
+      var qc = S.quizCount();
+      head.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (total && S.readCount() === total ? ' · 明理圆满 🎉' : '') +
+        ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '');
+    }
+    paintKnowHead();
     box.appendChild(head);
     DATA.knowledge.forEach(function (kn) {
       var isRead = S.isRead(kn.id);
@@ -962,10 +988,43 @@
           s.className = 'read-dot'; s.title = '已读'; s.textContent = '✓';
           el.querySelector('summary').appendChild(s);
         } else if (!nowRead && dot) { dot.remove(); }
-        var rc2 = S.readCount();
-        head.innerHTML = '已读 <b>' + rc2 + '</b> / ' + total + ' 篇' + (total && rc2 === total ? ' · 明理圆满 🎉' : '');
+        paintKnowHead();
       });
       f.appendChild(btn);
+
+      /* 随堂小测：答对落盘、答错可重试 */
+      if (kn.quiz) {
+        var qb = document.createElement('div');
+        qb.className = 'quiz-box';
+        var passed = S.quizPassed(kn.id);
+        var fbHtml = passed ? '<div class="q-fb ok">✓ 已过关 · ' + kn.quiz.why + '</div>' : '<div class="q-fb"></div>';
+        qb.innerHTML = '<div class="q-title">📝 随堂小测 · ' + kn.quiz.q + '</div>' +
+          '<div class="q-opts">' + kn.quiz.opts.map(function (o, i) {
+            return '<button class="q-opt' + (passed && i === kn.quiz.a ? ' right' : '') + '" data-i="' + i + '"' + (passed ? ' disabled' : '') + '>' + o + '</button>';
+          }).join('') + '</div>' + fbHtml;
+        qb.querySelectorAll('.q-opt').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (S.quizPassed(kn.id)) return;
+            var i = +b.dataset.i, fb = qb.querySelector('.q-fb');
+            if (i === kn.quiz.a) {
+              S.markQuizPass(kn.id);
+              qb.querySelectorAll('.q-opt').forEach(function (x) { x.disabled = true; });
+              b.classList.add('right');
+              fb.className = 'q-fb ok';
+              fb.textContent = '✓ 答对了！' + kn.quiz.why;
+              chime(659.25, 0.12, 1.2);
+              paintKnowHead();
+            } else {
+              b.classList.add('wrong');
+              setTimeout(function () { b.classList.remove('wrong'); }, 650);
+              fb.className = 'q-fb bad';
+              fb.textContent = '✗ 再想想，换个试试';
+            }
+          });
+        });
+        var kbFoot = el.querySelector('.kb-foot');
+        el.querySelector('.kb').insertBefore(qb, kbFoot);
+      }
       box.appendChild(el);
     });
   }

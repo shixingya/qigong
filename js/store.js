@@ -274,6 +274,30 @@
       this._data.settings.pick = { set: setId, ids: ids };
       save(this._data);
     },
+    /* 知识小测：答对才落盘，答错可重选 */
+    quizPassed: function (knId) {
+      var q = this._data.settings.quiz;
+      return !!(q && q[knId] === true);
+    },
+    markQuizPass: function (knId) {
+      var q = this._data.settings.quiz = this._data.settings.quiz || {};
+      q[knId] = true;
+      save(this._data);
+    },
+    quizCount: function () {
+      var q = this._data.settings.quiz || {};
+      return Object.keys(q).filter(function (k) { return q[k]; }).length;
+    },
+
+    /* 距上次练功的天数（无记录返 null） */
+    gapDays: function () {
+      if (!this._data.records.length) return null;
+      var ds = this._data.records.map(function (r) { return r.d; }).sort();
+      var last = ds[ds.length - 1];
+      var diff = Math.round((new Date(todayStr()) - new Date(last)) / 86400000);
+      return diff >= 0 ? diff : 0;
+    },
+
     /* 收藏常用功法 */
     isFav: function (setId) { return !!(this._data.settings.favs || {})[setId]; },
     toggleFav: function (setId) {
