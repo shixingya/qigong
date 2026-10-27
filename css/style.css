@@ -434,3 +434,27 @@ button { font-family: inherit; cursor: pointer; }
   .breath-ring { width: 72px; height: 72px; font-size: 16px; }
   .stage-col { height: 330px; }
 }
+
+/* ===== 功法页搜索与标签筛选 ===== */
+.set-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0 14px; }
+.set-filter input[type=search] {
+  flex: 1 1 240px; max-width: 360px; padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 14px;
+}
+.set-filter input[type=search]:focus { outline: none; border-color: var(--acc, #c9a86a); }
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-btn {
+  padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--sub); font-size: 13px; cursor: pointer;
+}
+.chip-btn:hover { color: var(--ink); }
+.chip-btn.on { background: #c9a86a; border-color: #c9a86a; color: #14201c; font-weight: 600; }
+.search-head { color: var(--sub); font-size: 13px; margin: 4px 0 10px; }
+.sr-row {
+  border: 1px solid var(--line); border-left: 3px solid var(--acc, #c9a86a); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 8px; cursor: pointer; background: var(--panel);
+}
+.sr-row:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+.sr-set { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); }
+.sr-nm { font-size: 15px; font-weight: 600; color: var(--ink); margin: 2px 0; }
+.sr-bt { font-size: 12px; color: var(--sub); }

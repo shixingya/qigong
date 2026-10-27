@@ -263,18 +263,90 @@
     $('#setList').classList.remove('hidden');
     $('#setDetail').classList.add('hidden');
     $('#moveDetail').classList.add('hidden');
-    var box = $('#setCards');
-    box.innerHTML = '';
-    DATA.sets.forEach(function (st) {
-      var card = setCard(st, true);
-      if (st.intro) {
-        var p = document.createElement('div');
-        p.style.cssText = 'color:var(--sub);font-size:13px;margin-top:6px';
-        p.textContent = st.intro.slice(0, 46) + '……';
-        card.appendChild(p);
-      }
-      box.appendChild(card);
+    paintFilter();
+  }
+
+  /* ---- 功法页搜索与部位标签筛选 ---- */
+  var TAGS = {
+    '肩颈': ['肩', '颈'], '腰肾': ['腰', '肾'], '心肺': ['胸', '肺', '心'],
+    '脾胃': ['脾', '胃', '三焦', '消化'], '安神': ['安', '静', '松', '眠'], '腿足': ['腿', '足', '马步', '下蹲', '蹲']
+  };
+  var activeTag = null, searchQ = '';
+  function moveTags(st, m) {
+    var hay = (m.name + ' ' + (m.desc || '') + ' ' + (m.benefit || '') + ' ' + (m.breath || '')).toLowerCase();
+    var out = [];
+    Object.keys(TAGS).forEach(function (tag) {
+      if (TAGS[tag].some(function (w) { return hay.indexOf(w) >= 0; })) out.push(tag);
     });
+    return out;
+  }
+  function paintFilter() {
+    /* 标签栏 */
+    var chips = $('#tagChips');
+    chips.innerHTML = '';
+    var mk = ['全部'];
+    Object.keys(TAGS).forEach(function (k) { mk.push(k); });
+    mk.forEach(function (t) {
+      var b = document.createElement('button');
+      b.className = 'chip-btn' + (t === '全部' ? (!activeTag && !searchQ ? ' on' : '') : (t === activeTag ? ' on' : ''));
+      b.textContent = t;
+      b.addEventListener('click', function () {
+        activeTag = (t === '全部') ? null : t;
+        searchQ = ''; $('#moveSearch').value = '';
+        paintFilter();
+      });
+      chips.appendChild(b);
+    });
+    /* 搜索命中面板：非空时接管卡片列表 */
+    var resBox = $('#searchResult');
+    var cardsBox = $('#setCards');
+    if (searchQ || activeTag) {
+      var hits = [];
+      DATA.sets.forEach(function (st) {
+        st.moves.forEach(function (m, idx) {
+          var okTag = !activeTag || moveTags(st, m).indexOf(activeTag) >= 0;
+          var okQ = !searchQ || (m.name + ' ' + (m.desc || '') + ' ' + (m.benefit || '')).toLowerCase().indexOf(searchQ) >= 0;
+          if (okTag && okQ) hits.push({ st: st, m: m, idx: idx });
+        });
+      });
+      cardsBox.classList.add('hidden');
+      resBox.classList.remove('hidden');
+      resBox.innerHTML = '';
+      var head = document.createElement('div');
+      head.className = 'search-head';
+      head.textContent = '找到 ' + hits.length + ' 个动作' + (activeTag ? '（标签：' + activeTag + '）' : '') + (searchQ ? '（关键词：“' + searchQ + '”）' : '');
+      resBox.appendChild(head);
+      hits.slice(0, 40).forEach(function (h) {
+        var row = document.createElement('div');
+        row.className = 'sr-row';
+        row.style.setProperty('--acc', h.st.color);
+        row.innerHTML = '<div class="sr-set">' + h.st.icon + ' ' + h.st.name + '<span>第 ' + (h.idx + 1) + ' 式</span></div>' +
+          '<div class="sr-nm">' + h.m.name + '</div><div class="sr-bt">' + (h.m.benefit || '') + '</div>';
+        row.addEventListener('click', function () { openSet(h.st.id); openMove(h.m.id); });
+        resBox.appendChild(row);
+      });
+      if (!hits.length) {
+        var empty = document.createElement('div');
+        empty.className = 'search-head';
+        empty.textContent = '没找到匹配的动作，换个词试试（如“托天”“摇头”“射雕”）';
+        resBox.appendChild(empty);
+      }
+    } else {
+      resBox.classList.add('hidden');
+      resBox.innerHTML = '';
+      cardsBox.classList.remove('hidden');
+      cardsBox.innerHTML = '';
+      DATA.sets.forEach(function (st) {
+        var card = setCard(st, true);
+        if (st.intro) {
+          var p = document.createElement('div');
+          p.style.cssText = 'color:var(--sub);font-size:13px;margin-top:6px';
+          p.textContent = st.intro.slice(0, 46) + '……';
+          card.appendChild(p);
+        }
+        cardsBox.appendChild(card);
+      });
+    }
   }
 
   function openSet(setId) {
@@ -802,6 +874,24 @@
   });
   var rt = $('#replayTour');
   if (rt) rt.addEventListener('click', function (e) { e.preventDefault(); buildTour(); });
+  /* 动作搜索输入：防抖 200ms */
+  var searchTimer = null;
+  $('#moveSearch').addEventListener('input', function () {
+    var v = this.value.trim().toLowerCase();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+      searchQ = v;
+      if (v) activeTag = null; /* 关键词优先，标签回“全部” */
+      paintFilter();
+    }, 200);
+  });
+  /* 浏览器隐私模式等导致无法本地持久化时提醒 */
+  if (!S.canPersist()) {
+    var w = document.createElement('div');
+    w.className = 'sw-update';
+    w.textContent = '⚠️ 当前浏览器不允许本地存储（隐私模式？），本次打卡记录只留在内存，刷新即失';
+    document.body.appendChild(w);
+  }
   $('#soundBtn').addEventListener('click', function () {
     S.toggleSound();
     syncSoundBtn();

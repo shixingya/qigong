@@ -10,6 +10,15 @@
   var KEY = 'qigong_v1';
   var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+  /* localStorage 包装：隐私模式/存满时回退内存，本次会话仍可用并告知宿主 */
+  var memFallback = {}, canPersist = true;
+  try { localStorage.setItem(KEY + '__probe', '1'); localStorage.removeItem(KEY + '__probe'); } catch (e) { canPersist = false; }
+  var LS = {
+    getItem: function (k) { try { return localStorage.getItem(k); } catch (e) { return memFallback[k] !== undefined ? memFallback[k] : null; } },
+    setItem: function (k, v) { try { localStorage.setItem(k, v); } catch (e) { memFallback[k] = String(v); } },
+    removeItem: function (k) { try { localStorage.removeItem(k); } catch (e) { delete memFallback[k]; } }
+  };
+
   function todayStr(offset) {
     var d = new Date();
     if (offset) d.setDate(d.getDate() + offset);
@@ -20,7 +29,7 @@
 
   function load() {
     var raw = null;
-    try { raw = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
+    try { raw = LS.getItem(KEY); } catch (e) { /* 隐私模式 */ }
     var data = { records: [], learned: {}, read: {}, settings: { sound: true, tempo: 1, favs: {} }, plan: null };
     if (raw) {
       try {
@@ -37,7 +46,7 @@
   }
 
   function save(data) {
-    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 存满忽略 */ }
+    try { LS.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 存满忽略 */ }
   }
 
   function diffDays(a, b) { /* 含头含尾的天数：b - a + 1 */
@@ -46,6 +55,7 @@
 
   var S = {
     todayStr: todayStr,
+    canPersist: function () { return canPersist; },
     _data: load(),
 
     /* ---- 学习进度 ---- */
