@@ -529,6 +529,16 @@
       openMove(moveId); /* 重进以刷新状态 */
     };
     $('#backToSet').textContent = '← 返回' + curSet.name;
+
+    /* 同一套内快速前后翻式，尽头禁用 */
+    var mi = curSet.moves.indexOf(curMove);
+    var pv = $('#prevMove'), nx = $('#nextMove');
+    pv.disabled = mi <= 0;
+    nx.disabled = mi >= curSet.moves.length - 1;
+    pv.textContent = mi > 0 ? '⬅ 上一式 · ' + curSet.moves[mi - 1].name : '⬅ 已是第一式';
+    nx.textContent = mi < curSet.moves.length - 1 ? '下一式 · ' + curSet.moves[mi + 1].name + ' ➡' : '已是最后一式 ➡';
+    pv.onclick = function () { if (mi > 0) openMove(curSet.moves[mi - 1].id); };
+    nx.onclick = function () { if (mi < curSet.moves.length - 1) openMove(curSet.moves[mi + 1].id); };
   }
 
   $('#backToSet').addEventListener('click', function () {
@@ -779,6 +789,7 @@
 
     renderCalendar();
     renderWeekCard();
+    renderTimeDist();
 
     var bg = $('#badgeGrid');
     bg.innerHTML = '';
@@ -795,12 +806,36 @@
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
-      li.innerHTML = '<b>' + r.d + '</b><span>' + (st ? st.icon + st.name : r.set) + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + ((r.moves || []).length) + ' 式</span>';
+      li.innerHTML = '<b>' + r.d + '</b><span>' + (st ? st.icon + ' ' + st.name : '🍂 旧存档功法') + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + ((r.moves || []).length) + ' 式</span>';
       list.appendChild(li);
     });
   }
   function statBox(v, unit, label, gold) {
     return '<div class="stat-box' + (gold ? ' gold' : '') + '"><b>' + v + '<small style="font-size:14px"> ' + unit + '</small></b><span>' + label + '</span></div>';
+  }
+
+  /* 练功时段分布：四段横向条，随真实打卡时刻生长 */
+  function renderTimeDist() {
+    var el = $('#timeDist');
+    if (!el) return;
+    var b = S.timeBuckets(), max = 0, total = 0;
+    b.forEach(function (x) { if (x.n > max) max = x.n; total += x.n; });
+    el.innerHTML = '';
+    var head = document.createElement('div');
+    head.className = 'td-head';
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    el.appendChild(head);
+    if (!total) return;
+    b.forEach(function (x) {
+      var row = document.createElement('div');
+      row.className = 'td-row';
+      row.title = x.tip;
+      var w = max ? Math.round(x.n / max * 100) : 0;
+      row.innerHTML = '<span class="td-lb">' + x.icon + ' ' + x.name + '</span>' +
+        '<span class="td-bar"><i style="width:' + w + '%"></i></span>' +
+        '<span class="td-n">' + (x.n ? x.n + ' 次' : '—') + '</span>';
+      el.appendChild(row);
+    });
   }
 
   /* 周练报告：近 7 天小结，完全由真实打卡记录推导 */

@@ -72,10 +72,31 @@
       return Object.keys(this._data.learned[setId] || {}).length;
     },
 
+    /* 练功时段分布：按十二时粗分为四段，无时刻的旧记录不计入 */
+    timeBuckets: function () {
+      var defs = [
+        { name: '朝练', tip: '卯辰时 5-11 点', icon: '🌅', lo: 5, hi: 11 },
+        { name: '昼练', tip: '巳午时 11-17 点', icon: '☀️', lo: 11, hi: 17 },
+        { name: '晚练', tip: '申酉时 17-23 点', icon: '🌇', lo: 17, hi: 23 },
+        { name: '子时练', tip: '亥子寅 23-5 点，能起来练是真爱', icon: '🌙', lo: 23, hi: 5 }
+      ];
+      var out = defs.map(function (d) { return { name: d.name, tip: d.tip, icon: d.icon, n: 0 }; });
+      this._data.records.forEach(function (r) {
+        if (typeof r.hour !== 'number' || r.hour < 0 || r.hour > 23) return;
+        for (var i = 0; i < defs.length; i++) {
+          var d = defs[i];
+          var ok = d.lo < d.hi ? (r.hour >= d.lo && r.hour < d.hi) : (r.hour >= d.lo || r.hour < d.hi);
+          if (ok) { out[i].n++; break; }
+        }
+      });
+      return out;
+    },
+
     /* ---- 打卡记录 ---- */
     addRecord: function (setId, sec, moveIds) {
       this._data.records.push({
         d: todayStr(), set: setId, sec: Math.round(sec),
+        hour: new Date().getHours(),
         moves: (moveIds || []).slice()
       });
       save(this._data);
@@ -295,7 +316,7 @@
       var records = p.records.filter(function (r) {
         return r && DATE_RE.test(r.d) && typeof r.set === 'string' && isFinite(r.sec) && r.sec >= 0 && r.sec < 86400;
       }).map(function (r) {
-        return { d: r.d, set: String(r.set).slice(0, 40), sec: Math.round(r.sec), moves: Array.isArray(r.moves) ? r.moves.slice(0, 60) : [] };
+        return { d: r.d, set: String(r.set).slice(0, 40), sec: Math.round(r.sec), hour: (typeof r.hour === 'number' && r.hour >= 0 && r.hour < 24) ? Math.round(r.hour) : null, moves: Array.isArray(r.moves) ? r.moves.slice(0, 60) : [] };
       });
       var learned = {};
       if (p.learned && typeof p.learned === 'object') {

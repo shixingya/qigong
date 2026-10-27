@@ -505,3 +505,14 @@ button { font-family: inherit; cursor: pointer; }
 .install-bar { display: flex; align-items: center; gap: 8px; bottom: 60px; } /* 让开右下角更新条 */
 /* 全局错误轻提示：复用更新条外观，换暖警示色 */
 .err-toast { border-color: rgba(201, 168, 106, .6); color: var(--gold); }
+
+/* ===== v2.6 练功时段分布 + 单式前后翻页 ===== */
+.time-dist { margin: 0 0 14px; }
+.td-head { font-size: 13px; color: var(--sub); margin-bottom: 8px; }
+.td-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 13px; }
+.td-lb { width: 86px; flex-shrink: 0; color: var(--ink); }
+.td-bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(95, 214, 184, .12); overflow: hidden; }
+.td-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--jade), var(--gold)); transition: width .5s ease; min-width: 0; }
+.td-n { width: 52px; text-align: right; color: var(--jade); flex-shrink: 0; }
+.mv-nav { margin-top: 4px; }
+.btn:disabled { opacity: .38; cursor: not-allowed; }
