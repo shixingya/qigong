@@ -318,6 +318,17 @@
       return diff >= 0 ? diff : 0;
     },
 
+    /* 周练目标：每周想练几次，默认 3 */
+    weekGoal: function () {
+      var g = this._data.settings.weekGoal;
+      return (g >= 1 && g <= 7) ? g : 3;
+    },
+    setWeekGoal: function (g) {
+      this._data.settings.weekGoal = Math.max(1, Math.min(7, g | 0));
+      save(this._data);
+      return this._data.settings.weekGoal;
+    },
+
     /* 收藏常用功法 */
     isFav: function (setId) { return !!(this._data.settings.favs || {})[setId]; },
     toggleFav: function (setId) {

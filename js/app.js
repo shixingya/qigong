@@ -974,28 +974,43 @@
     });
   }
 
-  /* 周练报告：近 7 天小结，完全由真实打卡记录推导 */
+  /* 周练报告：近 7 天小结 + 周练目标环，完全由真实打卡记录推导 */
+  var lastGoalHit = null;
   function renderWeekCard() {
     var el = $('#weekCard');
     if (!el) return;
     var w = S.weekReport();
+    var body;
     if (!w.sessions) {
-      el.innerHTML = '<div class="wk-head">🗒 周练报告</div><div class="wk-body wk-empty">近 7 天还没有练功记录。练完一次整套，这里就会替你算好账。</div>';
-      return;
+      body = '<div class="wk-body wk-empty">近 7 天还没有练功记录。练完一次整套，这里就会替你算好账。</div>';
+    } else {
+      var delta = w.dayCount - w.prevDayCount;
+      var trendTxt = w.prevDayCount === 0 ? (w.dayCount + ' 天 · 从零起步最难得') :
+        delta > 0 ? ('比上周多 ' + delta + ' 天，见功了') :
+        delta < 0 ? ('比上周少 ' + (-delta) + ' 天，松一松还能追回来') : '与上周打平，贵在照常';
+      var topSet = w.topSet && DATA.sets.find(function (x) { return x.id === w.topSet; });
+      var line2 = topSet ? ('练得最多的是 ' + topSet.icon + ' ' + topSet.name + '（' + w.topN + ' 次）') : '先把第一套跟下来';
+      var line3 = w.dayCount >= 5 ? '💚 已入佳境，气息渐稳' : w.dayCount >= 3 ? '🌿 节奏渐稳，继续保持' : '🌱 刚起步，下周试试隔天练一次';
+      body = '<div class="wk-body">' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
+        '<div>' + trendTxt + '；' + line2 + '。</div>' +
+        '<div>' + line3 + '</div></div>';
     }
-    var delta = w.dayCount - w.prevDayCount;
-    var trendTxt = w.prevDayCount === 0 ? (w.dayCount + ' 天 · 从零起步最难得') :
-      delta > 0 ? ('比上周多 ' + delta + ' 天，见功了') :
-      delta < 0 ? ('比上周少 ' + (-delta) + ' 天，松一松还能追回来') : '与上周打平，贵在照常';
-    var topSet = w.topSet && DATA.sets.find(function (x) { return x.id === w.topSet; });
-    var line2 = topSet ? ('练得最多的是 ' + topSet.icon + ' ' + topSet.name + '（' + w.topN + ' 次）') : '先把第一套跟下来';
-    var line3 = w.dayCount >= 5 ? '💚 已入佳境，气息渐稳' : w.dayCount >= 3 ? '🌿 节奏渐稳，继续保持' : '🌱 刚起步，下周试试隔天练一次';
-    el.innerHTML = '<div class="wk-head">🗒 周练报告 <span class="wk-range">' + w.rangeFrom + ' ~ ' + w.rangeTo + '</span></div>' +
-      '<div class="wk-body">' +
-      '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
-      '<div>' + trendTxt + '；' + line2 + '。</div>' +
-      '<div>' + line3 + '</div>' +
-      '</div>';
+    /* 目标环：次数达标转金色，首次跨线补一声磬 */
+    var goal = S.weekGoal(), sess = w.sessions || 0;
+    var pct = Math.min(100, Math.round(sess / goal * 100));
+    var hit = sess >= goal;
+    el.innerHTML = '<div class="wk-head">🗒 周练报告 <span class="wk-range">' + w.rangeFrom + ' ~ ' + w.rangeTo + '</span></div>' + body +
+      '<div class="wk-goal-row">' +
+      '<div class="wk-ring' + (hit ? ' hit' : '') + '" style="--p:' + pct + '"><b>' + Math.min(sess, goal) + '/' + goal + '</b></div>' +
+      '<div class="wk-goal-side">' +
+      '<span class="wk-goal-t">🎯 周练目标 <button id="goalDn" title="减一次">−</button> ' + goal + ' 次/周 <button id="goalUp" title="加一次">+</button></span>' +
+      '<span class="wk-goal-hint">' + (hit ? '目标已达成，功夫没白下 🎉' : '还差 ' + (goal - sess) + ' 次，一套八段锦也就十分钟') + '</span>' +
+      '</div></div>';
+    $('#goalDn').addEventListener('click', function () { S.setWeekGoal(S.weekGoal() - 1); renderWeekCard(); });
+    $('#goalUp').addEventListener('click', function () { S.setWeekGoal(S.weekGoal() + 1); renderWeekCard(); });
+    if (hit && lastGoalHit === false) { chime(523.25, 0.13, 1.6); setTimeout(function () { chime(659.25, 0.11, 1.4); }, 260); }
+    lastGoalHit = hit;
   }
 
   function renderCalendar() {
@@ -1156,6 +1171,27 @@
       }
       box.appendChild(el);
     });
+
+    /* 五音听医：点一声长音，配一句脏腑提示 */
+    if (DATA.wuxing && DATA.wuxing.length) {
+      var wx = document.createElement('div');
+      wx.className = 'wuxing-box';
+      wx.innerHTML = '<div class="wx-head">🎵 五音听医 · 点一声长音，调和脏腑</div><div class="wx-row">' +
+        DATA.wuxing.map(function (x, i) { return '<button class="wx-btn" data-i="' + i + '">' + x.icon + '<b>' + x.note + '</b><small>' + x.organ + '</small></button>'; }).join('') +
+        '</div><div class="wx-fb" id="wxFb">挑一声：宫商角徵羽各有所宜，长音里静听身体的反应</div>';
+      wx.querySelectorAll('.wx-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var x = DATA.wuxing[+b.dataset.i];
+          chime(x.freq, 0.2, 3.6);
+          chime(x.freq * 2, 0.05, 2.2); /* 泛音一层，音色更润 */
+          wx.querySelectorAll('.wx-btn').forEach(function (y) { y.classList.remove('on'); });
+          b.classList.add('on');
+          $('#wxFb').textContent = x.line;
+          float3d(x.note + '音 · ' + x.organ);
+        });
+      });
+      box.appendChild(wx);
+    }
   }
 
   /* ================= 首访新手引导 ================= */
@@ -1462,7 +1498,8 @@
   /* PWA：Service Worker 离线缓存（http(s) 环境下） */
   if ('serviceWorker' in navigator && /^https?:$/.test(global.location.protocol)) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./sw.js').then(watchSwUpdate).catch(function () { /* 离线能力缺失不影响使用 */ });
+      /* updateViaCache:'none'：sw.js 永不走 HTTP 缓存，免得旧脚本首访误弹更新条 */
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(watchSwUpdate).catch(function () { /* 离线能力缺失不影响使用 */ });
     });
   }
 

@@ -606,3 +606,36 @@ button { font-family: inherit; cursor: pointer; }
 .dp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink); margin-bottom: 4px; }
 .dp-row { font-size: 13px; color: var(--sub); padding: 4px 0; border-top: 1px dashed var(--line); }
 .dp-note { display: block; font-style: normal; color: var(--jade); margin-top: 2px; }
+
+/* ===== v2.11 周练目标环 + 五音听医 ===== */
+.wk-goal-row { display: flex; align-items: center; gap: 14px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.wk-ring {
+  width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: conic-gradient(var(--jade) calc(var(--p, 0) * 1%), rgba(95, 214, 184, .12) 0);
+}
+.wk-ring b { width: 48px; height: 48px; border-radius: 50%; background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: 13.5px; color: var(--jade); }
+.wk-ring.hit { background: conic-gradient(var(--gold) calc(var(--p, 0) * 1%), rgba(201, 168, 106, .13) 0); }
+.wk-ring.hit b { color: var(--gold); }
+.wk-goal-side { display: flex; flex-direction: column; gap: 4px; }
+.wk-goal-t { font-size: 13.5px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.wk-goal-t button {
+  width: 22px; height: 22px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+}
+.wk-goal-t button:hover { border-color: var(--jade); }
+.wk-goal-hint { font-size: 12.5px; color: var(--sub); }
+.wuxing-box { margin: 16px 0 6px; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(95, 214, 184, .25); background: rgba(95, 214, 184, .05); }
+.wx-head { font-size: 14px; color: var(--ink); margin-bottom: 10px; }
+.wx-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.wx-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 62px;
+  padding: 8px 12px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  transition: border-color .2s ease, background .2s ease;
+}
+.wx-btn b { font-size: 16px; }
+.wx-btn small { color: var(--sub); font-size: 11.5px; }
+.wx-btn:hover { border-color: var(--jade); }
+.wx-btn.on { border-color: var(--jade); background: rgba(95, 214, 184, .16); }
+.wx-fb { margin-top: 10px; font-size: 13px; color: var(--sub); line-height: 1.6; }

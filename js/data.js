@@ -587,11 +587,21 @@
     { t: '一天十二分钟，全年不断线，身体自会记账。', s: '学堂自勉' }
   ];
 
+  /* 五音应五脏：宫商角徵羽，传统乐疗口径 */
+  var wuxing = [
+    { note: '宫', freq: 261.63, organ: '脾胃', icon: '🟡', line: '宫音醇厚如土地，入脾健中——胸中思虑纷乱时，听一拍宫音定中焦。' },
+    { note: '商', freq: 293.66, organ: '肺', icon: '⚪', line: '商音高洁如秋气，入肺理气——胸闷气短、情绪低落时，宜听商音开胸膈。' },
+    { note: '角', freq: 329.63, organ: '肝', icon: '🟢', line: '角音舒展如草木发条，入肝疏郁——憋屈烦躁时，听角音顺一气升发。' },
+    { note: '徵', freq: 392.0, organ: '心', icon: '🔴', line: '徵音热烈如夏日，入心通脉——神疲心慌时，缓听徵音养心安神，不宜过激。' },
+    { note: '羽', freq: 440.0, organ: '肾', icon: '🔵', line: '羽音清润如流水，入肾固本——夜卧不安、腰酸乏力时，听羽音滋肾宁志。' }
+  ];
+
   global.QG_DATA = {
     version: 1,
     sets: [baduanjin, yijinjing, wuqinxi, liuzijue],
     knowledge: knowledge,
     curriculum: curriculum,
+    wuxing: wuxing,
     quotes: quotes
   };
 })(typeof window !== 'undefined' ? window : globalThis);
