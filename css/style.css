@@ -485,3 +485,12 @@ button { font-family: inherit; cursor: pointer; }
   border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px;
   background: var(--panel); color: var(--ink); font-family: inherit; font-size: 12px; margin-right: 6px;
 }
+
+/* ===== 功法详情延续筛选与安装引导 ===== */
+.set-hit-note {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-size: 13px; color: var(--sub); margin: 10px 0 8px;
+}
+.move-cell.dim { opacity: .38; filter: saturate(.5); }
+.move-cell.hit { box-shadow: 0 0 0 2px rgba(201, 168, 106, .55); }
+.install-bar { display: flex; align-items: center; gap: 8px; bottom: 60px; } /* 让开右下角更新条 */

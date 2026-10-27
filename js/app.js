@@ -391,28 +391,61 @@
 
     var grid = $('#moveGrid');
     grid.innerHTML = '';
-    curSet.moves.forEach(function (m, idx) {
-      var cell = document.createElement('div');
-      cell.className = 'move-cell';
-      cell.style.setProperty('--acc', curSet.color);
-      cell.innerHTML =
-        '<div class="no">第 ' + (idx + 1) + ' 式</div>' +
-        '<div class="nm">' + m.name + '</div>' +
-        (S.isLearned(curSet.id, m.id) ? '<div class="learned-mark">✓</div>' : '');
-      var pb = document.createElement('button');
-      pb.className = 'pick-btn' + (picked[m.id] ? ' on' : '');
-      pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
-      pb.addEventListener('click', function (e) {
-        e.stopPropagation();
-        picked[m.id] = !picked[m.id];
-        pb.classList.toggle('on', !!picked[m.id]);
-        pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
-        refreshCustomBtn();
+    [].forEach.call(document.querySelectorAll('.set-hit-note'), function (n) { n.remove(); }); /* 先清旧条，防重复注入 */
+    /* 延续列表页的关键词/标签：命中高亮，未中置灰；置灰可点“只看命中”硬筛 */
+    var hasFilter = !!(searchQ || activeTag);
+    var hitIds = {}, note = null, hardFilter = false;
+    if (hasFilter) {
+      curSet.moves.forEach(function (m) {
+        var okTag = !activeTag || moveTags(curSet, m).indexOf(activeTag) >= 0;
+        var okQ = !searchQ || (m.name + ' ' + (m.desc || '') + ' ' + (m.benefit || '')).toLowerCase().indexOf(searchQ) >= 0;
+        if (okTag && okQ) hitIds[m.id] = true;
       });
-      cell.appendChild(pb);
-      cell.addEventListener('click', function () { openMove(m.id); });
-      grid.appendChild(cell);
-    });
+      var note = document.createElement('div');
+      note.className = 'set-hit-note';
+      var n = Object.keys(hitIds).length;
+      note.innerHTML = '<span>🔍 命中 ' + n + ' 式' + (activeTag ? '（标签：' + activeTag + '）' : '') + (searchQ ? '（关键词：“' + searchQ + '”）' : '') + '</span>' +
+        '<button class="btn ghost sm">' + (hardFilter ? '取消只看命中' : '只看命中') + '</button>';
+      note.querySelector('button').addEventListener('click', function () {
+        hardFilter = !hardFilter;
+        paintGrid();
+        note.querySelector('button').textContent = hardFilter ? '取消只看命中' : '只看命中';
+      });
+      grid.parentNode.insertBefore(note, grid);
+    } else {
+      hardFilter = false;
+      var old = document.querySelector('.set-hit-note');
+      if (old) old.remove();
+    }
+    function paintGrid() {
+      grid.innerHTML = '';
+      var oldNote = document.querySelector('.set-hit-note');
+      if (hasFilter && !oldNote && note) { grid.parentNode.insertBefore(note, grid); }
+      curSet.moves.forEach(function (m, idx) {
+        if (hasFilter && hardFilter && !hitIds[m.id]) return;
+        var cell = document.createElement('div');
+        cell.className = 'move-cell' + (hasFilter && !hitIds[m.id] ? ' dim' : '') + (hasFilter && hitIds[m.id] ? ' hit' : '');
+        cell.style.setProperty('--acc', curSet.color);
+        cell.innerHTML =
+          '<div class="no">第 ' + (idx + 1) + ' 式</div>' +
+          '<div class="nm">' + m.name + '</div>' +
+          (S.isLearned(curSet.id, m.id) ? '<div class="learned-mark">✓</div>' : '');
+        var pb = document.createElement('button');
+        pb.className = 'pick-btn' + (picked[m.id] ? ' on' : '');
+        pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
+        pb.addEventListener('click', function (e) {
+          e.stopPropagation();
+          picked[m.id] = !picked[m.id];
+          pb.classList.toggle('on', !!picked[m.id]);
+          pb.textContent = picked[m.id] ? '✓ 已入选' : '+ 加入自定义';
+          refreshCustomBtn();
+        });
+        cell.appendChild(pb);
+        cell.addEventListener('click', function () { openMove(m.id); });
+        grid.appendChild(cell);
+      });
+    }
+    paintGrid();
     refreshCustomBtn();
   }
 
@@ -1122,6 +1155,34 @@
       if (shown) location.reload();
     });
   }
+
+  /* ---- PWA 安装引导：桌面支持时一次轻量提示，拒绝后不再打扰 ---- */
+  var deferredPrompt = null;
+  global.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (global.matchMedia('(display-mode: standalone)').matches) return;
+    if (sessionStorage.getItem('qigong_inst_dismiss')) return;
+    var bar = document.createElement('div');
+    bar.className = 'sw-update install-bar';
+    bar.innerHTML = '📲 把气功学堂装到桌面，断网也能练 <button class="btn primary sm">安装</button> <button class="btn ghost sm">暂不</button>';
+    var yes = bar.querySelector('.primary'), no = bar.querySelector('.ghost');
+    yes.addEventListener('click', function () {
+      yes.disabled = true;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (ch) {
+        if (ch && ch.outcome !== 'accepted') {
+          try { sessionStorage.setItem('qigong_inst_dismiss', '1'); } catch (err) { }
+        }
+        bar.remove(); deferredPrompt = null;
+      }).catch(function () { bar.remove(); });
+    });
+    no.addEventListener('click', function () {
+      try { sessionStorage.setItem('qigong_inst_dismiss', '1'); } catch (err) { }
+      bar.remove();
+    });
+    document.body.appendChild(bar);
+  });
 
   global.QGApp = { showPage: showPage, Train: Train, DATA: DATA };
 })(typeof window !== 'undefined' ? window : globalThis);
