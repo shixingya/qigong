@@ -20,13 +20,14 @@
   function load() {
     var raw = null;
     try { raw = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
-    var data = { records: [], learned: {}, settings: { sound: true }, plan: null };
+    var data = { records: [], learned: {}, settings: { sound: true, tempo: 1, favs: {} }, plan: null };
     if (raw) {
       try {
         var p = JSON.parse(raw);
         if (p && Array.isArray(p.records)) data.records = p.records;
         if (p && p.learned && typeof p.learned === 'object') data.learned = p.learned;
         if (p && p.settings) data.settings = Object.assign(data.settings, p.settings);
+        if (!data.settings.favs || typeof data.settings.favs !== 'object') data.settings.favs = {};
         if (p && p.plan && typeof p.plan.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.plan.start)) data.plan = { start: p.plan.start };
       } catch (e) { /* 损坏则重置 */ }
     }
@@ -183,6 +184,31 @@
       this._data.settings.sound = !this.soundOn();
       save(this._data);
       return this._data.settings.sound;
+    },
+    /* 跟练节奏（速度系数）：0.75 慢 / 1 常 / 1.5 快；每个动作的实际时间 = sec / tempo，故慢速时间更长 */
+    TEMPOS: [0.75, 1, 1.5],
+    tempo: function () {
+      var t = this._data.settings.tempo;
+      return this.TEMPOS.indexOf(t) >= 0 ? t : 1;
+    },
+    cycleTempo: function () {
+      var ts = this.TEMPOS, i = ts.indexOf(this.tempo());
+      /* 循环顺序：常→慢→快→常（前移一位） */
+      this._data.settings.tempo = ts[(i - 1 + ts.length) % ts.length];
+      save(this._data);
+      return this._data.settings.tempo;
+    },
+    /* 收藏常用功法 */
+    isFav: function (setId) { return !!(this._data.settings.favs || {})[setId]; },
+    toggleFav: function (setId) {
+      var f = this._data.settings.favs = this._data.settings.favs || {};
+      if (f[setId]) delete f[setId]; else f[setId] = true;
+      save(this._data);
+      return f[setId] === true;
+    },
+    favIds: function () {
+      var f = this._data.settings.favs || {};
+      return Object.keys(f).filter(function (k) { return f[k]; });
     },
 
     /* ---- 备份导出/导入（纯本地，无上传） ---- */

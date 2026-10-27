@@ -74,7 +74,7 @@
       speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(text);
       u.lang = 'zh-CN';
-      u.rate = 0.95;
+      u.rate = Math.min(1.3, Math.max(0.7, 0.95 * S.tempo())); /* 快节奏口令同步变，钳制在自然区间 */
       u.pitch = 0.92;
       var vs = speechSynthesis.getVoices();
       for (var i = 0; i < vs.length; i++) {
@@ -87,6 +87,13 @@
     var b = $('#soundBtn');
     b.textContent = S.soundOn() ? '🔊 口令' : '🔇 口令';
     b.classList.toggle('off', !S.soundOn());
+  }
+  function syncTempoBtn() {
+    var b = $('#tempoBtn');
+    if (!b) return;
+    var t = S.tempo();
+    b.textContent = t < 1 ? '🚶 慢速' : t > 1 ? '🏄 快速' : '🧘 常速';
+    b.classList.toggle('off', false);
   }
 
   /* ================= 磬声音效（Web Audio 合成，无素材） ================= */
@@ -141,6 +148,10 @@
     var now = new Date();
     return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
   }
+  /* 按当前节奏折算的预计分钟数（慢速时间更长） */
+  function estMin(set) {
+    return Math.max(1, Math.round(set.durationMin / (S.tempo() || 1)));
+  }
   function renderHome() {
     $('#statMoves').textContent = moveTotal + ' 个动作';
     $('#statKeys').textContent = keyTotal + ' 组 3D 姿势';
@@ -152,13 +163,26 @@
       '<div class="tc-main"><div class="tc-title">今日推荐 · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
-        : '今日未练 · 完整一套约 ' + st.durationMin + ' 分钟，练完自动点亮打卡') + '</div></div>' +
+        : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') + '</div></div>' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>';
     $('#todayGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
     var box = $('#homeSets');
     box.innerHTML = '';
     DATA.sets.forEach(function (st2) { box.appendChild(setCard(st2, false)); });
+    renderFavs();
     renderPlan();
+  }
+
+  /* ---- 收藏常用：有收藏才在首页露出 ---- */
+  function renderFavs() {
+    var sec = $('#favSection'), box = $('#favSets');
+    if (!sec || !box) return;
+    var ids = S.favIds();
+    sec.classList.toggle('hidden', ids.length === 0);
+    box.innerHTML = '';
+    DATA.sets.forEach(function (st) {
+      if (S.isFav(st.id)) box.appendChild(setCard(st, false));
+    });
   }
 
   /* ---- 21 天入门挑战：报名后自动按真实打卡记录判定 ---- */
@@ -200,13 +224,20 @@
     el.className = 'set-card';
     el.style.setProperty('--acc', st.color);
     var learned = S.learnedCount(st.id);
+    var est = estMin(st);
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
+      '<button class="fav-star' + (S.isFav(st.id) ? ' on' : '') + '" title="收藏/取消收藏常用功法">' + (S.isFav(st.id) ? '⭐' : '☆') + '</button>' +
       '<h3>' + st.name + '</h3>' +
       '<div class="py">' + st.pinyin + ' · ' + st.level + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
-      '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + st.durationMin + ' 分钟</span></div>' +
+      '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span></div>' +
       '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式</div>';
+    el.querySelector('.fav-star').addEventListener('click', function (e) {
+      e.stopPropagation();
+      S.toggleFav(st.id);
+      renderHome();
+    });
     el.addEventListener('click', function () { openSet(st.id); });
     return el;
   }
@@ -262,7 +293,7 @@
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="cta-row">' +
-      '<button class="btn primary" id="trainFull">▶ 整套跟练（' + curSet.moves.length + ' 式 · 约' + curSet.durationMin + '分钟）</button>' +
+      '<button class="btn primary" id="trainFull">▶ 整套跟练（' + curSet.moves.length + ' 式 · 约' + estMin(curSet) + '分钟）</button>' +
       '<button class="btn ghost" id="learnFrom1">📖 从第一式逐式学习</button>' +
       '<button class="btn ghost hidden" id="trainCustom"></button></div>';
     $('#trainFull').addEventListener('click', function () {
@@ -366,6 +397,7 @@
         });
       });
       this._steps = steps; this._i = 0; this._total = steps.length;
+      this._tempo = S.tempo(); /* 开场定格，中途切节奏从下一步生效 */
       this._set = set; this._mode = mode; this._paused = false;
       this._moveIds = moves.map(function (m) { return m.id; });
       this._startWall = 0; this._doneSec = 0;
@@ -400,8 +432,9 @@
     enterStep: function (i) {
       this._i = i;
       var st = this._steps[i];
-      this._remain = st.sec;
-      pose3d(st.pose, Math.max(0.9, 2.6 / Math.max(st.sec / 3, 1)));
+      st._eff = st.sec / (this._tempo || 1); /* 慢速(0.75)时长更长，快速(1.5)更短 */
+      this._remain = st._eff;
+      pose3d(st.pose, Math.max(0.9, 2.6 / Math.max(st._eff / 3, 1)));
       breath3d(st.inhale);
       var ring = $('#breathRing');
       ring.className = 'breath-ring ' + (st.inhale === 'hold' ? 'hold' : st.inhale);
@@ -426,7 +459,7 @@
 
     renderTick: function () {
       var st = this._steps[this._i];
-      var pct = (1 - this._remain / st.sec) * 100;
+      var pct = (1 - this._remain / (st._eff || st.sec)) * 100;
       $('#trainBar').style.width = Math.min(100, pct) + '%';
       $('#trainStepIdx').textContent = this._i + 1 + ' / ' + this._total;
       $('#trainTimeLeft').textContent = Math.max(0, Math.ceil(this._remain)) + ' 秒';
@@ -601,6 +634,12 @@
     if (!S.soundOn() && 'speechSynthesis' in global) speechSynthesis.cancel();
     else speak('语音口令已开启');
   });
+  $('#tempoBtn').addEventListener('click', function () {
+    var t = S.cycleTempo();
+    syncTempoBtn();
+    renderHome(); renderSetList();
+    speak(t < 1 ? '慢速跟练' : t > 1 ? '快速跟练' : '常速跟练');
+  });
   $('#spinChk').addEventListener('change', function (e) {
     var q = q3d();
     if (q && q.setAutoRotate) q.setAutoRotate(e.target.checked);
@@ -709,6 +748,7 @@
   renderHome();
   renderKnowledge();
   syncSoundBtn();
+  syncTempoBtn();
   boot3D(60);
 
   /* PWA：Service Worker 离线缓存（http(s) 环境下） */

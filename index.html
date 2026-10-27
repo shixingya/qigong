@@ -40,6 +40,7 @@
     <button data-go="checkin">打卡成就</button>
     <button data-go="knowledge">气功知识</button>
   </nav>
+  <button id="tempoBtn" class="sound-btn" title="跟练节奏：慢/常/快循环切换">🧘 常速</button>
   <button id="soundBtn" class="sound-btn" title="语音口令开关">🔊 口令</button>
 </header>
 
@@ -69,6 +70,10 @@
       <h2 class="sec-title">四大功法 · 对号入座</h2>
       <div id="todayCard" class="today-card"></div>
       <div id="planCard" class="plan-card"></div>
+      <section id="favSection" class="hidden">
+        <h2 class="sec-title">⭐ 我的常用</h2>
+        <div class="set-cards" id="favSets"></div>
+      </section>
       <div class="set-cards" id="homeSets"></div>
 
       <details class="howto">

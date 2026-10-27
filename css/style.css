@@ -34,7 +34,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- 顶栏 ---------- */
 .topbar {
-  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 14px clamp(16px, 4vw, 44px);
   border-bottom: 1px solid var(--line);
   position: sticky; top: 0; z-index: 10;
@@ -42,16 +42,16 @@ button { font-family: inherit; cursor: pointer; }
 }
 .brand { font-size: 20px; letter-spacing: 2px; color: var(--ink); }
 .brand small { color: var(--sub); font-size: 11px; letter-spacing: 3px; margin-left: 6px; }
-.topbar nav { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+.topbar nav { display: flex; gap: 6px; flex: 1; flex-wrap: nowrap; min-width: 0; }
 .topbar nav button {
   background: none; border: 1px solid transparent; color: var(--sub);
-  padding: 7px 16px; border-radius: 999px; font-size: 15px; transition: .2s;
+  padding: 7px 14px; border-radius: 999px; font-size: 15px; transition: .2s; white-space: nowrap;
 }
 .topbar nav button:hover { color: var(--ink); border-color: var(--line); }
 .topbar nav button.on { color: var(--jade); border-color: var(--jade-d); background: rgba(95, 214, 184, .08); }
 .sound-btn {
   background: none; border: 1px solid var(--line); color: var(--sub);
-  padding: 6px 14px; border-radius: 999px; font-size: 13px;
+  padding: 6px 12px; border-radius: 999px; font-size: 13px; white-space: nowrap; flex-shrink: 0;
 }
 .sound-btn.off { opacity: .5; text-decoration: line-through; }
 
@@ -175,6 +175,14 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 50%; background: var(--acc, var(--jade)); opacity: .13;
 }
 .set-card:hover { transform: translateY(-3px); border-color: var(--acc, var(--jade)); box-shadow: var(--shadow); }
+.fav-star {
+  position: absolute; top: 10px; right: 12px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(10, 19, 21, .55); border: 1px solid var(--line);
+  color: var(--sub); font-size: 16px; cursor: pointer; transition: .15s;
+}
+.fav-star:hover { border-color: var(--gold); color: var(--gold); }
+.fav-star.on { color: var(--gold); border-color: var(--gold); background: rgba(217, 180, 106, .12); }
 .set-card .icon { font-size: 30px; }
 .set-card h3 { font-size: 19px; margin: 6px 0 2px; }
 .set-card .py { color: var(--sub); font-size: 12px; letter-spacing: 1px; }
