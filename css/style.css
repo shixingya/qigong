@@ -294,6 +294,18 @@ button { font-family: inherit; cursor: pointer; }
 .record-list li b { color: var(--ink); font-weight: 500; }
 .record-list .empty { color: var(--sub); }
 
+/* ---------- 备份与分享 ---------- */
+.backup-card {
+  margin-top: 22px; background: var(--panel); border: 1px dashed var(--line);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.backup-card h3 { font-size: 16px; margin-bottom: 6px; }
+.backup-card .bd-sub { color: var(--sub); font-size: 13px; margin-bottom: 12px; }
+.backup-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+.import-msg { margin-top: 10px; font-size: 13.5px; color: var(--sub); min-height: 18px; }
+.import-msg.ok { color: var(--jade); }
+.import-msg.err { color: var(--danger); }
+
 /* ---------- 知识页 ---------- */
 .know-list { display: grid; gap: 12px; }
 .know-card {

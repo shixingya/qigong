@@ -14,6 +14,10 @@
 }
 </script>
 <link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d1b1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☯️</text></svg>">
 </head>
 <body>
@@ -125,6 +129,16 @@
       </div>
       <h3 class="sec-sub">最近跟练</h3>
       <ul class="record-list" id="recordList"></ul>
+      <div class="backup-card">
+        <h3>💾 数据备份</h3>
+        <p class="bd-sub">导出 JSON 文件妥善保管；换浏览器或清空过数据，可从备份文件恢复打卡与学习进度。</p>
+        <div class="backup-cta">
+          <button class="btn ghost" id="exportBtn">⬇ 导出备份</button>
+          <button class="btn ghost" id="importBtn">⬆ 导入备份</button>
+          <input type="file" id="importFile" accept="application/json,.json" class="hidden">
+        </div>
+        <p id="importMsg" class="import-msg"></p>
+      </div>
     </div>
 
     <!-- ========== 气功知识 ========== -->
@@ -169,8 +183,11 @@
         <p id="doneStats"></p>
         <div class="done-cta">
           <button class="btn primary" data-go="checkin">查看打卡日历</button>
+          <button class="btn ghost" id="shareCardBtn">🖼 保存成绩卡</button>
+          <button class="btn ghost" id="shareTextBtn">📋 复制分享文案</button>
           <button class="btn ghost" data-go="home">回首页</button>
         </div>
+        <canvas id="shareCanvas" width="640" height="860" class="hidden"></canvas>
       </div>
     </div>
   </section>

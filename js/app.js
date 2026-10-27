@@ -316,6 +316,7 @@
   });
 
   /* ================= 跟练状态机 ================= */
+  var lastSession = null;
   var Train = {
     active: false,
     _steps: [], _i: 0, _remain: 0, _total: 0, _last: 0, _raf: 0,
@@ -418,6 +419,11 @@
     finish: function () {
       var set = this._set, min = Math.round(this._doneSec / 60 * 10) / 10;
       S.addRecord(set.id, this._doneSec, this._moveIds);
+      lastSession = {
+        set: set, min: min, mode: this._mode, n: this._moveIds.length,
+        days: S.totalDays(), streak: S.streak(), learned: S.learnedTotal(),
+        date: S.todayStr()
+      };
       this.active = false;
       cancelAnimationFrame(this._raf);
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
@@ -571,10 +577,106 @@
     if (q && q.setAcuShow) q.setAcuShow(e.target.checked);
   });
 
+  /* ================= 成绩卡与分享 ================= */
+  var MODE_CN = { full: '整套', single: '单式', custom: '选式' };
+  function paintCard() {
+    var cv = $('#shareCanvas'), x = cv.getContext('2d'), w = 640, h = 860;
+    var ls = lastSession;
+    if (!ls) return false;
+    var g = x.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#123033'); g.addColorStop(1, '#0b1416');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    var rg = x.createRadialGradient(w / 2, 260, 30, w / 2, 260, 300);
+    rg.addColorStop(0, 'rgba(95,214,184,.28)'); rg.addColorStop(1, 'rgba(95,214,184,0)');
+    x.fillStyle = rg; x.fillRect(0, 0, w, 620);
+    x.textAlign = 'center';
+    x.fillStyle = '#9db8b2'; x.font = '26px "Songti SC", "SimSun", serif';
+    x.fillText('气功学堂 · 今日功课', w / 2, 96);
+    x.font = '110px serif';
+    x.fillText(ls.set.icon, w / 2, 240);
+    x.fillStyle = '#d9b46a'; x.font = 'bold 88px "Songti SC", "SimSun", serif';
+    x.fillText('功 成', w / 2, 368);
+    x.fillStyle = '#e9e4d5'; x.font = '34px "Songti SC", "SimSun", serif';
+    x.fillText(ls.set.name + ' · ' + (MODE_CN[ls.mode] || '跟练') + ' ' + ls.n + ' 式', w / 2, 432);
+    x.strokeStyle = 'rgba(217,180,106,.5)'; x.lineWidth = 1.5;
+    x.beginPath(); x.moveTo(120, 486); x.lineTo(520, 486); x.stroke();
+    var rows = [
+      ['本次用时', '约 ' + ls.min + ' 分钟'],
+      ['连续打卡', ls.streak + ' 天'],
+      ['累计打卡', ls.days + ' 天'],
+      ['已学动作', ls.learned + ' / ' + moveTotal + ' 式']
+    ];
+    rows.forEach(function (r, i) {
+      var cx = i % 2 === 0 ? 175 : 465, cy = i < 2 ? 560 : 680;
+      x.fillStyle = '#9db8b2'; x.font = '22px "Songti SC", "SimSun", serif';
+      x.fillText(r[0], cx, cy);
+      x.fillStyle = '#5fd6b8'; x.font = 'bold 40px "Songti SC", "SimSun", serif';
+      x.fillText(r[1], cx, cy + 48);
+    });
+    x.fillStyle = '#e9e4d5'; x.font = '22px "Songti SC", "SimSun", serif';
+    x.fillText('每天十二分钟，把气练明白', w / 2, 786);
+    x.fillStyle = '#3fae8a'; x.font = '20px sans-serif';
+    x.fillText('shixingya.github.io/qigong · ' + ls.date, w / 2, 822);
+    return true;
+  }
+  $('#shareCardBtn').addEventListener('click', function () {
+    if (!paintCard()) { this.textContent = '先完成一次跟练'; return; }
+    var a = document.createElement('a');
+    a.download = '气功学堂成绩卡-' + lastSession.date + '.png';
+    a.href = $('#shareCanvas').toDataURL('image/png');
+    a.click();
+  });
+  $('#shareTextBtn').addEventListener('click', function () {
+    var txt = lastSession
+      ? '【气功学堂】今天跟练' + lastSession.set.name + '（' + lastSession.n + ' 式，约 ' + lastSession.min + ' 分钟），已连续打卡 ' + lastSession.streak + ' 天！40 式三维师父在线带练 → https://shixingya.github.io/qigong/'
+      : '气功学堂：八段锦/易筋经/五禽戏/六字诀 3D 在线跟练 → https://shixingya.github.io/qigong/';
+    var btn = this;
+    function done() { btn.textContent = '✓ 已复制'; setTimeout(function () { btn.textContent = '📋 复制分享文案'; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function () { window.prompt('手动复制：', txt); });
+    } else window.prompt('手动复制：', txt);
+  });
+
+  /* ================= 备份导出/导入 ================= */
+  $('#exportBtn').addEventListener('click', function () {
+    var blob = new Blob([S.exportPayload()], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.download = 'qigong-backup-' + S.todayStr() + '.json';
+    a.href = URL.createObjectURL(blob);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+    $('#importMsg').textContent = '✓ 已导出备份文件（纯本地，未上传）';
+  });
+  $('#importBtn').addEventListener('click', function () { $('#importFile').click(); });
+  $('#importFile').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0], msg = $('#importMsg');
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var res = S.parseImport(String(rd.result));
+      if (!res.ok) { msg.textContent = '✕ 导入失败：' + res.err; msg.className = 'import-msg err'; return; }
+      var added = S.mergeImport(res.data);
+      msg.textContent = '✓ 导入完成：新增 ' + added + ' 条跟练记录（重复记录自动去重）';
+      msg.className = 'import-msg ok';
+      renderCheckin();
+    };
+    rd.onerror = function () { msg.textContent = '✕ 文件读取失败'; msg.className = 'import-msg err'; };
+    rd.readAsText(f);
+    e.target.value = '';
+  });
+
   /* ================= 启动 ================= */
   renderHome();
   renderKnowledge();
   syncSoundBtn();
   boot3D(60);
+
+  /* PWA：Service Worker 离线缓存（http(s) 环境下） */
+  if ('serviceWorker' in navigator && /^https?:$/.test(global.location.protocol)) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function () { /* 离线能力缺失不影响使用 */ });
+    });
+  }
+
   global.QGApp = { showPage: showPage, Train: Train, DATA: DATA };
 })(typeof window !== 'undefined' ? window : globalThis);

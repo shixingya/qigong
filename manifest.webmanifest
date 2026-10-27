@@ -1,0 +1,15 @@
+{
+  "name": "气功学堂 · 八段锦/易筋经/五禽戏/六字诀 3D 跟练",
+  "short_name": "气功学堂",
+  "description": "四大经典气功功法的分门类 3D 学习、在线跟练与本地打卡，零后端零上传。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1416",
+  "theme_color": "#0d1b1e",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -143,6 +143,59 @@
       this._data.settings.sound = !this.soundOn();
       save(this._data);
       return this._data.settings.sound;
+    },
+
+    /* ---- 备份导出/导入（纯本地，无上传） ---- */
+    exportPayload: function () {
+      return JSON.stringify({
+        app: 'qigong', version: 1, exportedAt: new Date().toISOString(),
+        records: this._data.records, learned: this._data.learned, settings: this._data.settings
+      }, null, 1);
+    },
+    /* 校验并清洗外部 JSON，容忍脏数据不崩 */
+    parseImport: function (text) {
+      var p;
+      try { p = JSON.parse(text); } catch (e) { return { ok: false, err: '文件不是合法 JSON' }; }
+      if (!p || p.app !== 'qigong' || !Array.isArray(p.records)) return { ok: false, err: '不是气功学堂的备份文件' };
+      var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+      var records = p.records.filter(function (r) {
+        return r && DATE_RE.test(r.d) && typeof r.set === 'string' && isFinite(r.sec) && r.sec >= 0 && r.sec < 86400;
+      }).map(function (r) {
+        return { d: r.d, set: String(r.set).slice(0, 40), sec: Math.round(r.sec), moves: Array.isArray(r.moves) ? r.moves.slice(0, 60) : [] };
+      });
+      var learned = {};
+      if (p.learned && typeof p.learned === 'object') {
+        Object.keys(p.learned).forEach(function (sid) {
+          var sk = String(sid).slice(0, 40);
+          var src = p.learned[sid];
+          if (src && typeof src === 'object') {
+            Object.keys(src).forEach(function (mid) {
+              if (src[mid]) {
+                learned[sk] = learned[sk] || {};
+                learned[sk][String(mid).slice(0, 40)] = true;
+              }
+            });
+          }
+        });
+      }
+      return { ok: true, data: { records: records, learned: learned } };
+    },
+    /* 合并导入：记录按唯一键去重，已学取并集 */
+    mergeImport: function (inc) {
+      var seen = {};
+      this._data.records.forEach(function (r) { seen[[r.d, r.set, r.sec, (r.moves || []).join(',')].join('|')] = 1; });
+      var added = 0;
+      inc.records.forEach(function (r) {
+        var key = [r.d, r.set, r.sec, r.moves.join(',')].join('|');
+        if (!seen[key]) { seen[key] = 1; this._data.records.push(r); added++; }
+      }, this);
+      var l = this._data.learned;
+      Object.keys(inc.learned).forEach(function (sid) {
+        l[sid] = l[sid] || {};
+        Object.keys(inc.learned[sid]).forEach(function (mid) { l[sid][mid] = true; });
+      });
+      save(this._data);
+      return added;
     }
   };
 
