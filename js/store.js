@@ -228,7 +228,8 @@
       var prev = recs.filter(function (r) { return inWin(r, b, c); });
       var days = {}, setCount = {}, sec = 0;
       cur.forEach(function (r) {
-        days[r.d] = 1; setCount[r.set] = (setCount[r.set] || 0) + 1; sec += r.sec || 0;
+        days[r.d] = 1; sec += r.sec || 0;
+        if (r.set !== 'calm') setCount[r.set] = (setCount[r.set] || 0) + 1; /* 定息不算碰了一套功法 */
       });
       var top = null, topN = 0;
       Object.keys(setCount).forEach(function (k) { if (setCount[k] > topN) { top = k; topN = setCount[k]; } });
@@ -307,6 +308,32 @@
     quizCount: function () {
       var q = this._data.settings.quiz || {};
       return Object.keys(q).filter(function (k) { return q[k]; }).length;
+    },
+
+    /* ---- 定息圆满落盘：set='calm'，一天最多记一场，防磨 ---- */
+    addCalm: function (sec, breaths) {
+      var ds = todayStr();
+      var dup = this._data.records.some(function (r) { return r.set === 'calm' && r.d === ds; });
+      if (dup) return false;
+      this._data.records.push({ d: ds, set: 'calm', sec: Math.round(sec), hour: new Date().getHours(), moves: [], breaths: breaths || 0 });
+      save(this._data);
+      return true;
+    },
+    calmToday: function () {
+      var ds = todayStr();
+      return this._data.records.some(function (r) { return r.set === 'calm' && r.d === ds; });
+    },
+
+    /* ---- 抽卡复习成绩：累计轮数 + 上一轮记住 m/n ---- */
+    fcLog: function (got, total) {
+      var f = this._data.settings.fcard = this._data.settings.fcard || {};
+      f.rounds = (f.rounds || 0) + 1;
+      f.lastGot = got; f.lastTotal = total;
+      save(this._data);
+    },
+    fcStat: function () {
+      var f = this._data.settings.fcard || {};
+      return { rounds: f.rounds || 0, lastGot: f.lastGot || 0, lastTotal: f.lastTotal || 0 };
     },
 
     /* 距上次练功的天数（无记录返 null） */

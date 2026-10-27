@@ -935,8 +935,17 @@
       chime(523.25, 0.14, 1.8);
       setTimeout(function () { chime(659.25, 0.12, 1.4); }, 300);
       speak('六息数满，心定神怡。');
+      /* 圆满一场落盘今日练功（一天只记一场），定息钮打勾 */
+      S.addCalm(60, 6);
+      paintCalmBtn();
+      if ($('#page-home').classList.contains('on')) renderHome();
     }
   }
+  function paintCalmBtn() {
+    var b = $('#calmBtn');
+    if (b) b.textContent = S.calmToday() ? '🍃 今日六息已满' : '🍃 一分钟定息';
+  }
+  paintCalmBtn();
   $('#calmBtn').addEventListener('click', calmStart);
   $('#calmStop').addEventListener('click', function () { calmEnd(false); });
 
@@ -961,11 +970,17 @@
   }
 
   /* ================= 知识抽卡复习 ================= */
-  var fc = { queue: [], total: 0, got: 0 };
+  var fc = { queue: [], total: 0, got: 0, logged: false };
+  function refreshKnowHead() { /* 知识页已渲染时重画统计条，未渲染则罢 */
+    var sp = $('#knowStats');
+    if (sp) paintKnowHead(sp);
+  }
   function fcShow() {
     var p = $('#fcProg'), c = $('#fcCard');
     if (!fc.queue.length) {
-      p.textContent = '本轮过完 · 共 ' + fc.total + ' 张';
+      if (!fc.logged) { fc.logged = true; S.fcLog(fc.got, fc.total); refreshKnowHead(); }
+      var fs = S.fcStat();
+      p.textContent = '本轮过完 · 共 ' + fc.total + ' 张 · 累计 ' + fs.rounds + ' 轮';
       c.innerHTML = '<div class="fc-done"><b>🎉 记住 ' + fc.got + ' / ' + fc.total + '</b><p>' +
         (fc.got >= fc.total ? '诸条记全，理气双长' : '没记住的下轮还会绕回来') + '</p></div>';
       $('#fcAgain').disabled = true; $('#fcGot').disabled = true;
@@ -985,7 +1000,7 @@
     });
     var off = dayOfYear() % items.length;
     fc.queue = items.slice(off).concat(items.slice(0, off));
-    fc.total = items.length; fc.got = 0;
+    fc.total = items.length; fc.got = 0; fc.logged = false;
     $('#fcMask').classList.remove('hidden');
     fcShow();
   }
@@ -1066,7 +1081,7 @@
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
-      li.innerHTML = '<b>' + r.d + '</b><span>' + (st ? st.icon + ' ' + st.name : '🍂 旧存档功法') + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + ((r.moves || []).length) + ' 式</span>' +
+      li.innerHTML = '<b>' + r.d + '</b><span>' + (r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法')) + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') + '</span>' +
         (r.note ? '<i class="rec-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '');
       list.appendChild(li);
     });
@@ -1172,8 +1187,9 @@
       recs.map(function (r) {
         var st = DATA.sets.find(function (s) { return s.id === r.set; });
         var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';
-        return '<div class="dp-row">' + hh + ' ' + (st ? st.icon + ' ' + st.name : '🍂 旧存档功法') +
-          ' · 约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟 · ' + ((r.moves || []).length) + ' 式' +
+        var label = r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法');
+        return '<div class="dp-row">' + hh + ' ' + label +
+          ' · 约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟 · ' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') +
           (r.note ? '<i class="dp-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '') + '</div>';
       }).join('');
     pop.classList.remove('hidden');
@@ -1184,6 +1200,15 @@
   });
 
   /* ================= 知识页 ================= */
+  /* 统计条提升到模块级：抽卡过完一轮也能回头重画，不困在闭包里 */
+  function paintKnowHead(sp) {
+    sp = sp || $('#knowStats');
+    if (!sp) return;
+    var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat();
+    sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (total && S.readCount() === total ? ' · 明理圆满 🎉' : '') +
+      ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '') +
+      (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '');
+  }
   function renderKnowledge() {
     var box = $('#knowList');
     box.innerHTML = '';
@@ -1191,13 +1216,6 @@
     var head = document.createElement('div');
     head.className = 'know-progress';
     head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>';
-    function paintKnowHead() {
-      var qc = S.quizCount();
-      var sp = $('#knowStats');
-      if (!sp) return;
-      sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (total && S.readCount() === total ? ' · 明理圆满 🎉' : '') +
-        ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '');
-    }
     box.appendChild(head);
     paintKnowHead();
     $('#fcBtn').addEventListener('click', fcOpen);
