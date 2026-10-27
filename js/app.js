@@ -767,6 +767,15 @@
       }, 1800);
       float3d('收功 · 气归丹田');
       pose3d(idlePoses[1], 1);
+      /* 练后感想：每次功成重置一行，可选刻下 */
+      var nr = $('#doneNoteRow'), ni = $('#doneNoteInput'), nm = $('#doneNoteMsg');
+      if (nr && ni) {
+        nr.classList.remove('hidden');
+        ni.value = ''; ni.disabled = false;
+        ni.placeholder = '给身体留一句话——刚练完' + set.name;
+        if (nm) { nm.textContent = ''; }
+        var nb = $('#doneNoteSave'); if (nb) nb.disabled = false;
+      }
       showPage('done');
     }
   };
@@ -779,6 +788,20 @@
     Train.stop(true);
     resetStage();
     goBack();
+  });
+
+  /* 练后感想落盘：写进最近一条记录，打卡页回顾得见 */
+  $('#doneNoteSave').addEventListener('click', function () {
+    var ni = $('#doneNoteInput'), nm = $('#doneNoteMsg');
+    var v = (ni.value || '').trim();
+    if (!v) { ni.focus(); return; }
+    if (S.noteLast(v)) {
+      nm.textContent = '✓ 已刻下，打卡页可回看';
+      ni.disabled = true; this.disabled = true;
+    } else { nm.textContent = '✕ 没接住，再试一次'; }
+  });
+  $('#doneNoteInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('#doneNoteSave').click();
   });
 
   /* 自然伴奏开关：无伴奏→泉流→山风→鸟鸣循环，选完即响 */
@@ -874,7 +897,8 @@
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
-      li.innerHTML = '<b>' + r.d + '</b><span>' + (st ? st.icon + ' ' + st.name : '🍂 旧存档功法') + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + ((r.moves || []).length) + ' 式</span>';
+      li.innerHTML = '<b>' + r.d + '</b><span>' + (st ? st.icon + ' ' + st.name : '🍂 旧存档功法') + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + ((r.moves || []).length) + ' 式</span>' +
+        (r.note ? '<i class="rec-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '');
       list.appendChild(li);
     });
   }
@@ -965,12 +989,40 @@
     }
     paintKnowHead();
     box.appendChild(head);
+    /* 错题本横幅：答错记账、补对销账，一键直达待订正篇 */
+    var wbar = document.createElement('div');
+    wbar.className = 'quiz-wrongs hidden';
+    box.appendChild(wbar);
+    var cardEls = {};
+    function paintWrongBar() {
+      var ws = S.wrongList();
+      if (!ws.length) { wbar.classList.add('hidden'); wbar.innerHTML = ''; return; }
+      var kn0 = DATA.knowledge.find(function (k) { return ws.indexOf(k.id) >= 0; });
+      wbar.innerHTML = '<span class="qw-txt">📕 待订正的错题 <b>' + ws.length + '</b> 题——错一处，长一智</span>';
+      if (kn0) {
+        var gb = document.createElement('button');
+        gb.className = 'btn primary sm';
+        gb.textContent = '▶ 去补第一题';
+        gb.addEventListener('click', function () {
+          var c = cardEls[kn0.id];
+          if (!c) return;
+          c.open = true;
+          c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        wbar.appendChild(gb);
+      }
+      wbar.classList.remove('hidden');
+    }
+    paintWrongBar();
     DATA.knowledge.forEach(function (kn) {
       var isRead = S.isRead(kn.id);
+      var isWrong = S.wrongList().indexOf(kn.id) >= 0 && !S.quizPassed(kn.id);
       var el = document.createElement('details');
       el.className = 'know-card' + (isRead ? ' read' : '');
+      cardEls[kn.id] = el;
       el.innerHTML = '<summary><span class="ki">' + kn.icon + '</span>' + kn.title +
-        (isRead ? '<span class="read-dot" title="已读">✓</span>' : '') + '</summary>' +
+        (isRead ? '<span class="read-dot" title="已读">✓</span>' : '') +
+        (isWrong ? '<span class="wrong-dot" title="这篇小测错过">📕</span>' : '') + '</summary>' +
         '<div class="kb">' + kn.points.map(function (p) { return '<p>· ' + p + '</p>'; }).join('') +
         '<div class="kb-foot"></div></div>';
       var f = el.querySelector('.kb-foot');
@@ -1014,11 +1066,20 @@
               fb.textContent = '✓ 答对了！' + kn.quiz.why;
               chime(659.25, 0.12, 1.2);
               paintKnowHead();
+              var wd = el.querySelector('.wrong-dot'); if (wd) wd.remove(); /* 补对销账 */
+              paintWrongBar();
             } else {
+              S.markQuizWrong(kn.id);
               b.classList.add('wrong');
               setTimeout(function () { b.classList.remove('wrong'); }, 650);
               fb.className = 'q-fb bad';
               fb.textContent = '✗ 再想想，换个试试';
+              if (!el.querySelector('.wrong-dot')) {
+                var s2 = document.createElement('span');
+                s2.className = 'wrong-dot'; s2.title = '这篇小测错过'; s2.textContent = '📕';
+                el.querySelector('summary').appendChild(s2);
+              }
+              paintWrongBar();
             }
           });
         });

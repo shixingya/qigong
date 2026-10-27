@@ -101,6 +101,14 @@
       });
       save(this._data);
     },
+    /* 练后感想写进最近一条记录（40 字截断） */
+    noteLast: function (txt) {
+      var rs = this._data.records;
+      if (!rs.length) return false;
+      rs[rs.length - 1].note = String(txt || '').slice(0, 40);
+      save(this._data);
+      return true;
+    },
     records: function () { return this._data.records; },
     recordsOfDay: function (ds) {
       return this._data.records.filter(function (r) { return r.d === ds; });
@@ -282,7 +290,19 @@
     markQuizPass: function (knId) {
       var q = this._data.settings.quiz = this._data.settings.quiz || {};
       q[knId] = true;
+      var w = this._data.settings.quizWrong;
+      if (w) delete w[knId]; /* 补对即销错账 */
       save(this._data);
+    },
+    /* 错题本：答错记账，答对自动销账 */
+    markQuizWrong: function (knId) {
+      var w = this._data.settings.quizWrong = this._data.settings.quizWrong || {};
+      w[knId] = (w[knId] || 0) + 1;
+      save(this._data);
+    },
+    wrongList: function () {
+      var w = this._data.settings.quizWrong || {};
+      return Object.keys(w).filter(function (k) { return w[k]; });
     },
     quizCount: function () {
       var q = this._data.settings.quiz || {};
