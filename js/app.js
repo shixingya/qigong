@@ -485,7 +485,18 @@
     refreshCustomBtn();
   }
 
+  /* 单式自动演示循环：按时序模拟点击关键姿势 */
+  var demoTimer = null;
+  function stopDemo() {
+    if (demoTimer) {
+      clearInterval(demoTimer); demoTimer = null;
+      var dl = $('#demoLoop');
+      if (dl) dl.textContent = '🔁 连续演示';
+    }
+  }
+
   function openMove(moveId) {
+    stopDemo();
     curMove = curSet.moves.find(function (m) { return m.id === moveId; });
     if (!curMove) return;
     $('#setDetail').classList.add('hidden');
@@ -539,9 +550,24 @@
     nx.textContent = mi < curSet.moves.length - 1 ? '下一式 · ' + curSet.moves[mi + 1].name + ' ➡' : '已是最后一式 ➡';
     pv.onclick = function () { if (mi > 0) openMove(curSet.moves[mi - 1].id); };
     nx.onclick = function () { if (mi < curSet.moves.length - 1) openMove(curSet.moves[mi + 1].id); };
+
+    /* 连续演示开关：2.2 秒一个姿势循环；不足两动不启用 */
+    var dl = $('#demoLoop');
+    dl.onclick = function () {
+      if (demoTimer) { stopDemo(); return; }
+      var btns = $$('#keyBtns .key-btn');
+      if (btns.length < 2) return;
+      var di = -1;
+      dl.textContent = '⏹ 停止演示';
+      demoTimer = setInterval(function () {
+        di = (di + 1) % btns.length;
+        btns[di].click();
+      }, 2200);
+    };
   }
 
   $('#backToSet').addEventListener('click', function () {
+    stopDemo();
     viewingMove = false;
     openSet(curSet.id);
     pose3d(idlePoses[0], 1.2);
@@ -556,6 +582,7 @@
     _paused: false, _set: null, _mode: '', _doneSec: 0, _warned: false,
 
     start: function (set, moves, mode) {
+      stopDemo(); /* 开练前先收起演示循环，免口令叠口令 */
       var steps = [{ label: '预备 · 调整呼吸', sec: 5, inhale: 'hold', cue: '双脚与肩同宽，全身放松，调整呼吸，即将开始' + set.name, pose: idlePoses[0], _prep: true }];
       var withRest = (mode === 'full' && moves.length > 1); /* 整套跟练式与式之间加调息间歇 */
       moves.forEach(function (m, mi) {
@@ -679,6 +706,8 @@
     finish: function () {
       if (!this.active) return;
       var set = this._set, min = Math.round(this._doneSec / 60 * 10) / 10;
+      var gotBefore = {};
+      try { S.badges(DATA.sets.length, moveTotal).forEach(function (a) { gotBefore[a.id] = a.got; }); } catch (e) { if (global.console) global.console.warn('成就快照读取失败，跳过解锁提示', e); }
       S.addRecord(set.id, this._doneSec, this._moveIds);
       lastSession = {
         set: set, min: min, mode: this._mode, n: this._moveIds.length,
@@ -697,6 +726,24 @@
       }
       speak('收功。' + set.name + '练习完成，今日打卡已记录。');
       chime(196, 0.2, 2.6); /* 收功大磬 */
+      /* 新成就解锁提示：对比写入记录前后的达成态 */
+      var un = $('#doneUnlock');
+      try {
+        var fresh = S.badges(DATA.sets.length, moveTotal).filter(function (a) { return a.got && !gotBefore[a.id]; });
+        if (fresh.length && un) {
+          un.classList.remove('hidden');
+          un.innerHTML = '🎉 新解锁：' + fresh.map(function (a) { return a.icon + ' ' + a.name; }).join(' · ');
+          chime(523.25, 0.12, 1.2);
+          setTimeout(function () { chime(659.25, 0.12, 1.4); }, 260);
+          speak('恭喜，解锁新成就' + fresh.map(function (a) { return a.name; }).join('，'));
+        } else if (un) {
+          un.classList.add('hidden'); un.innerHTML = '';
+        }
+      } catch (e) { if (global.console) global.console.warn('解锁提示渲染失败', e); if (un) { un.classList.add('hidden'); un.innerHTML = ''; } }
+      /* 收功三息：口头引导一遍，圆点动画自动跑三轮后停 */
+      setTimeout(function () {
+        speak('收功三息：缓缓吸气——微微停顿——细细呼出。三息之后，气归丹田。');
+      }, 1800);
       float3d('收功 · 气归丹田');
       pose3d(idlePoses[1], 1);
       showPage('done');

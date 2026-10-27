@@ -130,7 +130,7 @@
             </div>
           </div>
           <div class="key-strip">
-            <h4>🎞️ 关键姿势（点击在 3D 中定格）</h4>
+            <h4>🎞️ 关键姿势（点击在 3D 中定格）<button class="btn ghost sm" id="demoLoop" title="自动按顺序循环演示本式全部关键姿势">🔁 连续演示</button></h4>
             <div id="keyBtns"></div>
           </div>
         </div>
@@ -221,6 +221,11 @@
         <div class="done-icon">🧘</div>
         <h2 id="doneTitle">功成！今日打卡已点亮</h2>
         <p id="doneStats"></p>
+        <div id="doneUnlock" class="done-unlock hidden"></div>
+        <div class="coolown" id="coolown" title="收功三息：吸——定——呼，跟着圆点节奏各三次">
+          <span class="co-label">收功三息</span>
+          <span class="co-dot d1"></span><span class="co-dot d2"></span><span class="co-dot d3"></span>
+        </div>
         <div class="done-cta">
           <button class="btn primary" data-go="checkin">查看打卡日历</button>
           <button class="btn ghost" id="shareCardBtn">🖼 保存成绩卡</button>
