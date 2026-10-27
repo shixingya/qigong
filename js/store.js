@@ -331,6 +331,22 @@
 
     /* 收藏常用功法 */
     isFav: function (setId) { return !!(this._data.settings.favs || {})[setId]; },
+    /* 动作星标：常练式在首页成集合，一点即开单式跟练 */
+    isMoveFav: function (setId, moveId) { return !!(this._data.settings.favMoves || {})[setId + '/' + moveId]; },
+    toggleMoveFav: function (setId, moveId) {
+      var f = this._data.settings.favMoves = this._data.settings.favMoves || {};
+      var k = setId + '/' + moveId;
+      if (f[k]) delete f[k]; else f[k] = true;
+      save(this._data);
+      return f[k] === true;
+    },
+    moveFavKeys: function () {
+      var f = this._data.settings.favMoves || {};
+      return Object.keys(f).filter(function (k) { return f[k]; }).map(function (k) {
+        var p = k.split('/');
+        return { set: p[0], move: p[1] };
+      });
+    },
     toggleFav: function (setId) {
       var f = this._data.settings.favs = this._data.settings.favs || {};
       if (f[setId]) delete f[setId]; else f[setId] = true;

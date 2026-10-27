@@ -188,20 +188,72 @@
     /* 今日习练推荐：按日期确定性轮换，不随机不骚扰 */
     var st = DATA.sets[dayOfYear() % DATA.sets.length];
     var recs = S.recordsOfDay(S.todayStr());
+    /* 快捷版：今日推荐前 3 式，估算用时随节奏 */
+    var quick = st.moves.slice(0, 3);
+    var qSec = quick.reduce(function (a, m) { return a + m.keys.reduce(function (x, k) { return x + k.sec; }, 0); }, 0);
+    var qMin = Math.max(1, Math.round(qSec / 60 / (S.tempo() || 1)));
+    var allRec = S.records(), lastSet = null;
+    for (var li = allRec.length - 1; li >= 0; li--) {
+      lastSet = DATA.sets.find(function (s) { return s.id === allRec[li].set; });
+      if (lastSet) break;
+    }
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '</div>' +
       '<div class="tc-main"><div class="tc-title">今日推荐 · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') + '</div></div>' +
-      '<button class="btn primary" id="todayGo">▶ 立即跟练</button>';
+      '<div class="tc-btns">' +
+      '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
+      '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
+      (lastSet ? '<button class="btn ghost sm" id="todayResume" title="接着上次那套练整套">↩️ 接着练' + lastSet.name + '</button>' : '') +
+      '</div>';
     $('#todayGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
+    $('#todayQuick').addEventListener('click', function () { Train.start(st, quick, 'custom'); });
+    if (lastSet) $('#todayResume').addEventListener('click', function () { Train.start(lastSet, lastSet.moves, 'full'); });
     var box = $('#homeSets');
     box.innerHTML = '';
     DATA.sets.forEach(function (st2) { box.appendChild(setCard(st2, false)); });
     renderFavs();
     renderPlan();
+    renderFavMoves();
     paintGapBanner();
+  }
+
+  /* ---- 常练式集合：星标过的式在首页成一排，一点即单式开练 ---- */
+  function renderFavMoves() {
+    var sec = $('#favMoves');
+    if (!sec) return;
+    var keys = S.moveFavKeys();
+    /* 按功法目录序排列（非 id 字符串序，免 yjj-10 排 yjj-2 前），不被对象键序牵着走 */
+    keys.sort(function (a, b) {
+      if (a.set !== b.set) return a.set < b.set ? -1 : 1;
+      var st0 = DATA.sets.find(function (s) { return s.id === a.set; });
+      var ia = st0 ? st0.moves.findIndex(function (m) { return m.id === a.move; }) : 0;
+      var ib = st0 ? st0.moves.findIndex(function (m) { return m.id === b.move; }) : 0;
+      return ia - ib;
+    });
+    sec.innerHTML = '';
+    if (!keys.length) { sec.classList.add('hidden'); return; }
+    var head = document.createElement('div');
+    head.className = 'fm-head';
+    head.textContent = '⭐ 我的常练式（点一下就直接练这式）';
+    sec.appendChild(head);
+    var row = document.createElement('div');
+    row.className = 'fm-row';
+    keys.forEach(function (k) {
+      var st2 = DATA.sets.find(function (s) { return s.id === k.set; });
+      var m = st2 && st2.moves.find(function (x) { return x.id === k.move; });
+      if (!st2 || !m) return;
+      var b = document.createElement('button');
+      b.className = 'fm-chip';
+      b.innerHTML = '▶ ' + m.name + '<small>' + st2.icon + ' ' + st2.name + '</small>';
+      b.title = '跟练 ' + m.name + ' 单式';
+      b.addEventListener('click', function () { Train.start(st2, [m], 'single'); });
+      row.appendChild(b);
+    });
+    sec.appendChild(row);
+    sec.classList.toggle('hidden', !row.children.length);
   }
 
   /* ---- 久未练功提醒：≥ 3 天没练露banner，关一下今天不再打扰 ---- */
@@ -498,6 +550,17 @@
           S.savePick(curSet.id, Object.keys(picked).filter(function (k) { return picked[k]; }));
         });
         cell.appendChild(pb);
+        var star = document.createElement('button');
+        star.className = 'star-btn' + (S.isMoveFav(curSet.id, m.id) ? ' on' : '');
+        star.textContent = S.isMoveFav(curSet.id, m.id) ? '★ 常练' : '☆ 常练';
+        star.title = '标为常练式，首页“我的常练式”里一点即练';
+        star.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var on = S.toggleMoveFav(curSet.id, m.id);
+          star.textContent = on ? '★ 常练' : '☆ 常练';
+          star.classList.toggle('on', on);
+        });
+        cell.appendChild(star);
         cell.addEventListener('click', function () { openMove(m.id); });
         grid.appendChild(cell);
       });
@@ -560,6 +623,15 @@
       openSet(curSet.id);
       openMove(moveId); /* 重进以刷新状态 */
     };
+    /* 常练星标：与目录格双向同步，重开即新 */
+    var fs = $('#favMoveStar');
+    function paintFavStar() {
+      var on = S.isMoveFav(curSet.id, curMove.id);
+      fs.textContent = on ? '★ 已列常练' : '☆ 常练';
+      fs.classList.toggle('gold', on);
+    }
+    fs.onclick = function () { S.toggleMoveFav(curSet.id, curMove.id); paintFavStar(); };
+    paintFavStar();
     $('#backToSet').textContent = '← 返回' + curSet.name;
 
     /* 同一套内快速前后翻式，尽头禁用 */
@@ -628,7 +700,7 @@
       }
       paintAmbBtn();
       $('#trainSetName').textContent = set.icon + ' ' + set.name +
-        (mode === 'single' ? ' · 单式' : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
+        (mode === 'single' ? ' · ' + moves[0].name : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
       $('#btnPause').textContent = '⏸ 暂停';
       this.enterStep(0);
       this.renderTick(); /* 开场即刷新步数，不留上一场残值 */
