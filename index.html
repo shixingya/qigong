@@ -201,6 +201,7 @@
           </div>
           <div class="breath-ring-wrap">
             <div class="breath-ring" id="breathRing"><span id="breathText">预备</span></div>
+            <span class="cd-num hidden" id="cdNum" title="换式倒计时"></span>
           </div>
         </div>
         <div class="train-key" id="trainKeyLabel"></div>
@@ -254,6 +255,20 @@
         <div class="calm-sub"><span id="calmCount">第 1 / 6 息</span> · 余 <span id="calmLeft">60</span> 秒</div>
         <button class="btn ghost sm" id="calmStop">提前结束</button>
         <p class="calm-tip">吸 4 秒 · 呼 6 秒，数满六息即定；开练前安住，或伏案后松一松，不练功也能用</p>
+      </div>
+    </div>
+
+    <!-- ========== 知识抽卡复习浮层 ========== -->
+    <div class="calm-mask hidden" id="fcMask">
+      <div class="calm-box fc-box">
+        <h3>🃏 抽卡复习 · 明理之卡</h3>
+        <div class="fc-progress" id="fcProg"></div>
+        <div class="fc-card" id="fcCard"></div>
+        <div class="fc-cta">
+          <button class="btn ghost sm" id="fcAgain">↻ 没记住，再排一轮</button>
+          <button class="btn primary sm" id="fcGot">✓ 记住了</button>
+          <button class="btn ghost sm" id="fcClose">✕ 收起</button>
+        </div>
       </div>
     </div>
   </section>

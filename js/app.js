@@ -734,6 +734,7 @@
     enterStep: function (i) {
       this._i = i;
       this._warned = false;
+      var cd0 = $('#cdNum'); if (cd0) { cd0.classList.add('hidden'); cd0.dataset.v = ''; cd0.textContent = ''; } /* 新步不留上一拍残影 */
       var st = this._steps[i];
       st._eff = st.sec / (this._tempo || 1); /* 慢速(0.75)时长更长，快速(1.5)更短 */
       this._remain = st._eff;
@@ -771,6 +772,23 @@
       $('#trainBar').style.width = Math.min(100, pct) + '%';
       $('#trainStepIdx').textContent = this._i + 1 + ' / ' + this._total;
       $('#trainTimeLeft').textContent = Math.max(0, Math.ceil(this._remain)) + ' 秒';
+      /* 最后 3 秒倒计时大字：秒变弹一次，提前收拍不叠字 */
+      var cd = $('#cdNum');
+      if (cd) {
+        var rl = this._remain;
+        if (!this._paused && rl > 0 && rl <= 3.05) {
+          var v = Math.min(3, Math.max(1, Math.ceil(rl))); /* 卡在 3，免 3.05 窗口 ceil 出 4 */
+          if (cd.dataset.v !== String(v)) {
+            cd.dataset.v = String(v);
+            cd.textContent = v;
+            cd.classList.remove('hidden', 'pop');
+            void cd.offsetWidth; /* 重触发 pop 动画 */
+            cd.classList.add('pop');
+          }
+        } else if (!cd.classList.contains('hidden')) {
+          cd.classList.add('hidden'); cd.dataset.v = '';
+        }
+      }
     },
 
     togglePause: function () {
@@ -791,6 +809,8 @@
     stop: function (silent) {
       this.active = false;
       cancelAnimationFrame(this._raf);
+      var cdq = $('#cdNum'); /* 退出时刻避开倒计时窗口，不留残字 */
+      if (cdq) { cdq.classList.add('hidden'); cdq.dataset.v = ''; cdq.textContent = ''; }
       if (global.QGAmbient) QGAmbient.stop(); /* 退出跟练收掉伴奏 */
       if (!silent && global.history) { /* keep simple */ }
       pose3d(idlePoses[0], 1.2);
@@ -939,6 +959,39 @@
     $('#stageTitle').textContent = '演武台 · 拖拽旋转视角';
     float3d('');
   }
+
+  /* ================= 知识抽卡复习 ================= */
+  var fc = { queue: [], total: 0, got: 0 };
+  function fcShow() {
+    var p = $('#fcProg'), c = $('#fcCard');
+    if (!fc.queue.length) {
+      p.textContent = '本轮过完 · 共 ' + fc.total + ' 张';
+      c.innerHTML = '<div class="fc-done"><b>🎉 记住 ' + fc.got + ' / ' + fc.total + '</b><p>' +
+        (fc.got >= fc.total ? '诸条记全，理气双长' : '没记住的下轮还会绕回来') + '</p></div>';
+      $('#fcAgain').disabled = true; $('#fcGot').disabled = true;
+      chime(523.25, 0.13, 1.6);
+      return;
+    }
+    var it = fc.queue[0];
+    p.textContent = '还剩 ' + fc.queue.length + ' 张 · 记住 ' + fc.got + ' 张';
+    c.innerHTML = '<div class="fc-tag">' + it.icon + ' 出自《' + it.from + '》</div><div class="fc-pt">' + it.txt + '</div>';
+    $('#fcAgain').disabled = false; $('#fcGot').disabled = false;
+  }
+  function fcOpen() {
+    /* 全部要点入队列，按当年天数错位轮播，天天复习顺序不重样 */
+    var items = [];
+    DATA.knowledge.forEach(function (kn) {
+      kn.points.forEach(function (p) { items.push({ icon: kn.icon, from: kn.title, txt: p }); });
+    });
+    var off = dayOfYear() % items.length;
+    fc.queue = items.slice(off).concat(items.slice(0, off));
+    fc.total = items.length; fc.got = 0;
+    $('#fcMask').classList.remove('hidden');
+    fcShow();
+  }
+  $('#fcGot').addEventListener('click', function () { fc.queue.shift(); fc.got++; fcShow(); });
+  $('#fcAgain').addEventListener('click', function () { var it = fc.queue.shift(); if (it) fc.queue.push(it); fcShow(); });
+  $('#fcClose').addEventListener('click', function () { $('#fcMask').classList.add('hidden'); });
 
   /* 键盘快捷键：空格暂停/继续，←→切换动作，Esc 退出 */
   document.addEventListener('keydown', function (e) {
@@ -1137,13 +1190,17 @@
     var total = DATA.knowledge.length, rc = S.readCount();
     var head = document.createElement('div');
     head.className = 'know-progress';
+    head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>';
     function paintKnowHead() {
       var qc = S.quizCount();
-      head.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (total && S.readCount() === total ? ' · 明理圆满 🎉' : '') +
+      var sp = $('#knowStats');
+      if (!sp) return;
+      sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (total && S.readCount() === total ? ' · 明理圆满 🎉' : '') +
         ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '');
     }
-    paintKnowHead();
     box.appendChild(head);
+    paintKnowHead();
+    $('#fcBtn').addEventListener('click', fcOpen);
     /* 错题本横幅：答错记账、补对销账，一键直达待订正篇 */
     var wbar = document.createElement('div');
     wbar.className = 'quiz-wrongs hidden';
