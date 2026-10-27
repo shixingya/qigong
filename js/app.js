@@ -532,7 +532,7 @@
   var Train = {
     active: false,
     _steps: [], _i: 0, _remain: 0, _total: 0, _last: 0, _raf: 0,
-    _paused: false, _set: null, _mode: '', _doneSec: 0,
+    _paused: false, _set: null, _mode: '', _doneSec: 0, _warned: false,
 
     start: function (set, moves, mode) {
       var steps = [{ label: '预备 · 调整呼吸', sec: 5, inhale: 'hold', cue: '双脚与肩同宽，全身放松，调整呼吸，即将开始' + set.name, pose: idlePoses[0], _prep: true }];
@@ -552,6 +552,12 @@
       this._startWall = 0; this._doneSec = 0;
       this.active = true;
       showPage('train');
+      /* 自然伴奏：开场按设置拉起（点击链路里才有手势解锁 AudioContext） */
+      if (global.QGAmbient) {
+        var amb = S.ambient();
+        if (amb !== 'off') QGAmbient.start(amb);
+      }
+      paintAmbBtn();
       $('#trainSetName').textContent = set.icon + ' ' + set.name +
         (mode === 'single' ? ' · 单式' : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
       $('#btnPause').textContent = '⏸ 暂停';
@@ -566,6 +572,11 @@
           self._remain -= dt;
           self._doneSec += dt;
           self.renderTick();
+          var stepNow = self._steps[self._i];
+          if (!self._warned && self._remain <= 3 && self._remain > 0.3 && stepNow && stepNow._eff >= 5) {
+            self._warned = true;
+            chime(392, 0.07, 0.9); /* 换式/换动前轻声磬音提醒，长步骤才预告 */
+          }
           if (self._remain <= 0) {
             var cur = self._steps[self._i];
             if (cur.move) S.markLearned(set.id, cur.move.id); /* 跟到该式即算学过 */
@@ -580,6 +591,7 @@
 
     enterStep: function (i) {
       this._i = i;
+      this._warned = false;
       var st = this._steps[i];
       st._eff = st.sec / (this._tempo || 1); /* 慢速(0.75)时长更长，快速(1.5)更短 */
       this._remain = st._eff;
@@ -635,6 +647,7 @@
     stop: function (silent) {
       this.active = false;
       cancelAnimationFrame(this._raf);
+      if (global.QGAmbient) QGAmbient.stop(); /* 退出跟练收掉伴奏 */
       if (!silent && global.history) { /* keep simple */ }
       pose3d(idlePoses[0], 1.2);
       breath3d('idle');
@@ -650,6 +663,7 @@
       };
       this.active = false;
       cancelAnimationFrame(this._raf);
+      if (global.QGAmbient) QGAmbient.stop();
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
       $('#doneStats').textContent =
         '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天';
@@ -673,6 +687,21 @@
     Train.stop(true);
     resetStage();
     goBack();
+  });
+
+  /* 自然伴奏开关：无伴奏→泉流→山风→鸟鸣循环，选完即响 */
+  function paintAmbBtn() {
+    var b = $('#ambBtn');
+    if (!b) return;
+    var a = S.ambient();
+    b.textContent = (global.QGAmbient && QGAmbient.LABEL[a]) || a;
+    b.title = '自然伴奏（Web Audio 程序化合成，无音频素材）：点按循环切换';
+  }
+  var ambBtn = $('#ambBtn');
+  if (ambBtn) ambBtn.addEventListener('click', function () {
+    var a = S.cycleAmbient();
+    if (global.QGAmbient) { if (a === 'off') QGAmbient.stop(); else QGAmbient.start(a); }
+    paintAmbBtn();
   });
 
   function resetStage() {

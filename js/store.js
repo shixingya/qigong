@@ -232,6 +232,18 @@
       save(this._data);
       return this._data.settings.tempo;
     },
+    /* 自然伴奏：off/water/wind/birds */
+    AMBIENTS: ['off', 'water', 'wind', 'birds'],
+    ambient: function () {
+      var a = this._data.settings.ambient;
+      return this.AMBIENTS.indexOf(a) >= 0 ? a : 'off';
+    },
+    cycleAmbient: function () {
+      var as = this.AMBIENTS, i = as.indexOf(this.ambient());
+      this._data.settings.ambient = as[(i + 1) % as.length];
+      save(this._data);
+      return this._data.settings.ambient;
+    },
     /* 收藏常用功法 */
     isFav: function (setId) { return !!(this._data.settings.favs || {})[setId]; },
     toggleFav: function (setId) {

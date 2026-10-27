@@ -201,6 +201,7 @@
         </div>
         <div class="train-ctrls">
           <button class="btn ghost" id="btnPause">⏸ 暂停</button>
+          <button class="btn ghost" id="ambBtn" title="自然伴奏：无伴奏/泉流/山风/鸟鸣循环切换">🔇 无伴奏</button>
           <button class="btn ghost" id="btnPrevKey">⏮ 上一动</button>
           <button class="btn ghost" id="btnNextKey">⏭ 下一动</button>
           <button class="btn danger" id="btnQuit">✕ 退出</button>
@@ -261,6 +262,7 @@
       <li><kbd>空格</kbd> 暂停 / 继续</li>
       <li><kbd>→</kbd> 下一动 · <kbd>←</kbd> 上一动</li>
       <li><kbd>Esc</kbd> 退出跟练回上一页</li>
+      <li>控制栏「伴奏」可选泉流/山风/鸟鸣，纯合成离线可用</li>
     </ul>
     <div class="tour-title">平时</div>
     <ul class="help-list">
@@ -278,6 +280,7 @@
 <!-- 数据与逻辑层（普通脚本） -->
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/ambient.js"></script>
 <script src="js/app.js"></script>
 <!-- Three.js 场景（ESM，defer 执行） -->
 <script type="module" src="js/scene.js"></script>
