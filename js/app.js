@@ -5,6 +5,23 @@
 (function (global) {
   'use strict';
 
+  /* ---- 全局错误兜底：不白屏不静默，轻提示可继续 ---- */
+  var errSeen = {}, errN = 0;
+  function toastError(what, detail) {
+    if (detail !== undefined && global.console) global.console[what === 'unhandledrejection' ? 'warn' : 'error'](detail);
+    var key = what + ':' + (detail && detail.message ? detail.message : String(detail || what));
+    if (errSeen[key]) return; /* 同类只报一次，不刷屏 */
+    errSeen[key] = 1; errN++;
+    if (errN > 3) return; /* 错误过多说明环境异常，停止打扰 */
+    var bar = document.createElement('div');
+    bar.className = 'sw-update err-toast';
+    bar.textContent = '☯️ 页面有个小地方没走通，不影响继续练功；若反复出现可刷新重试。';
+    document.body.appendChild(bar);
+    setTimeout(function () { bar.remove(); }, 6000);
+  }
+  global.addEventListener('error', function (e) { toastError('error', e.error || e.message); });
+  global.addEventListener('unhandledrejection', function (e) { toastError('unhandledrejection', e.reason); });
+
   var DATA = global.QG_DATA;
   var S = global.QGStore;
   var $ = function (sel) { return document.querySelector(sel); };
@@ -236,8 +253,9 @@
     var el = document.createElement('div');
     el.className = 'set-card';
     el.style.setProperty('--acc', st.color);
-    var learned = S.learnedCount(st.id);
+    var learned = Math.min(S.learnedCount(st.id), st.moves.length);
     var est = estMin(st);
+    var lpct = Math.round(learned / st.moves.length * 100);
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
       '<button class="fav-star' + (S.isFav(st.id) ? ' on' : '') + '" title="收藏/取消收藏常用功法">' + (S.isFav(st.id) ? '⭐' : '☆') + '</button>' +
@@ -245,7 +263,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span></div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式</div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
@@ -372,11 +390,18 @@
     showPage('sets');
 
     var head = $('#setHead');
+    var doneN = curSet.moves.filter(function (m) { return S.isLearned(curSet.id, m.id); }).length;
+    var pctN = Math.round(doneN / curSet.moves.length * 100);
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span></h2>' +
       '<p>' + curSet.intro + '</p>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
+      '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
+      '<span class="lp-label">学习进度</span>' +
+      '<span class="lp-bar"><i style="width:' + pctN + '%"></i></span>' +
+      '<span class="lp-num">' + (doneN ? '已学 ' + doneN + '/' + curSet.moves.length + ' 式' : '还没开始学，随时开练') + '</span>' +
+      (doneN === curSet.moves.length ? '<span class="lp-done">✓ 全部掌握</span>' : '') + '</div>' +
       '<div class="cta-row">' +
       '<button class="btn primary" id="trainFull">▶ 整套跟练（' + curSet.moves.length + ' 式 · 约' + estMin(curSet) + '分钟）</button>' +
       '<button class="btn ghost" id="learnFrom1">📖 从第一式逐式学习</button>' +
@@ -492,12 +517,14 @@
       openSet(curSet.id);
       openMove(moveId); /* 重进以刷新状态 */
     };
+    $('#backToSet').textContent = '← 返回' + curSet.name;
   }
 
   $('#backToSet').addEventListener('click', function () {
     viewingMove = false;
     openSet(curSet.id);
     pose3d(idlePoses[0], 1.2);
+    if (!Train.active) { breath3d('idle'); resetStage(); } /* 单式页留下的标题不泄漏回目录 */
   });
 
   /* ================= 跟练状态机 ================= */

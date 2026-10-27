@@ -232,7 +232,16 @@ button { font-family: inherit; cursor: pointer; }
 .set-card .tagline { font-size: 14px; margin: 8px 0; color: var(--ink); }
 .set-card .meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--sub); }
 .set-card .meta span { border: 1px solid var(--line); padding: 2px 9px; border-radius: 999px; }
-.set-card .prog { margin-top: 10px; font-size: 12.5px; color: var(--gold); }
+.set-card .prog { margin-top: 10px; font-size: 12.5px; color: var(--gold); display: flex; align-items: center; gap: 8px; }
+.set-card .prog-bar { flex: 1; height: 5px; border-radius: 999px; background: rgba(201, 168, 106, .18); overflow: hidden; }
+.set-card .prog-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--jade)); transition: width .4s ease; }
+
+/* 功法详情学习进度 */
+.learn-progress { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; font-size: 13px; color: var(--sub); flex-wrap: wrap; }
+.learn-progress .lp-bar { flex: 1 1 140px; max-width: 260px; height: 7px; border-radius: 999px; background: rgba(95, 214, 184, .14); overflow: hidden; }
+.learn-progress .lp-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--jade), var(--gold)); transition: width .45s ease; }
+.learn-progress .lp-num { color: var(--jade); }
+.learn-progress .lp-done { color: var(--gold); font-weight: 600; }
 
 /* ---------- 功法详情 ---------- */
 .set-head {
@@ -494,3 +503,5 @@ button { font-family: inherit; cursor: pointer; }
 .move-cell.dim { opacity: .38; filter: saturate(.5); }
 .move-cell.hit { box-shadow: 0 0 0 2px rgba(201, 168, 106, .55); }
 .install-bar { display: flex; align-items: center; gap: 8px; bottom: 60px; } /* 让开右下角更新条 */
+/* 全局错误轻提示：复用更新条外观，换暖警示色 */
+.err-toast { border-color: rgba(201, 168, 106, .6); color: var(--gold); }
