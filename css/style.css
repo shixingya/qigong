@@ -133,6 +133,36 @@ button { font-family: inherit; cursor: pointer; }
 .today-card .tc-title { font-size: 16.5px; }
 .today-card .tc-sub { color: var(--sub); font-size: 13px; margin-top: 2px; }
 .today-card .tc-sub b { color: var(--gold); }
+/* 21 天入门挑战 */
+.plan-card {
+  background: linear-gradient(140deg, rgba(217, 180, 106, .08), var(--panel));
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px;
+}
+.plan-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.plan-icon { font-size: 28px; }
+.plan-head > div:nth-child(2) { flex: 1; min-width: 200px; }
+.plan-title { font-size: 16.5px; }
+.plan-sub { color: var(--sub); font-size: 13px; margin-top: 2px; }
+.plan-banner { margin: 10px 0 4px; font-size: 13.5px; color: var(--sub); }
+.plan-banner b { color: var(--gold); }
+.plan-banner.ok { color: var(--jade); }
+.plan-banner.fail { color: var(--danger); }
+.plan-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 10px; }
+.p-cell {
+  display: flex; align-items: center; justify-content: center;
+  height: 34px; border-radius: 10px; font-size: 13px;
+  border: 1px dashed var(--line); color: var(--sub);
+}
+.p-cell.done { border: 1px solid var(--jade-d); background: rgba(95, 214, 184, .16); color: var(--jade); font-size: 16px; }
+.p-cell.miss { border-style: solid; background: rgba(255, 255, 255, .04); opacity: .5; }
+.p-cell.todo { opacity: .85; }
+/* 新版本提示条 */
+.sw-update {
+  position: fixed; right: 18px; bottom: 18px; z-index: 99;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--panel2); border: 1px solid var(--jade-d); border-radius: 12px;
+  padding: 10px 14px; font-size: 14px; box-shadow: var(--shadow);
+}
 .set-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
 .set-cards.wide { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .set-card {

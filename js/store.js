@@ -20,13 +20,14 @@
   function load() {
     var raw = null;
     try { raw = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
-    var data = { records: [], learned: {}, settings: { sound: true } };
+    var data = { records: [], learned: {}, settings: { sound: true }, plan: null };
     if (raw) {
       try {
         var p = JSON.parse(raw);
         if (p && Array.isArray(p.records)) data.records = p.records;
         if (p && p.learned && typeof p.learned === 'object') data.learned = p.learned;
         if (p && p.settings) data.settings = Object.assign(data.settings, p.settings);
+        if (p && p.plan && typeof p.plan.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.plan.start)) data.plan = { start: p.plan.start };
       } catch (e) { /* 损坏则重置 */ }
     }
     return data;
@@ -34,6 +35,10 @@
 
   function save(data) {
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 存满忽略 */ }
+  }
+
+  function diffDays(a, b) { /* 含头含尾的天数：b - a + 1 */
+    return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000) + 1;
   }
 
   var S = {
@@ -137,6 +142,41 @@
       return best;
     },
 
+    /* ---- 21 天入门挑战（报名后以真实打卡记录自动判定，不另设手动勾选） ---- */
+    PLAN_LEN: 21,
+    planStatus: function () { return !!this._data.plan; },
+    planInfo: function () {
+      if (!this._data.plan) return null;
+      var start = this._data.plan.start, len = this.PLAN_LEN;
+      var today = todayStr();
+      var has = {};
+      this._data.records.forEach(function (r) {
+        if (r.d >= start && diffDays(start, r.d) <= len) has[r.d] = 1;
+      });
+      var elapsed = Math.max(0, diffDays(start, today) - 1); /* 已过完的整天数 */
+      var grid = [], doneGrid = [], done = 0;
+      for (var i = 0; i < len; i++) {
+        var ds = todayStr(i - elapsed); /* 第 i+1 天的日期 = 今天 - (elapsed - i) */
+        grid.push({ d: ds, has: !!has[ds], past: ds <= today });
+        doneGrid.push(!!has[ds]);
+        if (has[ds]) done++;
+      }
+      var dayIdx = diffDays(start, today); /* 今天是挑战第几天（可能 >len） */
+      return {
+        start: start, done: done, need: len - done, dayIdx: dayIdx,
+        over: dayIdx > len, success: done >= len,
+        inWin: dayIdx >= 1 && dayIdx <= len,
+        grid: grid, doneGrid: doneGrid
+      };
+    },
+    joinPlan: function () {
+      if (this._data.plan) return this._data.plan;
+      this._data.plan = { start: todayStr() };
+      save(this._data);
+      return this._data.plan;
+    },
+    resetPlan: function () { this._data.plan = null; save(this._data); },
+
     /* ---- 设置 ---- */
     soundOn: function () { return this._data.settings.sound !== false; },
     toggleSound: function () {
@@ -149,7 +189,8 @@
     exportPayload: function () {
       return JSON.stringify({
         app: 'qigong', version: 1, exportedAt: new Date().toISOString(),
-        records: this._data.records, learned: this._data.learned, settings: this._data.settings
+        records: this._data.records, learned: this._data.learned, settings: this._data.settings,
+        plan: this._data.plan || null
       }, null, 1);
     },
     /* 校验并清洗外部 JSON，容忍脏数据不崩 */
@@ -178,7 +219,7 @@
           }
         });
       }
-      return { ok: true, data: { records: records, learned: learned } };
+      return { ok: true, data: { records: records, learned: learned, plan: (p.plan && p.plan.start && DATE_RE.test(p.plan.start)) ? { start: p.plan.start } : null } };
     },
     /* 合并导入：记录按唯一键去重，已学取并集 */
     mergeImport: function (inc) {
@@ -195,6 +236,11 @@
         Object.keys(inc.learned[sid]).forEach(function (mid) { l[sid][mid] = true; });
       });
       save(this._data);
+      /* 挑战计划：取更早开始日，视为同一挑战 */
+      if (inc.plan && inc.plan.start && DATE_RE.test(inc.plan.start)) {
+        var cur = this._data.plan;
+        if (!cur || inc.plan.start < cur.start) this._data.plan = { start: inc.plan.start };
+      }
       return added;
     }
   };

@@ -158,6 +158,42 @@
     var box = $('#homeSets');
     box.innerHTML = '';
     DATA.sets.forEach(function (st2) { box.appendChild(setCard(st2, false)); });
+    renderPlan();
+  }
+
+  /* ---- 21 天入门挑战：报名后自动按真实打卡记录判定 ---- */
+  function renderPlan() {
+    var el = $('#planCard');
+    if (!el) return;
+    if (!S.planStatus()) {
+      el.innerHTML =
+        '<div class="plan-head"><span class="plan-icon">🏮</span>' +
+        '<div><div class="plan-title">21 天入门挑战</div>' +
+        '<div class="plan-sub">报名后每天至少完成一次跟练即自动点亮，21 天内集满即功成</div></div>' +
+        '<button class="btn primary" id="planJoin">🏮 报名</button></div>';
+      var jb = $('#planJoin');
+      if (jb) jb.addEventListener('click', function () { S.joinPlan(); renderPlan(); });
+      return;
+    }
+    var p = S.planInfo();
+    var cells = p.grid.map(function (g, i) {
+      var cls = g.has ? 'done' : (g.past ? 'miss' : 'todo');
+      return '<span class="p-cell ' + cls + '" title="' + g.d + '">' + (g.has ? '✿' : (i + 1)) + '</span>';
+    }).join('');
+    var banner;
+    if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
+    else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成</div>';
+    el.innerHTML =
+      '<div class="plan-head"><span class="plan-icon">🏮</span>' +
+      '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
+      '<div class="plan-sub">每天完成任意一次跟练自动点亮，漏一天不罚，21 天内集满即功成</div></div>' +
+      '<button class="btn ghost sm" id="planReset">放弃本次</button></div>' +
+      banner + '<div class="plan-grid">' + cells + '</div>';
+    var rb = $('#planReset');
+    if (rb) rb.addEventListener('click', function () {
+      if (confirm('确定放弃本次挑战？记录会保留，可重新报名开新一期')) { S.resetPlan(); renderPlan(); }
+    });
   }
   function setCard(st, showIntro) {
     var el = document.createElement('div');
@@ -429,6 +465,10 @@
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
       $('#doneStats').textContent =
         '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天';
+      if (S.planStatus()) {
+        var pl = S.planInfo();
+        $('#doneStats').textContent += pl && !pl.success && !pl.over ? ' · 21天挑战已点亮 ' + pl.done + '/21' : '';
+      }
       speak('收功。' + set.name + '练习完成，今日打卡已记录。');
       chime(196, 0.2, 2.6); /* 收功大磬 */
       float3d('收功 · 气归丹田');
@@ -674,7 +714,35 @@
   /* PWA：Service Worker 离线缓存（http(s) 环境下） */
   if ('serviceWorker' in navigator && /^https?:$/.test(global.location.protocol)) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./sw.js').catch(function () { /* 离线能力缺失不影响使用 */ });
+      navigator.serviceWorker.register('./sw.js').then(watchSwUpdate).catch(function () { /* 离线能力缺失不影响使用 */ });
+    });
+  }
+
+  /* 新版本缓存就绪时提示一键刷新，避免 cache-first 下老用户需刷两次 */
+  function watchSwUpdate(reg) {
+    var shown = false;
+    function promptReload(sw) {
+      if (shown || !sw) return;
+      shown = true;
+      var bar = document.createElement('div');
+      bar.className = 'sw-update';
+      bar.innerHTML = '☯️ 气功学堂有新版本 <button class="btn primary sm">立即刷新</button>';
+      bar.querySelector('button').addEventListener('click', function () {
+        sw.postMessage('skip');
+      });
+      document.body.appendChild(bar);
+    }
+    if (reg.waiting) promptReload(reg.waiting);
+    else setInterval(function () { if (reg.waiting) promptReload(reg.waiting); }, 20000); /* 页面长开时轮询兜底 */
+    reg.addEventListener('updatefound', function () {
+      var nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener('statechange', function () {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) promptReload(nw);
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (shown) location.reload();
     });
   }
 
