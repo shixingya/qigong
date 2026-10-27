@@ -106,16 +106,34 @@
     } catch (e) { /* 忽略 */ }
   }
   /* ---- 知识全篇朗读：逐段入队，一念一念接着读 ---- */
-  var rd = { on: false, id: '', btn: null, keep: 0 };
+  var rd = { on: false, id: '', btn: null, keep: 0, cur: 0, tot: 0, prog: null, el: null };
   function paintRdBtn() {
     var b = rd.btn;
     if (!b) return;
     b.className = 'btn ghost sm rd-btn' + (rd.on ? ' on' : '');
     b.textContent = rd.on ? '⏹ 停止朗读' : '🔊 朗读全篇';
   }
+  /* 读到第几段浮在钮边，段落在卡里同步点亮：耳朵跟着走，眼睛也知道走到哪 */
+  function paintRdProg(p) {
+    if (!p) return;
+    if (rd.on && rd.cur) { p.textContent = '🔊 ' + rd.cur + '/' + rd.tot; p.classList.remove('hidden'); }
+    else { p.classList.add('hidden'); p.textContent = ''; }
+  }
+  function rdHop(p, i) {
+    rd.cur = i + 1;
+    paintRdProg(rd.prog);
+    var ps = p.querySelectorAll('.kb > p');
+    for (var k = 0; k < ps.length; k++) ps[k].classList.toggle('rd-now', k === i - 1);
+  }
+  function rdTail(p) {
+    var ps = p.querySelectorAll('.kb > p');
+    for (var k = 0; k < ps.length; k++) ps[k].classList.remove('rd-now');
+  }
   function rdStop() {
     if (rd.keep) { clearInterval(rd.keep); rd.keep = 0; }
-    rd.on = false; rd.id = '';
+    rd.on = false; rd.id = ''; rd.cur = 0;
+    if (rd.el) rdTail(rd.el);
+    paintRdProg(rd.prog);
     try { if (global.speechSynthesis) speechSynthesis.cancel(); } catch (e) { /* 忽略 */ }
     paintRdBtn();
   }
@@ -125,14 +143,26 @@
     rdStop(); /* 换篇先收干净 */
     rd.btn = btn;
     var parts = [kn.title + '。'].concat(kn.points || []).concat(['本篇朗读完毕，如理如法。']);
-    rd.on = true; rd.id = kn.id;
+    rd.on = true; rd.id = kn.id; rd.tot = parts.length; rd.cur = 0;
+    /* 进度浮字与段落高亮都挂在朗读钮所在的那张卡上 */
+    var foot = btn.closest('.kb-foot');
+    rd.prog = foot && foot._rdProg ? foot._rdProg : null;
+    rd.el = btn.closest('.know-card');
     paintRdBtn();
+    paintRdProg(rd.prog);
     try {
       speechSynthesis.cancel();
       parts.forEach(function (t, i) {
         var u = mkUtter(t);
+        u.onstart = function () { if (rd.on && rd.id === kn.id && rd.el) rdHop(rd.el, i); };
         if (i === parts.length - 1) {
-          var fin = function () { if (rd.id === kn.id) { rd.on = false; rd.id = ''; paintRdBtn(); } };
+          var fin = function () {
+            if (rd.id === kn.id) {
+              rd.on = false; rd.id = ''; rd.cur = 0;
+              if (rd.el) rdTail(rd.el);
+              paintRdProg(rd.prog); paintRdBtn();
+            }
+          };
           u.onend = fin; u.onerror = fin;
         }
         speechSynthesis.speak(u);
@@ -265,10 +295,12 @@
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
+      '<button class="btn ghost sm" id="todayReview" title="练完温一温：抽卡、难卡、错题、续读一处直达">🧠 复习台</button>' +
       (lastSet ? '<button class="btn ghost sm" id="todayResume" title="接着上次那套练整套">↩️ 接着练' + lastSet.name + '</button>' : '') +
       '</div>';
     $('#todayGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
     $('#todayQuick').addEventListener('click', function () { Train.start(st, quick, 'custom'); });
+    $('#todayReview').addEventListener('click', reviewOpen);
     if (lastSet) $('#todayResume').addEventListener('click', function () { Train.start(lastSet, lastSet.moves, 'full'); });
     var box = $('#homeSets');
     box.innerHTML = '';
@@ -1085,6 +1117,60 @@
   $('#fcAgain').addEventListener('click', function () { var it = fc.queue.shift(); if (it) fc.queue.push(it); fcShow(); });
   $('#fcClose').addEventListener('click', function () { $('#fcMask').classList.add('hidden'); });
 
+  /* ================= 复习台 ================= */
+  /* 抽卡、难卡、错题、未读四件事拢到一个浮层里，练完想温习不用翻来翻去 */
+  function paintReview() {
+    var box = $('#rvBody');
+    if (!box) return;
+    var total = DATA.knowledge.length;
+    var hn = S.hardCount(), ws = S.wrongList().length;
+    var unread = DATA.knowledge.filter(function (k) { return !S.isRead(k.id); }).length;
+    var fs = S.fcStat();
+    function row(icon, name, stat, btnId, label, disabled, tip) {
+      return '<div class="rv-row"><div class="rv-info"><span class="rv-name">' + icon + ' ' + name + '</span>' +
+        '<span class="rv-stat">' + stat + '</span></div>' +
+        '<button class="btn primary sm" id="' + btnId + '"' + (disabled ? ' disabled' : '') + (tip ? ' title="' + tip + '"' : '') + '>' + label + '</button></div>';
+    }
+    box.innerHTML =
+      row('🃏', '全量抽卡', '知识要点共 ' + total + ' 篇' + (fs.rounds ? ' · 已抽 ' + fs.rounds + ' 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : ''), 'rvFc', '开一轮抽卡', !total, '把所有要点打乱轮一遍') +
+      row('⛰', '难卡包', hn ? '包内 ' + hn + ' 张 · 卡面上随手归档' : '还没存难卡 · 抽卡时点「归入难卡」收进来', 'rvHard', '专攻难卡', !hn, '只抽被标记的难卡') +
+      row('📕', '错题订正', ws ? '待订正 ' + ws + ' 题 · 补对自动销账' : '暂无错题 · 随堂小测答错就记进来', 'rvWrong', '直达第一篇', !ws, '跳到第一道待订正的篇目') +
+      row('📖', '续读一篇', unread ? '还有 ' + unread + ' 篇未读完（已读 ' + (total - unread) + '/' + total + '）' : '全部读完 · 明理圆满 🎉', 'rvNext', unread ? '读下一篇未读的' : '无需再读', !unread, '展开未读的那篇并滚到眼前');
+    $('#rvFc').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(false); });
+    $('#rvHard').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(true); });
+    $('#rvWrong').addEventListener('click', function () {
+      $('#rvMask').classList.add('hidden');
+      showPage('knowledge');
+      var ws0 = S.wrongList();
+      var kn0 = DATA.knowledge.find(function (k) { return ws0.indexOf(k.id) >= 0 && !S.quizPassed(k.id); });
+      if (kn0) rvJumpCard(kn0.id);
+    });
+    $('#rvNext').addEventListener('click', function () {
+      var kn1 = DATA.knowledge.find(function (k) { return !S.isRead(k.id); });
+      if (!kn1) return;
+      $('#rvMask').classList.add('hidden');
+      showPage('knowledge');
+      rvJumpCard(kn1.id);
+    });
+  }
+  function rvJumpCard(id) {
+    /* 知识卡是原地保留不重渲染的，这里直接找 details 展开滚过去 */
+    setTimeout(function () {
+      var cards = $$('#knowList .know-card');
+      var c = cards.filter(function (x) { return x._kn && x._kn.id === id; })[0];
+      if (!c) return;
+      c.open = true;
+      c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
+      setTimeout(function () { c.classList.remove('flash'); }, 1600);
+    }, 60);
+  }
+  function reviewOpen() {
+    paintReview();
+    $('#rvMask').classList.remove('hidden');
+  }
+  $('#rvClose').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); });
+
   /* 键盘快捷键：空格暂停/继续，←→切换动作，Esc 退出 */
   document.addEventListener('keydown', function (e) {
     var mask = $('#helpMask');
@@ -1095,6 +1181,10 @@
       e.preventDefault(); toggleHelp(!helpOpen); return;
     }
     if (helpOpen && e.key === 'Escape') { e.preventDefault(); toggleHelp(false); return; }
+    /* 复习台浮层开着时，Esc 只收浮层 */
+    var rv = $('#rvMask');
+    var rvOpen = rv && !rv.classList.contains('hidden');
+    if (rvOpen && e.key === 'Escape') { e.preventDefault(); rv.classList.add('hidden'); return; }
     /* 全局小键：R 朗读当前展开的那篇知识，M 换一档演武台晨昏 */
     if (!inField && !helpOpen && !Train.active && e.code === 'KeyR' && $('#page-knowledge').classList.contains('on')) {
       e.preventDefault();
@@ -1107,6 +1197,13 @@
       return;
     }
     if (!inField && !helpOpen && e.code === 'KeyM') { e.preventDefault(); moodNext(); return; }
+    /* V 键随时进复习台（浮层开着时不重复弹） */
+    if (!inField && !helpOpen && !Train.active && e.code === 'KeyV') {
+      e.preventDefault();
+      var rvk = $('#rvMask');
+      if (rvk && !rvk.classList.contains('hidden')) { rvk.classList.add('hidden'); return; }
+      reviewOpen(); return;
+    }
     if (!Train.active) return;
     if (inField) return;
     if (e.code === 'Space') { e.preventDefault(); Train.togglePause(); }
@@ -1305,10 +1402,12 @@
     var head = document.createElement('div');
     head.className = 'know-progress';
     var hn = S.hardCount();
-    head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>' +
+    head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="rvBtn" title="抽卡、难卡、错题、续读一处直达">🧠 复习台</button>' +
+      '<button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>' +
       '<button class="btn ghost sm" id="fcHardBtn" title="卡面上随手归档的难卡，单独抽一轮">⛰ 难卡包 ' + hn + '</button>';
     box.appendChild(head);
     paintKnowHead();
+    $('#rvBtn').addEventListener('click', reviewOpen);
     $('#fcBtn').addEventListener('click', function () { fcOpen(false); });
     var fhh = $('#fcHardBtn');
     fhh.disabled = !hn; /* 零卡时钮灰，不抽空包 */
@@ -1351,6 +1450,11 @@
         '<div class="kb">' + kn.points.map(function (p) { return '<p>· ' + p + '</p>'; }).join('') +
         '<div class="kb-foot"></div></div>';
       var f = el.querySelector('.kb-foot');
+      /* 朗读进度锚：跟卡走，切篇重渲染也不丢 */
+      var rdp = document.createElement('span');
+      rdp.className = 'rd-prog hidden';
+      f.appendChild(rdp);
+      f._rdProg = rdp;
       /* 全篇朗读：眼睛累了让耳朵接一下 */
       var rb = document.createElement('button');
       rb.className = 'btn ghost sm rd-btn';

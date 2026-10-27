@@ -317,12 +317,24 @@
       <li><kbd>?</kbd> 随时开关本帮助</li>
       <li><kbd>R</kbd> 知识页：朗读 / 停止朗读当前展开的那篇</li>
       <li><kbd>M</kbd> 换一档演武台晨昏光（锁定不随钟）</li>
+      <li><kbd>V</kbd> 打开复习台：抽卡 / 难卡 / 错题 / 续读一处直达</li>
       <li>顶栏可切节奏（慢/常/快）与口令开关</li>
       <li>功法页可搜动作、按部位标签筛选；知识页可抽卡复习</li>
     </ul>
     <div class="tour-foot">
       <span class="tour-dots"><i class="on"></i></span>
       <button class="btn primary sm" id="helpClose">知道啦</button>
+    </div>
+  </div>
+</div>
+
+<!-- 复习台浮层：练完温一温 -->
+<div class="calm-mask hidden" id="rvMask">
+  <div class="calm-box fc-box rv-box">
+    <h3>🧠 复习台 · 练完温一温</h3>
+    <div id="rvBody"></div>
+    <div class="fc-cta">
+      <button class="btn ghost sm" id="rvClose">✕ 收起</button>
     </div>
   </div>
 </div>

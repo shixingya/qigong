@@ -699,3 +699,23 @@ button { font-family: inherit; cursor: pointer; }
 /* ===== v2.17 首页累计 chip ===== */
 .chip.self { border-color: rgba(95, 214, 184, .5); color: var(--jade); }
 .chip.self b { color: var(--gold); }
+
+/* ===== v2.18 朗读进度可视 + 复习台 ===== */
+.rd-prog { align-self: center; margin-right: auto; font-size: 12.5px; color: var(--jade); letter-spacing: 1px; }
+.kb > p.rd-now {
+  background: rgba(95, 214, 184, .1); border-radius: 8px;
+  padding-left: 8px; margin-left: -8px; color: var(--ink);
+}
+.rv-box { text-align: left; }
+.rv-box h3 { text-align: center; }
+#rvBody { display: flex; flex-direction: column; gap: 10px; }
+.rv-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .02);
+}
+.rv-info { display: flex; flex-direction: column; gap: 4px; }
+.rv-name { font-weight: 700; color: var(--ink); }
+.rv-stat { font-size: 12.5px; color: var(--sub); line-height: 1.6; }
+#knowList .know-card.flash { animation: cwFlash 1.6s ease; }
+@media (prefers-reduced-motion: reduce) { #knowList .know-card.flash { animation: none; } }
