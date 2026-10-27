@@ -8,6 +8,7 @@
   'use strict';
 
   var KEY = 'qigong_v1';
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
   function todayStr(offset) {
     var d = new Date();
@@ -20,12 +21,13 @@
   function load() {
     var raw = null;
     try { raw = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
-    var data = { records: [], learned: {}, settings: { sound: true, tempo: 1, favs: {} }, plan: null };
+    var data = { records: [], learned: {}, read: {}, settings: { sound: true, tempo: 1, favs: {} }, plan: null };
     if (raw) {
       try {
         var p = JSON.parse(raw);
         if (p && Array.isArray(p.records)) data.records = p.records;
         if (p && p.learned && typeof p.learned === 'object') data.learned = p.learned;
+        if (p && p.read && typeof p.read === 'object') data.read = p.read;
         if (p && p.settings) data.settings = Object.assign(data.settings, p.settings);
         if (!data.settings.favs || typeof data.settings.favs !== 'object') data.settings.favs = {};
         if (p && p.plan && typeof p.plan.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.plan.start)) data.plan = { start: p.plan.start };
@@ -211,11 +213,24 @@
       return Object.keys(f).filter(function (k) { return f[k]; });
     },
 
+    /* ---- 首访引导与知识阅读 ---- */
+    hasSeenTour: function () { return !!this._data.settings.toured; },
+    markTourSeen: function () { this._data.settings.toured = true; save(this._data); },
+    resetTour: function () { this._data.settings.toured = false; save(this._data); },
+    isRead: function (knId) { return !!this._data.read[knId]; },
+    toggleRead: function (knId) {
+      if (this._data.read[knId]) delete this._data.read[knId];
+      else this._data.read[knId] = true;
+      save(this._data);
+      return this._data.read[knId] === true;
+    },
+    readCount: function () { return Object.keys(this._data.read).length; },
+
     /* ---- 备份导出/导入（纯本地，无上传） ---- */
     exportPayload: function () {
       return JSON.stringify({
         app: 'qigong', version: 1, exportedAt: new Date().toISOString(),
-        records: this._data.records, learned: this._data.learned, settings: this._data.settings,
+        records: this._data.records, learned: this._data.learned, read: this._data.read, settings: this._data.settings,
         plan: this._data.plan || null
       }, null, 1);
     },
@@ -224,7 +239,6 @@
       var p;
       try { p = JSON.parse(text); } catch (e) { return { ok: false, err: '文件不是合法 JSON' }; }
       if (!p || p.app !== 'qigong' || !Array.isArray(p.records)) return { ok: false, err: '不是气功学堂的备份文件' };
-      var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
       var records = p.records.filter(function (r) {
         return r && DATE_RE.test(r.d) && typeof r.set === 'string' && isFinite(r.sec) && r.sec >= 0 && r.sec < 86400;
       }).map(function (r) {
@@ -245,7 +259,11 @@
           }
         });
       }
-      return { ok: true, data: { records: records, learned: learned, plan: (p.plan && p.plan.start && DATE_RE.test(p.plan.start)) ? { start: p.plan.start } : null } };
+      var read = {};
+      if (p.read && typeof p.read === 'object') {
+        Object.keys(p.read).forEach(function (kid) { if (p.read[kid]) read[String(kid).slice(0, 40)] = true; });
+      }
+      return { ok: true, data: { records: records, learned: learned, read: read, plan: (p.plan && p.plan.start && DATE_RE.test(p.plan.start)) ? { start: p.plan.start } : null } };
     },
     /* 合并导入：记录按唯一键去重，已学取并集 */
     mergeImport: function (inc) {
@@ -261,6 +279,10 @@
         l[sid] = l[sid] || {};
         Object.keys(inc.learned[sid]).forEach(function (mid) { l[sid][mid] = true; });
       });
+      if (inc.read) {
+        var rd = this._data.read = this._data.read || {};
+        Object.keys(inc.read).forEach(function (kid) { rd[kid] = true; });
+      }
       save(this._data);
       /* 挑战计划：取更早开始日，视为同一挑战 */
       if (inc.plan && inc.plan.start && DATE_RE.test(inc.plan.start)) {

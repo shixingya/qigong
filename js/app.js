@@ -600,14 +600,67 @@
   function renderKnowledge() {
     var box = $('#knowList');
     box.innerHTML = '';
+    var total = DATA.knowledge.length, rc = S.readCount();
+    var head = document.createElement('div');
+    head.className = 'know-progress';
+    head.innerHTML = '已读 <b>' + rc + '</b> / ' + total + ' 篇' + (total && rc === total ? ' · 明理圆满 🎉' : '');
+    box.appendChild(head);
     DATA.knowledge.forEach(function (kn) {
+      var isRead = S.isRead(kn.id);
       var el = document.createElement('details');
-      el.className = 'know-card';
-      el.innerHTML = '<summary><span class="ki">' + kn.icon + '</span>' + kn.title + '</summary>' +
-        '<div class="kb">' + kn.points.map(function (p) { return '<p>· ' + p + '</p>'; }).join('') + '</div>';
+      el.className = 'know-card' + (isRead ? ' read' : '');
+      el.innerHTML = '<summary><span class="ki">' + kn.icon + '</span>' + kn.title +
+        (isRead ? '<span class="read-dot" title="已读">✓</span>' : '') + '</summary>' +
+        '<div class="kb">' + kn.points.map(function (p) { return '<p>· ' + p + '</p>'; }).join('') +
+        '<div class="kb-foot"></div></div>';
+      var f = el.querySelector('.kb-foot');
+      var btn = document.createElement('button');
+      btn.className = 'btn ' + (isRead ? 'ghost' : 'primary') + ' sm';
+      btn.textContent = isRead ? '✓ 已读（点击取消）' : '标记读完';
+      btn.addEventListener('click', function () { S.toggleRead(kn.id); renderKnowledge(); });
+      f.appendChild(btn);
       box.appendChild(el);
     });
   }
+
+  /* ================= 首访新手引导 ================= */
+  function buildTour() {
+    var steps = [
+      { icon: '☯️', t: '欢迎来到气功学堂', b: '八段锦 / 易筋经 / 五禽戏 / 六字诀四大经典功法，三维师父在线带练，免注册打开即练。' },
+      { icon: '🀄', t: '先学 · 再练 · 后打卡', b: '“功法”逐式看动作与呼吸；“入门”跟四周计划一步步来；跟练完成自动点亮“打卡”，还有 21 天挑战。' },
+      { icon: '🔒', t: '你的数据只属于你', b: '打卡与进度全部保存在本机浏览器，不注册、不上传、可导出备份；断网也能照常练。' }
+    ];
+    var mask = document.createElement('div'); mask.className = 'tour-mask';
+    var card = document.createElement('div'); card.className = 'tour-card';
+    mask.appendChild(card); document.body.appendChild(mask);
+    var i = 0;
+    function paint() {
+      var s = steps[i], last = i === steps.length - 1;
+      card.innerHTML =
+        '<div class="tour-step">' + s.icon + ' ' + s.t + '</div>' +
+        '<div class="tour-dots">' + steps.map(function (_, k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
+        '<p class="tour-body">' + s.b + '</p>' +
+        '<div class="tour-acts">' +
+        (last
+          ? '<button class="btn ghost" data-t="close">以后再说</button>' +
+            '<button class="btn primary" data-t="course">🗓 看四周计划</button>' +
+            '<button class="btn primary" data-t="train">▶ 立刻跟练</button>'
+          : '<button class="btn ghost" data-t="close">跳过</button>' +
+            '<button class="btn primary" data-t="next">下一步 →</button>') +
+        '</div>';
+    }
+    function close() { S.markTourSeen(); if (mask.parentNode) mask.parentNode.removeChild(mask); }
+    card.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-t]'); if (!b) return;
+      var a = b.dataset.t;
+      if (a === 'next') { i++; paint(); }
+      else if (a === 'close') { close(); }
+      else if (a === 'course') { close(); showPage('course'); }
+      else if (a === 'train') { close(); Train.start(DATA.sets[0], DATA.sets[0].moves, 'full'); }
+    });
+    paint();
+  }
+  function maybeShowTour() { if (!S.hasSeenTour()) buildTour(); }
 
   /* ================= 四周入门计划 ================= */
   function setById(id) {
@@ -726,6 +779,8 @@
   $('#quickStart').addEventListener('click', function () {
     Train.start(DATA.sets[0], DATA.sets[0].moves, 'full');
   });
+  var rt = $('#replayTour');
+  if (rt) rt.addEventListener('click', function (e) { e.preventDefault(); buildTour(); });
   $('#soundBtn').addEventListener('click', function () {
     S.toggleSound();
     syncSoundBtn();
@@ -848,6 +903,7 @@
   syncSoundBtn();
   syncTempoBtn();
   boot3D(60);
+  maybeShowTour();
 
   /* PWA：Service Worker 离线缓存（http(s) 环境下） */
   if ('serviceWorker' in navigator && /^https?:$/.test(global.location.protocol)) {

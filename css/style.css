@@ -185,6 +185,27 @@ button { font-family: inherit; cursor: pointer; }
 .cwd-ok { color: var(--jade); font-weight: 700; }
 .cwd-names { color: var(--sub); font-size: 12.5px; line-height: 1.5; min-height: 18px; }
 .cw-day .btn { align-self: flex-start; }
+/* 知识阅读进度 */
+.know-progress { color: var(--sub); font-size: 14px; margin-bottom: 12px; }
+.know-progress b { color: var(--gold); }
+.know-card.read > summary { color: var(--jade); }
+.read-dot { margin-left: 8px; color: var(--jade); font-weight: 700; }
+.kb-foot { margin-top: 12px; display: flex; justify-content: flex-end; }
+/* 首访引导 */
+.tour-mask {
+  position: fixed; inset: 0; z-index: 120; background: rgba(6, 12, 13, .72);
+  backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.tour-card {
+  width: 100%; max-width: 460px; background: linear-gradient(160deg, var(--panel2), var(--panel));
+  border: 1px solid var(--jade-d); border-radius: 18px; padding: 26px 26px 22px; box-shadow: var(--shadow);
+}
+.tour-step { font-size: 21px; color: var(--ink); letter-spacing: 1px; }
+.tour-dots { display: flex; gap: 7px; margin: 12px 0 4px; }
+.tour-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.tour-dots i.on { background: var(--jade); }
+.tour-body { color: var(--sub); font-size: 15px; line-height: 1.7; margin: 10px 0 20px; }
+.tour-acts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .set-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
 .set-cards.wide { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .set-card {
