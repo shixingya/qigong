@@ -136,6 +136,7 @@
     if (name !== 'checkin' && name !== 'home' && name !== 'sets') lastPage = name === 'train' || name === 'done' ? lastPage : name;
     if (name === 'checkin') renderCheckin();
     if (name === 'home') renderHome();
+    if (name === 'course') renderCourse();
     /* 已处于功法/单式详情时不重渲染列表，避免把详情重新隐藏 */
     if (name === 'sets' && $('#setDetail').classList.contains('hidden') && $('#moveDetail').classList.contains('hidden')) renderSetList();
     if (name !== 'train') { viewingMove = null; }
@@ -471,6 +472,7 @@
       if (this._paused) { if ('speechSynthesis' in global) speechSynthesis.cancel(); }
     },
     jump: function (dir) {
+      if (!this.active) return;
       var leaving = this._steps[this._i];
       if (dir > 0 && leaving && leaving.move) S.markLearned(this._set.id, leaving.move.id);
       var ni = this._i + dir;
@@ -486,6 +488,7 @@
       breath3d('idle');
     },
     finish: function () {
+      if (!this.active) return;
       var set = this._set, min = Math.round(this._doneSec / 60 * 10) / 10;
       S.addRecord(set.id, this._doneSec, this._moveIds);
       lastSession = {
@@ -603,6 +606,101 @@
       el.innerHTML = '<summary><span class="ki">' + kn.icon + '</span>' + kn.title + '</summary>' +
         '<div class="kb">' + kn.points.map(function (p) { return '<p>· ' + p + '</p>'; }).join('') + '</div>';
       box.appendChild(el);
+    });
+  }
+
+  /* ================= 四周入门计划 ================= */
+  function setById(id) {
+    return DATA.sets.find(function (s) { return s.id === id; });
+  }
+  /* 有序单趟计算每天达成状态：
+   *   learn 天：当日列出的式全部已学；
+   *   train 天：该功法的第 k 个跟练天需要累计 >=k 条跟练记录（避免一次跟练点亮多天） */
+  function computeCourseStates(cur) {
+    var recCount = {};
+    S.records().forEach(function (r) { recCount[r.set] = (recCount[r.set] || 0) + 1; });
+    var trainSeen = {}, grid = [];
+    cur.weeks.forEach(function (wk) {
+      var row = [];
+      wk.days.forEach(function (d) {
+        var setId = d.set || wk.set;
+        var done;
+        if (d.kind === 'learn') {
+          done = d.moves.every(function (m) { return S.isLearned(setId, m); });
+        } else {
+          var need = (trainSeen[setId] || 0) + 1;
+          trainSeen[setId] = need;
+          done = (recCount[setId] || 0) >= need;
+        }
+        row.push({ setId: setId, done: !!done });
+      });
+      grid.push(row);
+    });
+    return grid;
+  }
+  function renderCourse() {
+    var cur = DATA.curriculum;
+    if (!cur) return;
+    $('#courseIntro').textContent = cur.intro;
+    var grid = computeCourseStates(cur);
+    var total = 0, doneN = 0;
+    cur.weeks.forEach(function (wk, wi) { wk.days.forEach(function (d, di) { total++; if (grid[wi][di].done) doneN++; }); });
+    var pct = Math.round(doneN / total * 100);
+    $('#courseProg').innerHTML =
+      '<div class="cp-bar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' +
+      (doneN === total && total > 0 ? ' 🎉 四周圆满！' : '') + '</div>';
+    var box = $('#courseWeeks'); box.innerHTML = '';
+    var gno = 0;
+    cur.weeks.forEach(function (wk, wi) {
+      var wset = setById(wk.set);
+      var wdone = wk.days.filter(function (d, di) { return grid[wi][di].done; }).length;
+      var col = document.createElement('div');
+      col.className = 'course-wk';
+      col.innerHTML =
+        '<div class="cw-head"><span class="cw-ico">' + (wset ? wset.icon : '') + '</span>' +
+        '<div class="cw-tt"><div class="cw-theme">' + wk.theme + '</div>' +
+        '<div class="cw-sub">' + wdone + '/' + wk.days.length + ' 天已达成</div></div></div>';
+      var daysEl = document.createElement('div'); daysEl.className = 'cw-days';
+      wk.days.forEach(function (d, di) {
+        gno++;
+        var s = grid[wi][di];
+        var st = setById(s.setId);
+        var cell = document.createElement('div');
+        cell.className = 'cw-day' + (s.done ? ' done' : '');
+        var label, names = '';
+        if (d.kind === 'learn') {
+          names = d.moves.map(function (mid) {
+            var mv = st && st.moves.find(function (m) { return m.id === mid; });
+            return mv ? mv.name : mid;
+          }).join('、');
+          label = '学 ' + d.moves.length + ' 式';
+        } else {
+          label = '跟整套';
+          names = (st ? st.name : s.setId);
+        }
+        cell.innerHTML =
+          '<div class="cwd-top"><span class="cwd-no">第 ' + gno + ' 天</span>' +
+          '<span class="cwd-kind">' + (d.kind === 'learn' ? '📖 ' + label : '▶ ' + label) + '</span>' +
+          (s.done ? '<span class="cwd-ok">✓</span>' : '') + '</div>' +
+          '<div class="cwd-names">' + names + '</div>';
+        var btn = document.createElement('button');
+        btn.className = 'btn ' + (s.done ? 'ghost' : 'primary') + ' sm';
+        btn.textContent = s.done ? '重温' : (d.kind === 'learn' ? '去学' : '去练');
+        btn.addEventListener('click', function () {
+          if (d.kind === 'learn') {
+            openSet(s.setId);
+            var next = d.moves.find(function (m) { return !S.isLearned(s.setId, m); }) || d.moves[0];
+            openMove(next);
+          } else if (st) {
+            Train.start(st, st.moves, 'full');
+          }
+        });
+        cell.appendChild(btn);
+        daysEl.appendChild(cell);
+      });
+      col.appendChild(daysEl);
+      box.appendChild(col);
     });
   }
 

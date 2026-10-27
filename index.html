@@ -36,9 +36,10 @@
   <div class="brand">☯️ 气功学堂 <small>QIGONG ACADEMY</small></div>
   <nav id="nav">
     <button data-go="home" class="on">首页</button>
-    <button data-go="sets">功法学堂</button>
-    <button data-go="checkin">打卡成就</button>
-    <button data-go="knowledge">气功知识</button>
+    <button data-go="sets">功法</button>
+    <button data-go="course">入门</button>
+    <button data-go="checkin">打卡</button>
+    <button data-go="knowledge">知识</button>
   </nav>
   <button id="tempoBtn" class="sound-btn" title="跟练节奏：慢/常/快循环切换">🧘 常速</button>
   <button id="soundBtn" class="sound-btn" title="语音口令开关">🔊 口令</button>
@@ -63,6 +64,7 @@
         </div>
         <div class="hero-cta">
           <button class="btn primary big" id="quickStart">▶ 立刻跟练八段锦</button>
+          <button class="btn ghost big" data-go="course">🗓 四周入门计划</button>
           <button class="btn ghost big" data-go="sets">先逛功法库</button>
         </div>
       </div>
@@ -155,6 +157,14 @@
         </div>
         <p id="importMsg" class="import-msg"></p>
       </div>
+    </div>
+
+    <!-- ========== 入门计划 ========== -->
+    <div class="page" id="page-course">
+      <h2 class="sec-title">四周入门计划 · 循序渐进</h2>
+      <p class="course-intro" id="courseIntro"></p>
+      <div class="course-prog" id="courseProg"></div>
+      <div id="courseWeeks" class="course-weeks"></div>
     </div>
 
     <!-- ========== 气功知识 ========== -->

@@ -514,9 +514,57 @@
     }
   ];
 
+  /* 四周入门计划：28 天，每天一个具体任务（learn 学新式 / train 跟整套）。
+   * 完成与否由真实学习/打卡记录自动判定（同 21 天挑战理念）：
+   *   learn 天：当日列出的式全部“已学”；train 天：该功法至少跟过一次。
+   * train 天与 learn 天未写 set 时继承本周主功法。 */
+  var curriculum = {
+    title: '四周入门计划',
+    intro: '从八段锦筑基到易筋经进阶，每天十分钟，循序渐进把四大功法学下去。任务自动判定，无需手动勾选。',
+    weeks: [
+      { theme: '第一周 · 八段锦筑基', set: 'baduanjin', days: [
+        { kind: 'learn', moves: ['bdj-1', 'bdj-2'] },
+        { kind: 'learn', moves: ['bdj-3', 'bdj-4'] },
+        { kind: 'learn', moves: ['bdj-5', 'bdj-6'] },
+        { kind: 'learn', moves: ['bdj-7', 'bdj-8'] },
+        { kind: 'train' },
+        { kind: 'train' },
+        { kind: 'train' }
+      ] },
+      { theme: '第二周 · 六字诀调理五脏', set: 'liuzijue', days: [
+        { kind: 'learn', moves: ['lzj-0', 'lzj-1', 'lzj-2'] },
+        { kind: 'learn', moves: ['lzj-3', 'lzj-4', 'lzj-5'] },
+        { kind: 'learn', moves: ['lzj-6', 'lzj-7'] },
+        { kind: 'train' },
+        { kind: 'train' },
+        { kind: 'train', set: 'baduanjin' },
+        { kind: 'train' }
+      ] },
+      { theme: '第三周 · 五禽戏身心一统', set: 'wuqinxi', days: [
+        { kind: 'learn', moves: ['wqx-0', 'wqx-1', 'wqx-2', 'wqx-3'] },
+        { kind: 'learn', moves: ['wqx-4', 'wqx-5', 'wqx-6'] },
+        { kind: 'learn', moves: ['wqx-7', 'wqx-8', 'wqx-9'] },
+        { kind: 'learn', moves: ['wqx-10', 'wqx-11'] },
+        { kind: 'train' },
+        { kind: 'train' },
+        { kind: 'train', set: 'liuzijue' }
+      ] },
+      { theme: '第四周 · 易筋经进阶与全通', set: 'yijinjing', days: [
+        { kind: 'learn', moves: ['yjj-1', 'yjj-2', 'yjj-3'] },
+        { kind: 'learn', moves: ['yjj-4', 'yjj-5', 'yjj-6'] },
+        { kind: 'learn', moves: ['yjj-7', 'yjj-8', 'yjj-9'] },
+        { kind: 'learn', moves: ['yjj-10', 'yjj-11', 'yjj-12'] },
+        { kind: 'train' },
+        { kind: 'train' },
+        { kind: 'train', set: 'baduanjin' }
+      ] }
+    ]
+  };
+
   global.QG_DATA = {
     version: 1,
     sets: [baduanjin, yijinjing, wuqinxi, liuzijue],
-    knowledge: knowledge
+    knowledge: knowledge,
+    curriculum: curriculum
   };
 })(typeof window !== 'undefined' ? window : globalThis);

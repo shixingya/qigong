@@ -163,6 +163,28 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--panel2); border: 1px solid var(--jade-d); border-radius: 12px;
   padding: 10px 14px; font-size: 14px; box-shadow: var(--shadow);
 }
+/* 四周入门计划 */
+.course-intro { color: var(--sub); font-size: 14px; margin: 4px 0 14px; max-width: 720px; }
+.course-prog { margin-bottom: 18px; }
+.cp-bar { height: 10px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); overflow: hidden; }
+.cp-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--jade-d), var(--jade)); transition: width .4s; }
+.cp-txt { color: var(--sub); font-size: 13.5px; margin-top: 6px; }
+.cp-txt b { color: var(--gold); }
+.course-weeks { display: grid; gap: 16px; }
+.course-wk { background: linear-gradient(160deg, var(--panel2), var(--panel)); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+.cw-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.cw-ico { font-size: 26px; }
+.cw-theme { font-size: 17px; color: var(--ink); }
+.cw-sub { color: var(--sub); font-size: 12.5px; margin-top: 2px; }
+.cw-days { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.cw-day { background: rgba(255, 255, 255, .02); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.cw-day.done { border-color: var(--jade-d); background: rgba(95, 214, 184, .08); }
+.cwd-top { display: flex; align-items: center; gap: 8px; }
+.cwd-no { color: var(--sub); font-size: 12px; }
+.cwd-kind { font-size: 13px; color: var(--ink); flex: 1; }
+.cwd-ok { color: var(--jade); font-weight: 700; }
+.cwd-names { color: var(--sub); font-size: 12.5px; line-height: 1.5; min-height: 18px; }
+.cw-day .btn { align-self: flex-start; }
 .set-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
 .set-cards.wide { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .set-card {
