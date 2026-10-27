@@ -66,6 +66,7 @@
         <div class="hero-cta">
           <button class="btn primary big" id="quickStart">▶ 立刻跟练八段锦</button>
           <button class="btn ghost big" data-go="course">🗓 四周入门计划</button>
+          <button class="btn ghost big" id="calmBtn">🍃 一分钟定息</button>
           <button class="btn ghost big" data-go="sets">先逛功法库</button>
         </div>
         <div class="daily-quote" id="dailyQuote"></div>
@@ -153,6 +154,7 @@
           </div>
           <div class="cal-week" id="calWeek"></div>
           <div class="cal-grid" id="calGrid"></div>
+          <div class="day-pop hidden" id="dayPop"></div>
         </div>
         <div class="badge-card">
           <h3>🏅 功夫徽章</h3>
@@ -239,6 +241,17 @@
           <button class="btn ghost" data-go="home">回首页</button>
         </div>
         <canvas id="shareCanvas" width="640" height="860" class="hidden"></canvas>
+      </div>
+    </div>
+
+    <!-- ========== 定息数呼吸浮层 ========== -->
+    <div class="calm-mask hidden" id="calmMask">
+      <div class="calm-box">
+        <h3>🍃 数息 · 一分钟定</h3>
+        <div class="calm-ring" id="calmRing"><span id="calmPhase">吸</span></div>
+        <div class="calm-sub"><span id="calmCount">第 1 / 6 息</span> · 余 <span id="calmLeft">60</span> 秒</div>
+        <button class="btn ghost sm" id="calmStop">提前结束</button>
+        <p class="calm-tip">吸 4 秒 · 呼 6 秒，数满六息即定；开练前安住，或伏案后松一松，不练功也能用</p>
       </div>
     </div>
   </section>

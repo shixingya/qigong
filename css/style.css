@@ -586,3 +586,23 @@ button { font-family: inherit; cursor: pointer; }
 .done-note input:disabled { opacity: .55; }
 .dn-msg { font-size: 12.5px; color: var(--jade); white-space: nowrap; }
 .rec-note { display: block; width: 100%; font-style: normal; font-size: 12.5px; color: var(--sub); margin-top: 2px; }
+
+/* ===== v2.10 定息数呼吸 + 日历当日明细 ===== */
+.calm-mask { position: fixed; inset: 0; z-index: 130; background: rgba(8, 12, 10, .74); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+.calm-box { max-width: 350px; padding: 26px 30px; border-radius: 18px; text-align: center; background: var(--panel); border: 1px solid var(--line); }
+.calm-box h3 { margin: 0 0 18px; }
+.calm-ring {
+  width: 118px; height: 118px; margin: 0 auto 14px; border-radius: 50%;
+  border: 2px solid var(--jade); display: flex; align-items: center; justify-content: center;
+  color: var(--jade); font-size: 21px; letter-spacing: 4px; transform: scale(.8);
+  transition: transform 4s ease-in-out; box-shadow: 0 0 22px rgba(95, 214, 184, .18);
+}
+.calm-ring.in { transform: scale(1.25); }
+.calm-ring.out { transform: scale(.78); }
+.calm-sub { color: var(--sub); font-size: 13.5px; margin-bottom: 12px; }
+.calm-tip { color: var(--sub); font-size: 12px; line-height: 1.6; margin: 12px 0 0; }
+.cal-cell.done { cursor: pointer; }
+.day-pop { margin-top: 10px; padding: 8px 10px; border-radius: 10px; border: 1px dashed rgba(95, 214, 184, .5); background: rgba(95, 214, 184, .05); }
+.dp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+.dp-row { font-size: 13px; color: var(--sub); padding: 4px 0; border-top: 1px dashed var(--line); }
+.dp-note { display: block; font-style: normal; color: var(--jade); margin-top: 2px; }

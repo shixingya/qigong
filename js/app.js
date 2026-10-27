@@ -804,6 +804,50 @@
     if (e.key === 'Enter') $('#doneNoteSave').click();
   });
 
+  /* ================= 定息 · 数呼吸（吸4呼6 × 六息） ================= */
+  var calm = { timer: 0, left: 60, phase: '' };
+  function calmPhaseSet(ph) {
+    calm.phase = ph;
+    var r = $('#calmRing');
+    r.style.transitionDuration = (ph === 'in' ? 4 : 6) + 's'; /* 胀缩跟真实呼吸时长 */
+    r.className = 'calm-ring ' + ph;
+    $('#calmPhase').textContent = ph === 'in' ? '吸' : '呼';
+  }
+  function calmStart() {
+    if (calm.timer) return;
+    $('#calmMask').classList.remove('hidden');
+    calm.left = 60; calm.phase = '';
+    $('#calmLeft').textContent = '60';
+    $('#calmCount').textContent = '第 1 / 6 息';
+    calmPhaseSet('in');
+    chime(392, 0.08, 1.2); /* 引磬一声，开工 */
+    speak('定息开始：缓缓吸气。');
+    calm.timer = setInterval(function () {
+      calm.left--;
+      $('#calmLeft').textContent = String(Math.max(0, calm.left));
+      if (calm.left <= 0) { calmEnd(true); return; }
+      var el = 60 - calm.left, pos = el % 10;
+      if (pos === 0) $('#calmCount').textContent = '第 ' + (el / 10 + 1) + ' / 6 息';
+      var ph = pos < 4 ? 'in' : 'out';
+      if (ph !== calm.phase) {
+        calmPhaseSet(ph);
+        if (pos === 4) speak('细细呼出。');
+        else if (pos === 0) speak('缓缓吸气。');
+      }
+    }, 1000);
+  }
+  function calmEnd(full) {
+    clearInterval(calm.timer); calm.timer = 0; calm.phase = '';
+    $('#calmMask').classList.add('hidden');
+    if (full) {
+      chime(523.25, 0.14, 1.8);
+      setTimeout(function () { chime(659.25, 0.12, 1.4); }, 300);
+      speak('六息数满，心定神怡。');
+    }
+  }
+  $('#calmBtn').addEventListener('click', calmStart);
+  $('#calmStop').addEventListener('click', function () { calmEnd(false); });
+
   /* 自然伴奏开关：无伴奏→泉流→山风→鸟鸣循环，选完即响 */
   function paintAmbBtn() {
     var b = $('#ambBtn');
@@ -968,12 +1012,36 @@
     for (var d = 1; d <= days; d++) {
       var ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
       var n = map[ds] || 0;
-      html += '<div class="cal-cell' + (n ? ' done' + (n > 1 ? ' multi' : '') : '') + (ds === today ? ' today' : '') + '">' + d + '</div>';
+      html += '<div class="cal-cell' + (n ? ' done' + (n > 1 ? ' multi' : '') : '') + (ds === today ? ' today' : '') + '"' + (n ? ' data-ds="' + ds + '" title="' + ds + ' · 练了 ' + n + ' 场，点看明细"' : '') + '>' + d + '</div>';
     }
     $('#calGrid').innerHTML = html;
   }
-  $('#calPrev').addEventListener('click', function () { calDate.setMonth(calDate.getMonth() - 1); renderCalendar(); });
-  $('#calNext').addEventListener('click', function () { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
+  function hideDayPop() { var p = $('#dayPop'); if (p) { p.classList.add('hidden'); p.innerHTML = ''; } }
+  $('#calPrev').addEventListener('click', function () { calDate.setMonth(calDate.getMonth() - 1); hideDayPop(); renderCalendar(); });
+  $('#calNext').addEventListener('click', function () { calDate.setMonth(calDate.getMonth() + 1); hideDayPop(); renderCalendar(); });
+
+  /* 日历当日明细：点练过的格子展开那天的场次清单 */
+  $('#calGrid').addEventListener('click', function (e) {
+    var cell = e.target.closest ? e.target.closest('.cal-cell.done') : null;
+    var pop = $('#dayPop');
+    if (!pop) return;
+    if (!cell) { pop.classList.add('hidden'); pop.innerHTML = ''; return; }
+    var recs = S.recordsOfDay(cell.dataset.ds);
+    if (!recs.length) { pop.classList.add('hidden'); return; }
+    pop.innerHTML = '<div class="dp-head">🗓 ' + cell.dataset.ds + ' · 当日 ' + recs.length + ' 场<button class="btn ghost sm" id="dpX">收起</button></div>' +
+      recs.map(function (r) {
+        var st = DATA.sets.find(function (s) { return s.id === r.set; });
+        var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';
+        return '<div class="dp-row">' + hh + ' ' + (st ? st.icon + ' ' + st.name : '🍂 旧存档功法') +
+          ' · 约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟 · ' + ((r.moves || []).length) + ' 式' +
+          (r.note ? '<i class="dp-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '') + '</div>';
+      }).join('');
+    pop.classList.remove('hidden');
+    $('#dpX').addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      pop.classList.add('hidden'); pop.innerHTML = '';
+    });
+  });
 
   /* ================= 知识页 ================= */
   function renderKnowledge() {
