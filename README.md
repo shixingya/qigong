@@ -31,6 +31,7 @@ js/data.js            内容层：四大功法 × 动作 × 关键姿势（关�
 js/scene.js           Three.js ESM：程序化人形、姿势插值、丹田呼吸光效
 js/store.js           本地数据层：打卡/连续天数/成就（localStorage）
 js/app.js             路由、功法浏览、跟练状态机、语音口令
+vendor/               Three.js r160 随仓分发（无外部 CDN，断网可用）
 ```
 
 姿势系统约定（`js/data.js` 头部有完整注释）：每个动作拆成若干关键帧，
@@ -45,8 +46,8 @@ cd qigong
 npx serve .        # 或任意静态服务器，如 python -m http.server
 ```
 
-Three.js 经 unpkg CDN 的 importmap 加载，首次打开需联网，之后走浏览器缓存；
-CDN 加载失败时自动降级为纯图文跟练，不阻塞使用。
+Three.js r160 已 vendored 进仓库（`vendor/`），无任何外部 CDN 依赖，部署后断网也能完整练。
+极端情况下引擎初始化失败时，自动降级为纯图文跟练，不阻塞使用。
 
 ## 📦 版本发布
 

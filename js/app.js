@@ -21,6 +21,7 @@
   function pose3d(p, spd) { var q = q3d(); if (q) q.setPose(p, spd); }
   function snap3d(p) { var q = q3d(); if (q) q.snap(p); }
   function breath3d(ph) { var q = q3d(); if (q && q.setBreath) q.setBreath(ph); }
+  function float3d(txt) { var q = q3d(); if (q && q.floatText) q.floatText(txt); }
 
   function boot3D(tries) {
     var stage = $('#stage');
@@ -287,6 +288,7 @@
         b.classList.add('on');
         pose3d(key.pose, 2.4);
         breath3d(key.inhale);
+        float3d(key.label);
         $('#stageTitle').textContent = curMove.name + ' · ' + key.label;
         speak(key.cue);
       });
@@ -372,7 +374,7 @@
         $('#trainKeyLabel').textContent = '第 ' + (st.moveIdx + 1) + '/' + this._countMoves() + ' 式 · ' + st.label + '（' + (st.keyIdx + 1) + '/' + st.totalKeys + ' 动）';
         $('#stageTitle').textContent = st.move.name + ' · ' + st.label;
         speak((st.keyIdx === 0 ? st.move.name + '。' : '') + st.cue);
-        if (st.keyIdx === 0) chime(PENTA[st.moveIdx % PENTA.length], 0.13, 1.6); /* 换式轻磬 */
+        if (st.keyIdx === 0) { chime(PENTA[st.moveIdx % PENTA.length], 0.13, 1.6); float3d(st.move.name + ' · ' + st.label); }
       } else {
         $('#trainMoveName').textContent = '预备起';
         $('#trainKeyLabel').textContent = st.label;
@@ -423,6 +425,7 @@
         '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天';
       speak('收功。' + set.name + '练习完成，今日打卡已记录。');
       chime(196, 0.2, 2.6); /* 收功大磬 */
+      float3d('收功 · 气归丹田');
       pose3d(idlePoses[1], 1);
       showPage('done');
     }
@@ -434,8 +437,14 @@
   $('#btnNextKey').addEventListener('click', function () { Train.jump(1); });
   $('#btnQuit').addEventListener('click', function () {
     Train.stop(true);
+    resetStage();
     goBack();
   });
+
+  function resetStage() {
+    $('#stageTitle').textContent = '演武台 · 拖拽旋转视角';
+    float3d('');
+  }
 
   /* 键盘快捷键：空格暂停/继续，←→切换动作，Esc 退出 */
   document.addEventListener('keydown', function (e) {
@@ -444,7 +453,7 @@
     if (e.code === 'Space') { e.preventDefault(); Train.togglePause(); }
     else if (e.code === 'ArrowRight') { e.preventDefault(); Train.jump(1); }
     else if (e.code === 'ArrowLeft') { e.preventDefault(); Train.jump(-1); }
-    else if (e.code === 'Escape') { Train.stop(true); goBack(); }
+    else if (e.code === 'Escape') { Train.stop(true); resetStage(); goBack(); }
   });
 
   /* ================= 打卡成就页 ================= */
@@ -549,6 +558,17 @@
   $('#spinChk').addEventListener('change', function (e) {
     var q = q3d();
     if (q && q.setAutoRotate) q.setAutoRotate(e.target.checked);
+  });
+  $$('[data-view]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var q = q3d();
+      if (q && q.camView) q.camView(b.dataset.view);
+      $('#stageTitle').textContent = '演武台 · ' + b.textContent + '观练';
+    });
+  });
+  $('#acuChk').addEventListener('change', function (e) {
+    var q = q3d();
+    if (q && q.setAcuShow) q.setAcuShow(e.target.checked);
   });
 
   /* ================= 启动 ================= */

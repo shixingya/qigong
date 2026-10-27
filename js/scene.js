@@ -42,8 +42,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     setBreath: function () {},
     setAutoRotate: function () {},
     setAuraColor: function () {},
+    setAcuShow: function () {},
+    floatText: function () {},
+    camView: function () {},
     currentPose: function () { return {}; }
   };
+  function stubFail() {
+    return { failed: true, ready: false,
+      setPose: function () {}, snap: function () {}, setBreath: function () {},
+      setAutoRotate: function () {}, setAuraColor: function () {}, setAcuShow: function () {},
+      floatText: function () {}, camView: function () {}, currentPose: function () { return {}; } };
+  }
 
   function boot(container) {
     if (inited) return;
@@ -233,6 +242,43 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     torso.add(dantian);
     dantian.position.set(0, 0.14, 0.12);
 
+    /* 穴位光点（Sprite 光晕：永远面向相机、不被肢体遮挡） */
+    var acuTex = (function () {
+      var c = document.createElement('canvas');
+      c.width = c.height = 64;
+      var x = c.getContext('2d');
+      var g = x.createRadialGradient(32, 32, 2, 32, 32, 30);
+      g.addColorStop(0, 'rgba(255,238,170,1)');
+      g.addColorStop(0.35, 'rgba(255,226,138,.8)');
+      g.addColorStop(1, 'rgba(255,226,138,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 64, 64);
+      var t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    })();
+    var acus = [];
+    function acu(parent, pos, name) {
+      var m = new THREE.Sprite(new THREE.SpriteMaterial({ map: acuTex, transparent: true, opacity: 0.9, depthWrite: false }));
+      m.scale.set(0.12, 0.12, 1);
+      m.position.set(pos[0], pos[1], pos[2]);
+      m.visible = false;
+      m.userData.name = name;
+      parent.add(m);
+      acus.push(m);
+      return m;
+    }
+    acu(headGroup, [0, 0.25, 0], '百会');
+    acu(torso, [0, 0.42, 0.17], '膻中');
+    acu(torso, [0, 0.14, 0.15], '丹田');
+    acu(torso, [0, 0.16, -0.16], '命门');
+    function sole(leg, side) {
+      /* 脚底涌泉：随踝关节联动 */
+      var shinObj = leg.knee.children[0];
+      return acu(shinObj, [0.02 * side, -0.46, 0.05], '涌泉');
+    }
+    sole(legL, -1); sole(legR, 1);
+
     var aura = new THREE.Mesh(
       new THREE.SphereGeometry(0.55, 24, 20),
       new THREE.MeshBasicMaterial({ color: 0x5fd6b8, transparent: true, opacity: 0.05, side: THREE.BackSide, depthWrite: false })
@@ -240,6 +286,29 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     aura.scale.set(1.4, 2.2, 1.1);
     aura.position.y = 0.1;
     root.add(aura);
+
+    /* ---------- 头顶浮字（CanvasTexture Sprite） ---------- */
+    var ftCanvas = document.createElement('canvas');
+    ftCanvas.width = 1024; ftCanvas.height = 192;
+    var ftCtx = ftCanvas.getContext('2d');
+    var ftTex = new THREE.CanvasTexture(ftCanvas);
+    ftTex.colorSpace = THREE.SRGBColorSpace;
+    var ftSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: ftTex, transparent: true, opacity: 0, depthWrite: false }));
+    ftSprite.position.set(0, 2.28, 0);
+    ftSprite.scale.set(2.6, 0.49, 1);
+    root.add(ftSprite);
+    var ftHold = 0, ftAlpha = 0;
+    function drawFloatText(txt) {
+      ftCtx.clearRect(0, 0, 1024, 192);
+      ftCtx.font = 'bold 72px "Songti SC", "SimSun", serif';
+      ftCtx.textAlign = 'center';
+      ftCtx.textBaseline = 'middle';
+      ftCtx.shadowColor = 'rgba(95,214,184,.9)';
+      ftCtx.shadowBlur = 22;
+      ftCtx.fillStyle = '#f4e8c8';
+      ftCtx.fillText(String(txt || '').slice(0, 14), 512, 96);
+      ftTex.needsUpdate = true;
+    }
 
     var P_COUNT = 260;
     var pGeo = new THREE.BufferGeometry();
@@ -302,6 +371,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       var dt = Math.min(clock.getDelta(), 0.05);
       var t = clock.elapsedTime;
 
+      /* 视角预设缓动（用户一旦拖拽即交还控制权） */
+      if (camGoal) {
+        camera.position.lerp(camGoal, 1 - Math.exp(-3.2 * dt));
+        if (camera.position.distanceTo(camGoal) < 0.02) camGoal = null;
+      }
+
       /* 姿势向目标缓动 */
       var f = 1 - Math.exp(-speed * dt);
       for (var i = 0; i < KEYS.length; i++) {
@@ -332,9 +407,28 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       }
       pGeo.attributes.position.needsUpdate = true;
 
+      /* 穴位明暗呼吸 + 浮字淡入淡出 */
+      if (acuVisible) {
+        var ao = 0.55 + 0.4 * Math.sin(t * 2.4);
+        for (var ai = 0; ai < acus.length; ai++) acus[ai].material.opacity = ao;
+      }
+      if (ftHold > 0) { ftHold -= dt; ftAlpha += (1 - ftAlpha) * Math.min(1, dt * 8); }
+      else ftAlpha += (0 - ftAlpha) * Math.min(1, dt * 5);
+      ftSprite.material.opacity = ftAlpha;
+
       controls.update();
       renderer.render(scene, camera);
     }
+
+    /* ---------- 相机视角预设 ---------- */
+    var camGoal = null;
+    var VIEWS = {
+      front: [0.001, 1.5, 3.6], back: [0.001, 1.6, -3.6],
+      left: [-3.6, 1.5, 0.001], right: [3.6, 1.5, 0.001], top: [0, 3.9, 1.5]
+    };
+    controls.addEventListener('start', function () { camGoal = null; });
+
+    var acuVisible = false;
 
     api = {
       ready: true,
@@ -357,6 +451,19 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         dantian.material.color.set(hex);
         aura.material.color.set(hex);
       },
+      setAcuShow: function (b) {
+        acuVisible = !!b;
+        for (var i = 0; i < acus.length; i++) acus[i].visible = !!b;
+      },
+      floatText: function (txt) {
+        if (!txt) { ftHold = 0; return; }
+        drawFloatText(txt);
+        ftHold = 2.4;
+      },
+      camView: function (name) {
+        var v = VIEWS[name];
+        if (v) camGoal = new THREE.Vector3(v[0], v[1], v[2]);
+      },
       currentPose: function () { return cur; }
     };
     window.QG3D = api;
@@ -369,9 +476,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       boot(container);
     } catch (err) {
       console.error('[QG3D] 3D 场景初始化失败，已降级为图文模式', err);
-      window.QG3D = { failed: true, ready: false,
-        setPose: function () {}, snap: function () {}, setBreath: function () {},
-        setAutoRotate: function () {}, setAuraColor: function () {}, currentPose: function () { return {}; } };
+      window.QG3D = stubFail();
       document.dispatchEvent(new CustomEvent('qg3d:failed'));
     }
   };

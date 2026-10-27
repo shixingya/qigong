@@ -8,8 +8,8 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/addons/"
   }
 }
 </script>
@@ -42,6 +42,7 @@
         <div class="hero-badges">
           <span class="chip">🔒 打卡数据只存你的设备</span>
           <span class="chip">🆓 免注册 · 打开即练</span>
+          <span class="chip">📶 引擎随仓分发 · 断网可练</span>
           <span class="chip" id="statMoves">— 个动作</span>
           <span class="chip" id="statKeys">— 组 3D 姿势</span>
         </div>
@@ -59,7 +60,7 @@
         <summary>🧩 它是怎么工作的？（原理透明化）</summary>
         <div class="howto-body">
           <p>页面里的"师父"不是录播视频，而是 Three.js 用几何体实时拼出的程序化人形：每个动作被拆成若干关键姿势（关节角度表，见 <code>js/data.js</code>），跟练时姿势间平滑插值，并配合呼吸节律点亮丹田光。</p>
-          <p>口令引导用浏览器内置 Web Speech 语音合成；打卡、连续天数、成就全部由 <code>localStorage</code> 计算，本站没有任何服务器存储你的数据。断网也能练（3D 引擎首次加载需联网取 CDN，之后走缓存）。</p>
+          <p>口令引导用浏览器内置 Web Speech 语音合成，磬声由 Web Audio 实时合成；Three.js 引擎随仓分发（vendor/ 目录，无外部 CDN）。打卡、连续天数、成就全部由 <code>localStorage</code> 计算，本站没有任何服务器存储你的数据，部署后完全离线可用。</p>
         </div>
       </details>
     </div>
@@ -182,6 +183,13 @@
     <div class="stage-caption">
       <span id="stageTitle">演武台 · 拖拽旋转视角</span>
       <label class="spin-toggle"><input type="checkbox" id="spinChk"> 自动环绕</label>
+    </div>
+    <div class="stage-ctrls">
+      <button class="btn ghost sm" data-view="front">正面</button>
+      <button class="btn ghost sm" data-view="back">背面</button>
+      <button class="btn ghost sm" data-view="left">左侧</button>
+      <button class="btn ghost sm" data-view="right">右侧</button>
+      <label class="spin-toggle"><input type="checkbox" id="acuChk"> 穴位光点</label>
     </div>
   </aside>
 </main>

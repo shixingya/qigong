@@ -81,6 +81,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 .spin-toggle { display: flex; gap: 6px; align-items: center; cursor: pointer; }
 .spin-toggle input { accent-color: var(--jade); }
+.stage-ctrls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 8px; }
+.stage-ctrls .btn.sm { padding: 3px 12px; font-size: 12.5px; border-radius: 8px; color: var(--sub); }
+.stage-ctrls .spin-toggle { margin-left: auto; }
 
 /* ---------- 页面切换 ---------- */
 .page { display: none; animation: fadein .35s ease; }
