@@ -680,3 +680,15 @@ button { font-family: inherit; cursor: pointer; }
 .fc-done p { margin: 0; font-size: 13px; color: var(--sub); }
 .fc-cta { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 @media (prefers-reduced-motion: reduce) { .cd-num.pop { animation: none; } }
+
+/* ===== v2.15 难卡包 + 课表今日定位 ===== */
+.fc-hard { margin-top: 12px; }
+.fc-hard.on { border-color: var(--gold); color: var(--gold); }
+.cw-day.today { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(230, 190, 110, .35) inset; }
+.cwd-here { color: var(--gold); font-size: 12px; font-weight: 700; }
+.cw-day.flash { animation: cwFlash 1.6s ease; }
+@keyframes cwFlash {
+  0%, 100% { background: rgba(255, 255, 255, .02); }
+  30% { background: rgba(230, 190, 110, .22); }
+}
+@media (prefers-reduced-motion: reduce) { .cw-day.flash { animation: none; } }

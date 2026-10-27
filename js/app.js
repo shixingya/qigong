@@ -970,41 +970,59 @@
   }
 
   /* ================= 知识抽卡复习 ================= */
-  var fc = { queue: [], total: 0, got: 0, logged: false };
+  var fc = { queue: [], total: 0, got: 0, logged: false, hard: false };
   function refreshKnowHead() { /* 知识页已渲染时重画统计条，未渲染则罢 */
     var sp = $('#knowStats');
     if (sp) paintKnowHead(sp);
+    var hb = $('#fcHardBtn'); /* 难卡钮随销账/加卡实时增减 */
+    if (hb) { var n = S.hardCount(); hb.textContent = '⛰ 难卡包 ' + n; hb.disabled = !n; }
   }
   function fcShow() {
     var p = $('#fcProg'), c = $('#fcCard');
     if (!fc.queue.length) {
-      if (!fc.logged) { fc.logged = true; S.fcLog(fc.got, fc.total); refreshKnowHead(); }
+      if (!fc.logged) { fc.logged = true; if (!fc.hard) S.fcLog(fc.got, fc.total); refreshKnowHead(); }
       var fs = S.fcStat();
-      p.textContent = '本轮过完 · 共 ' + fc.total + ' 张 · 累计 ' + fs.rounds + ' 轮';
-      c.innerHTML = '<div class="fc-done"><b>🎉 记住 ' + fc.got + ' / ' + fc.total + '</b><p>' +
-        (fc.got >= fc.total ? '诸条记全，理气双长' : '没记住的下轮还会绕回来') + '</p></div>';
+      p.textContent = fc.hard ? '难卡包过完 · 共 ' + fc.total + ' 张 · 包内剩 ' + S.hardCount() + ' 张'
+        : '本轮过完 · 共 ' + fc.total + ' 张 · 累计 ' + fs.rounds + ' 轮';
+      c.innerHTML = '<div class="fc-done"><b>' + (fc.hard ? '⛰' : '🎉') + ' 记住 ' + fc.got + ' / ' + fc.total + '</b><p>' +
+        (fc.hard ? '记不住的还在包里，练熟一张销一张' : (fc.got >= fc.total ? '诸条记全，理气双长' : '没记住的下轮还会绕回来')) + '</p></div>';
       $('#fcAgain').disabled = true; $('#fcGot').disabled = true;
       chime(523.25, 0.13, 1.6);
       return;
     }
     var it = fc.queue[0];
-    p.textContent = '还剩 ' + fc.queue.length + ' 张 · 记住 ' + fc.got + ' 张';
-    c.innerHTML = '<div class="fc-tag">' + it.icon + ' 出自《' + it.from + '》</div><div class="fc-pt">' + it.txt + '</div>';
+    p.textContent = '还剩 ' + fc.queue.length + ' 张 · 记住 ' + fc.got + ' 张' + (fc.hard ? ' · 难卡包模式' : '');
+    c.innerHTML = '<div class="fc-tag">' + it.icon + ' 出自《' + it.from + '》</div><div class="fc-pt">' + it.txt + '</div>' +
+      '<button class="btn ghost sm fc-hard' + (S.isHard(it.id) ? ' on' : '') + '" id="fcHard">' +
+      (S.isHard(it.id) ? '⛰ 已在难卡包（点移除）' : '⛰ 记不准，丢进难卡包') + '</button>';
     $('#fcAgain').disabled = false; $('#fcGot').disabled = false;
+    $('#fcHard').addEventListener('click', function () {
+      S.toggleHard(it.id);
+      refreshKnowHead();
+      fcShow(); /* 重画卡面钮态 */
+    });
   }
-  function fcOpen() {
-    /* 全部要点入队列，按当年天数错位轮播，天天复习顺序不重样 */
+  function fcOpen(hardMode) {
+    /* 全部要点入队列，按当年天数错位轮播；难卡包模式只抽被 mark 的卡 */
     var items = [];
     DATA.knowledge.forEach(function (kn) {
-      kn.points.forEach(function (p) { items.push({ icon: kn.icon, from: kn.title, txt: p }); });
+      kn.points.forEach(function (p, pi) { items.push({ id: kn.id + ':' + pi, icon: kn.icon, from: kn.title, txt: p }); });
     });
     var off = dayOfYear() % items.length;
-    fc.queue = items.slice(off).concat(items.slice(0, off));
+    items = items.slice(off).concat(items.slice(0, off));
+    if (hardMode) items = items.filter(function (it) { return S.isHard(it.id); });
+    fc.hard = !!hardMode;
+    fc.queue = items;
     fc.total = items.length; fc.got = 0; fc.logged = false;
     $('#fcMask').classList.remove('hidden');
     fcShow();
   }
-  $('#fcGot').addEventListener('click', function () { fc.queue.shift(); fc.got++; fcShow(); });
+  $('#fcGot').addEventListener('click', function () {
+    var it = fc.queue.shift();
+    if (it) S.unhard(it.id); /* 记住了就销难账 */
+    fc.got++;
+    fcShow(); refreshKnowHead();
+  });
   $('#fcAgain').addEventListener('click', function () { var it = fc.queue.shift(); if (it) fc.queue.push(it); fcShow(); });
   $('#fcClose').addEventListener('click', function () { $('#fcMask').classList.add('hidden'); });
 
@@ -1215,10 +1233,15 @@
     var total = DATA.knowledge.length, rc = S.readCount();
     var head = document.createElement('div');
     head.className = 'know-progress';
-    head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>';
+    var hn = S.hardCount();
+    head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>' +
+      '<button class="btn ghost sm" id="fcHardBtn" title="卡面上随手归档的难卡，单独抽一轮">⛰ 难卡包 ' + hn + '</button>';
     box.appendChild(head);
     paintKnowHead();
-    $('#fcBtn').addEventListener('click', fcOpen);
+    $('#fcBtn').addEventListener('click', function () { fcOpen(false); });
+    var fhh = $('#fcHardBtn');
+    fhh.disabled = !hn; /* 零卡时钮灰，不抽空包 */
+    fhh.addEventListener('click', function () { fcOpen(true); });
     /* 错题本横幅：答错记账、补对销账，一键直达待订正篇 */
     var wbar = document.createElement('div');
     wbar.className = 'quiz-wrongs hidden';
@@ -1417,12 +1440,22 @@
     var total = 0, doneN = 0;
     cur.weeks.forEach(function (wk, wi) { wk.days.forEach(function (d, di) { total++; if (grid[wi][di].done) doneN++; }); });
     var pct = Math.round(doneN / total * 100);
+    /* 自我锚点定位：首次进页定为第 1 天，之后按日数亮“今日”格 */
+    var cs = S.courseStart();
+    var dayIdx = Math.round((new Date(S.todayStr()) - new Date(cs)) / 86400000) + 1;
+    var locTxt = '', locBtn = '';
+    if (dayIdx >= 1 && dayIdx <= total) {
+      locTxt = ' · 📍 今日是第 <b>' + dayIdx + '</b> 天';
+      locBtn = ' <button class="btn ghost sm" id="cwdTodayGo">跳到今日</button>';
+    } else if (dayIdx > total) {
+      locTxt = ' · 🏁 四周已过完（第 ' + (dayIdx - total) + ' 天），随喜重温';
+    }
     $('#courseProg').innerHTML =
       '<div class="cp-bar"><i style="width:' + pct + '%"></i></div>' +
-      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' +
-      (doneN === total && total > 0 ? ' 🎉 四周圆满！' : '') + '</div>';
+      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' + locTxt +
+      (doneN === total && total > 0 ? ' 🎉 四周圆满！' : '') + locBtn + '</div>';
     var box = $('#courseWeeks'); box.innerHTML = '';
-    var gno = 0;
+    var gno = 0, todayCell = null;
     cur.weeks.forEach(function (wk, wi) {
       var wset = setById(wk.set);
       var wdone = wk.days.filter(function (d, di) { return grid[wi][di].done; }).length;
@@ -1438,7 +1471,8 @@
         var s = grid[wi][di];
         var st = setById(s.setId);
         var cell = document.createElement('div');
-        cell.className = 'cw-day' + (s.done ? ' done' : '');
+        cell.className = 'cw-day' + (s.done ? ' done' : '') + (gno === dayIdx ? ' today' : '');
+        if (gno === dayIdx) todayCell = cell;
         var label, names = '';
         if (d.kind === 'learn') {
           names = d.moves.map(function (mid) {
@@ -1452,6 +1486,7 @@
         }
         cell.innerHTML =
           '<div class="cwd-top"><span class="cwd-no">第 ' + gno + ' 天</span>' +
+          (gno === dayIdx ? '<span class="cwd-here">📍 今日</span>' : '') +
           '<span class="cwd-kind">' + (d.kind === 'learn' ? '📖 ' + label : '▶ ' + label) + '</span>' +
           (s.done ? '<span class="cwd-ok">✓</span>' : '') + '</div>' +
           '<div class="cwd-names">' + names + '</div>';
@@ -1472,6 +1507,12 @@
       });
       col.appendChild(daysEl);
       box.appendChild(col);
+    });
+    var goBtn = $('#cwdTodayGo');
+    if (goBtn && todayCell) goBtn.addEventListener('click', function () {
+      todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      todayCell.classList.add('flash'); /* 闪一下金光，眼睛能接住 */
+      setTimeout(function () { todayCell.classList.remove('flash'); }, 1600);
     });
   }
 

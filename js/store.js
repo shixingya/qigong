@@ -336,6 +336,32 @@
       return { rounds: f.rounds || 0, lastGot: f.lastGot || 0, lastTotal: f.lastTotal || 0 };
     },
 
+    /* ---- 抽卡难卡包：按卡片 id 记账，记住了自动销账 ---- */
+    isHard: function (id) { return !!(this._data.settings.hardCards || {})[id]; },
+    toggleHard: function (id) {
+      var h = this._data.settings.hardCards = this._data.settings.hardCards || {};
+      if (h[id]) { delete h[id]; save(this._data); return false; }
+      h[id] = 1; save(this._data); return true;
+    },
+    unhard: function (id) {
+      var h = this._data.settings.hardCards || {};
+      if (h[id]) { delete h[id]; save(this._data); }
+    },
+    hardCount: function () {
+      var h = this._data.settings.hardCards || {};
+      /* 只数真值，与 isHard 口径一致（旧存档或导入数据可能带 0 值占位） */
+      return Object.keys(h).filter(function (k) { return h[k]; }).length;
+    },
+
+    /* ---- 四周课表自我锚点：首次进课程页定为第 1 天，之后按天定位 ---- */
+    courseStart: function () {
+      var s = this._data.settings.courseStart;
+      if (s) return s;
+      this._data.settings.courseStart = todayStr();
+      save(this._data);
+      return this._data.settings.courseStart;
+    },
+
     /* 距上次练功的天数（无记录返 null） */
     gapDays: function () {
       if (!this._data.records.length) return null;
