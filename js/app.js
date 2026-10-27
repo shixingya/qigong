@@ -392,10 +392,14 @@
 
     start: function (set, moves, mode) {
       var steps = [{ label: '预备 · 调整呼吸', sec: 5, inhale: 'hold', cue: '双脚与肩同宽，全身放松，调整呼吸，即将开始' + set.name, pose: idlePoses[0], _prep: true }];
+      var withRest = (mode === 'full' && moves.length > 1); /* 整套跟练式与式之间加调息间歇 */
       moves.forEach(function (m, mi) {
         m.keys.forEach(function (k, ki) {
           steps.push({ label: k.label, sec: k.sec, inhale: k.inhale, cue: k.cue, pose: k.pose, move: m, moveIdx: mi, keyIdx: ki, totalKeys: m.keys.length });
         });
+        if (withRest && mi < moves.length - 1) {
+          steps.push({ label: '间歇 · 调息', sec: 6, inhale: 'hold', cue: moves[mi].name + '收功。松静站立，调息两次，准备' + moves[mi + 1].name, pose: idlePoses[mi % 2], _rest: true });
+        }
       });
       this._steps = steps; this._i = 0; this._total = steps.length;
       this._tempo = S.tempo(); /* 开场定格，中途切节奏从下一步生效 */
@@ -444,11 +448,14 @@
         $('#trainMoveName').textContent = st.move.name;
         $('#trainKeyLabel').textContent = '第 ' + (st.moveIdx + 1) + '/' + this._countMoves() + ' 式 · ' + st.label + '（' + (st.keyIdx + 1) + '/' + st.totalKeys + ' 动）';
         $('#stageTitle').textContent = st.move.name + ' · ' + st.label;
+        $('#trainCue').textContent = st.cue;
         speak((st.keyIdx === 0 ? st.move.name + '。' : '') + st.cue);
         if (st.keyIdx === 0) { chime(PENTA[st.moveIdx % PENTA.length], 0.13, 1.6); float3d(st.move.name + ' · ' + st.label); }
       } else {
-        $('#trainMoveName').textContent = '预备起';
+        $('#trainMoveName').textContent = st._rest ? '间歇调息' : '预备起';
         $('#trainKeyLabel').textContent = st.label;
+        $('#stageTitle').textContent = st._rest ? '间歇 · 放松调息' : '预备 · 调整呼吸';
+        $('#trainCue').textContent = st.cue;
         speak(st.cue);
       }
     },
@@ -479,6 +486,7 @@
       if (ni < 0) ni = 0;
       if (ni >= this._total) { this.finish(); return; }
       this.enterStep(ni);
+      this.renderTick(); /* 暂停中手动跳步也要立即刷新步数/倒计时显示 */
     },
     stop: function (silent) {
       this.active = false;
@@ -617,7 +625,20 @@
       var btn = document.createElement('button');
       btn.className = 'btn ' + (isRead ? 'ghost' : 'primary') + ' sm';
       btn.textContent = isRead ? '✓ 已读（点击取消）' : '标记读完';
-      btn.addEventListener('click', function () { S.toggleRead(kn.id); renderKnowledge(); });
+      btn.addEventListener('click', function () {
+        var nowRead = S.toggleRead(kn.id); /* 原地更新，不重渲染，保留展开与阅读位置 */
+        el.classList.toggle('read', nowRead);
+        btn.className = 'btn ' + (nowRead ? 'ghost' : 'primary') + ' sm';
+        btn.textContent = nowRead ? '✓ 已读（点击取消）' : '标记读完';
+        var dot = el.querySelector('.read-dot');
+        if (nowRead && !dot) {
+          var s = document.createElement('span');
+          s.className = 'read-dot'; s.title = '已读'; s.textContent = '✓';
+          el.querySelector('summary').appendChild(s);
+        } else if (!nowRead && dot) { dot.remove(); }
+        var rc2 = S.readCount();
+        head.innerHTML = '已读 <b>' + rc2 + '</b> / ' + total + ' 篇' + (total && rc2 === total ? ' · 明理圆满 🎉' : '');
+      });
       f.appendChild(btn);
       box.appendChild(el);
     });
@@ -923,6 +944,8 @@
       bar.innerHTML = '☯️ 气功学堂有新版本 <button class="btn primary sm">立即刷新</button>';
       bar.querySelector('button').addEventListener('click', function () {
         sw.postMessage('skip');
+        /* 不依赖 controllerchange 时序：兜底定时重载，激活后重载即拿新版；已在新版控制时重载也无害 */
+        setTimeout(function () { location.reload(); }, 1500);
       });
       document.body.appendChild(bar);
     }
