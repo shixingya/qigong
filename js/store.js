@@ -190,6 +190,28 @@
     },
     resetPlan: function () { this._data.plan = null; save(this._data); },
 
+    /* ---- 周练报告：近 7 天（含今天） vs 上一周 ---- */
+    weekReport: function () {
+      var a = todayStr(-6), b = todayStr(-13), c = todayStr(-7);
+      var recs = this._data.records;
+      var inWin = function (r, from, to) { return r.d >= from && r.d <= to; };
+      var cur = recs.filter(function (r) { return inWin(r, a, todayStr()); });
+      var prev = recs.filter(function (r) { return inWin(r, b, c); });
+      var days = {}, setCount = {}, sec = 0;
+      cur.forEach(function (r) {
+        days[r.d] = 1; setCount[r.set] = (setCount[r.set] || 0) + 1; sec += r.sec || 0;
+      });
+      var top = null, topN = 0;
+      Object.keys(setCount).forEach(function (k) { if (setCount[k] > topN) { top = k; topN = setCount[k]; } });
+      return {
+        dayCount: Object.keys(days).length, sessions: cur.length,
+        min: Math.round(sec / 60), sets: Object.keys(setCount).length,
+        topSet: top, topN: topN,
+        prevDayCount: Object.keys(prev.reduce(function (m, r) { m[r.d] = 1; return m; }, {})).length,
+        rangeFrom: a, rangeTo: todayStr()
+      };
+    },
+
     /* ---- 设置 ---- */
     soundOn: function () { return this._data.settings.sound !== false; },
     toggleSound: function () {

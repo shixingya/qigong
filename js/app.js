@@ -87,6 +87,18 @@
     var b = $('#soundBtn');
     b.textContent = S.soundOn() ? '🔊 口令' : '🔇 口令';
     b.classList.toggle('off', !S.soundOn());
+    if (S.soundOn() && !voiceOk()) showVoiceHint();
+  }
+  /* 语音降级：真实发声失败时只提示一次，文字口令仍照常上屏；voiceOk 每次现判，防运行时引擎消失误判 */
+  var voiceOk = function () { return !!global.speechSynthesis; }, voiceHintShown = false;
+  function showVoiceHint() {
+    if (voiceHintShown) return;
+    voiceHintShown = true;
+    var bar = document.createElement('div');
+    bar.className = 'sw-update';
+    bar.textContent = '🔇 此浏览器没有可用的中文语音引擎，已降级为纯文字口令，跟练不受影响';
+    document.body.appendChild(bar);
+    setTimeout(function () { bar.remove(); }, 8000);
   }
   function syncTempoBtn() {
     var b = $('#tempoBtn');
@@ -631,6 +643,7 @@
       statBox(S.learnedTotal(), '/' + moveTotal, '已学动作');
 
     renderCalendar();
+    renderWeekCard();
 
     var bg = $('#badgeGrid');
     bg.innerHTML = '';
@@ -653,6 +666,30 @@
   }
   function statBox(v, unit, label, gold) {
     return '<div class="stat-box' + (gold ? ' gold' : '') + '"><b>' + v + '<small style="font-size:14px"> ' + unit + '</small></b><span>' + label + '</span></div>';
+  }
+
+  /* 周练报告：近 7 天小结，完全由真实打卡记录推导 */
+  function renderWeekCard() {
+    var el = $('#weekCard');
+    if (!el) return;
+    var w = S.weekReport();
+    if (!w.sessions) {
+      el.innerHTML = '<div class="wk-head">🗒 周练报告</div><div class="wk-body wk-empty">近 7 天还没有练功记录。练完一次整套，这里就会替你算好账。</div>';
+      return;
+    }
+    var delta = w.dayCount - w.prevDayCount;
+    var trendTxt = w.prevDayCount === 0 ? (w.dayCount + ' 天 · 从零起步最难得') :
+      delta > 0 ? ('比上周多 ' + delta + ' 天，见功了') :
+      delta < 0 ? ('比上周少 ' + (-delta) + ' 天，松一松还能追回来') : '与上周打平，贵在照常';
+    var topSet = w.topSet && DATA.sets.find(function (x) { return x.id === w.topSet; });
+    var line2 = topSet ? ('练得最多的是 ' + topSet.icon + ' ' + topSet.name + '（' + w.topN + ' 次）') : '先把第一套跟下来';
+    var line3 = w.dayCount >= 5 ? '💚 已入佳境，气息渐稳' : w.dayCount >= 3 ? '🌿 节奏渐稳，继续保持' : '🌱 刚起步，下周试试隔天练一次';
+    el.innerHTML = '<div class="wk-head">🗒 周练报告 <span class="wk-range">' + w.rangeFrom + ' ~ ' + w.rangeTo + '</span></div>' +
+      '<div class="wk-body">' +
+      '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
+      '<div>' + trendTxt + '；' + line2 + '。</div>' +
+      '<div>' + line3 + '</div>' +
+      '</div>';
   }
 
   function renderCalendar() {
@@ -895,8 +932,8 @@
   $('#soundBtn').addEventListener('click', function () {
     S.toggleSound();
     syncSoundBtn();
-    if (!S.soundOn() && 'speechSynthesis' in global) speechSynthesis.cancel();
-    else speak('语音口令已开启');
+    if (!S.soundOn()) { if (global.speechSynthesis) speechSynthesis.cancel(); }
+    else { speak('语音口令已开启'); if (!voiceOk()) showVoiceHint(); }
   });
   $('#tempoBtn').addEventListener('click', function () {
     var t = S.cycleTempo();
