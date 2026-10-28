@@ -437,7 +437,10 @@
     var _fmWkFrom = S.weekReport().rangeFrom, _fmWkK = {};
     S.records().forEach(function (r) { if (r.d && r.d >= _fmWkFrom) (r.moves || []).forEach(function (m) { _fmWkK[m] = 1; }); });
     var _fmWkTouch = keys.filter(function (k) { return _fmWkK[k.move]; }).length;
-    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + '）';
+    var _fmMonPre = S.todayStr().slice(0, 7), _fmMonK = {};
+    S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _fmMonPre) (r.moves || []).forEach(function (m) { _fmMonK[m] = 1; }); });
+    var _fmMonTouch = keys.filter(function (k) { return _fmMonK[k.move]; }).length;
+    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + (_fmMonTouch ? ' · 本月练过 ' + _fmMonTouch + ' 式' : '') + '）';
     sec.appendChild(head);
     var row = document.createElement('div');
     row.className = 'fm-row';
@@ -1808,6 +1811,7 @@
       var _monSessWk = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _monPreWk; }).length;
       var _monCalmWk = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreWk; }).length;
       var _monMoveWk = (function () { var K = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPreWk && r.set !== 'calm') (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
+      var _monMinWk = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _monPreWk ? (r.sec || 0) : 0); }, 0) / 60);
       if (_monCalmWk) calmLine = (calmLine || '🍃 定息') + ' · 本月定息 ' + _monCalmWk + ' 次';
       /* 功法多样性：练得杂夸均衡，只咬一套则提醒换换 */
       var varLine = '';
@@ -1818,7 +1822,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
