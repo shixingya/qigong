@@ -984,6 +984,18 @@
       }
       speak('收功。' + set.name + '练习完成，今日打卡已记录。');
       chime(196, 0.2, 2.6); /* 收功大磬 */
+      /* 收功后语随时段：早护升发、午宜小憩、晚安神、夜忌再见光 */
+      var SLOT_DONE = {
+        '早': '🌅 晨练收功，阳气已升 —— 宜温水缓饮，不宜即刻寒凉生冷。',
+        '午': '🌤 日中收功，气血养长 —— 宜静坐小憩一刻，再赴午后之事。',
+        '晚': '🌙 入夜收功，阳气已敛 —— 宜少见光屏，让神慢慢安下来。',
+        '夜': '⭐ 夜深收功，最宜安眠 —— 此后少碰屏光，温水漱口即可。'
+      };
+      var ds = $('#doneSlot');
+      if (ds) {
+        ds.textContent = SLOT_DONE[slotLabel(new Date().getHours())] || '';
+        ds.classList.toggle('hidden', !ds.textContent);
+      }
       /* 新成就解锁提示：对比写入记录前后的达成态 */
       var un = $('#doneUnlock');
       try {
@@ -1394,6 +1406,18 @@
       b.addEventListener('click', function () { Train.start(fm.set, [fm.move], 'single'); });
       row.innerHTML = '<span class="mr-rank">' + (medal[i] || (i + 1)) + '</span>';
       row.appendChild(b);
+      /* 星标与首页常练式同一口径：点星即收进那一排，两处同进同出 */
+      var star = document.createElement('button');
+      star.className = 'mr-star';
+      var onFav = function () { star.textContent = S.isMoveFav(fm.set.id, fm.move.id) ? '★' : '☆'; };
+      onFav();
+      star.title = '星标为常练式（首页“我的常练式”同步收放）';
+      star.addEventListener('click', function () {
+        S.toggleMoveFav(fm.set.id, fm.move.id);
+        onFav();
+        renderFavMoves();
+      });
+      row.appendChild(star);
       var meta = document.createElement('span');
       meta.className = 'mr-meta';
       meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last;
