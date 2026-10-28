@@ -112,3 +112,11 @@
 播种同 v3.1.12（沿用同一种子即可，无新增 settings 依赖）。
 
 冒烟结果：rec-sum 尾部=`本周练 3 式 · 累计定息 2 次`；wk-body 首行=`… 累计练 4 场 · 累计 17 分钟 · 明理 2 篇`；console error=0。✅
+
+## v3.1.14 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3114-1 | 复习台抽卡行尾部 | 上轮卡数 `fs.lastTotal` | `上轮共 6 张卡` | settings.fcard={rounds:2,lastGot:4,lastTotal:6} |
+| T-3114-2 | 首页 `#statSelf` | 本周碰套数 `_wkTouchSelf` | `本周碰 2 套` | 周内(≥10-25)非 calm 记录 set 去重={baduanjin,wuqinxi}=2，排在“本月碰”后“收藏”前 |
+
+播种：同 v3.1.12 种子 + settings.fcard={rounds:2,lastGot:4,lastTotal:6}；需先点知识 nav 渲染过一次复习台入口后打开 rvMask 读抽卡行；首页 chip 需渲染后读 statSelf。
