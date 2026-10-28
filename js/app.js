@@ -1611,7 +1611,8 @@
     var _tdMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _tdMonPre && r.hour != null; }).length;
     var _tdWkFrom = S.weekReport().rangeFrom;
     var _tdWkN = S.records().filter(function (r) { return r.d && r.d >= _tdWkFrom && r.hour != null; }).length;
-    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    var _tdTopName = (total && topIdx >= 0) ? (b[topIdx].icon + ' ' + b[topIdx].name) : '';
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
     b.forEach(function (x, i) {
@@ -1889,8 +1890,9 @@
       var _monMoveCal = Object.keys(_monMoveK).length;
       var _monCalmSec = S.records().reduce(function (a, r) { return a + (r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreCal ? (r.sec || 0) : 0); }, 0);
       var _monCalmMin = Math.round(_monCalmSec / 60);
+      var _monAvgDay = mDays ? Math.round(_monSec / 60 / mDays) : 0;
       foot.innerHTML = mDays
-        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '') + (_monCalm ? ' · 定息 <b>' + _monCalm + '</b> 次' + (_monCalmMin ? '（共 <b>' + _monCalmMin + '</b> 分）' : '') : '') + (_monMoveCal ? ' · 练 <b>' + _monMoveCal + '</b> 式' : '')
+        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monAvgDay ? ' · 日均 <b>' + _monAvgDay + '</b> 分' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '') + (_monCalm ? ' · 定息 <b>' + _monCalm + '</b> 次' + (_monCalmMin ? '（共 <b>' + _monCalmMin + '</b> 分）' : '') : '') + (_monMoveCal ? ' · 练 <b>' + _monMoveCal + '</b> 式' : '')
         : '这个月还没有练功记录，翻个月看看功夫足迹';
     }
   }
