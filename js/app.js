@@ -304,7 +304,8 @@
         var _monSess = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _monPre; }).length;
         var _setsTouched = {}; S.records().forEach(function (r) { if (r.set !== 'calm') _setsTouched[r.set] = 1; });
         var _touchedN = Object.keys(_setsTouched).length;
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
+        var _avgSess = S.totalSess() ? Math.round(S.totalMin() / S.totalSess()) : 0;
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -1459,7 +1460,7 @@
     el.classList.remove('hidden');
     var _ds = S.records().map(function (r) { return r.d; }).sort();
     var _span = _ds.length ? ' · 记录跨度 <b>' + _ds[0] + '</b> ~ <b>' + _ds[_ds.length - 1] + '</b>' : '';
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录' + _span;
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + _span;
   }
 
   function renderCheckin() {
