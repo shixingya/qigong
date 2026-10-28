@@ -297,7 +297,7 @@
       if (S.totalSess()) {
         self.classList.remove('hidden');
         var _calmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -1409,7 +1409,7 @@
     var bi = S.backupInfo();
     if (!bi.lastBackup && !bi.lastImport) { el.classList.add('hidden'); el.textContent = ''; return; }
     el.classList.remove('hidden');
-    el.textContent = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未');
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录';
   }
 
   function renderCheckin() {
