@@ -1113,8 +1113,9 @@
       var _doneMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _doneMonPre; }).length;
       var _doneMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _doneMonPre ? (r.sec || 0) : 0); }, 0) / 60);
       var _doneSetAll = S.records().filter(function (r) { return r.set === set.id; }).length;
+      var _doneMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === set.id && r.d && r.d.slice(0, 7) === _doneMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '');
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
@@ -1779,6 +1780,7 @@
       var _monPreWk = S.todayStr().slice(0, 7);
       var _monSessWk = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _monPreWk; }).length;
       var _monCalmWk = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreWk; }).length;
+      var _monMoveWk = (function () { var K = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPreWk && r.set !== 'calm') (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
       if (_monCalmWk) calmLine = (calmLine || '🍃 定息') + ' · 本月定息 ' + _monCalmWk + ' 次';
       /* 功法多样性：练得杂夸均衡，只咬一套则提醒换换 */
       var varLine = '';
@@ -1789,7 +1791,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
