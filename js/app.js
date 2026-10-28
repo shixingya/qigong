@@ -513,6 +513,19 @@
     $('#setDetail').classList.add('hidden');
     $('#moveDetail').classList.add('hidden');
     paintFilter();
+    renderSetStat();
+  }
+
+  /* 目录页收藏/常练统计微条：一眼看到自己积下的“我的常用” */
+  function renderSetStat() {
+    var el = $('#setStat');
+    if (!el) return;
+    var nf = S.favIds().length, nm = S.moveFavKeys().length;
+    if (!nf && !nm) {
+      el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆';
+      return;
+    }
+    el.innerHTML = '⭐ 已收藏 <b>' + nf + '</b> 套功法 · 🔖 列常练 <b>' + nm + '</b> 式';
   }
 
   /* ---- 功法页搜索与部位标签筛选 ---- */
@@ -996,7 +1009,7 @@
       if (global.QGAmbient) QGAmbient.stop();
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天';
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练';
       if (S.planStatus()) {
         var pl = S.planInfo();
         $('#doneStats').textContent += pl && !pl.success && !pl.over ? ' · 21天挑战已点亮 ' + pl.done + '/21' : '';

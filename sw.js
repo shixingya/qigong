@@ -1,5 +1,5 @@
 /* 气功学堂 · Service Worker：预缓存全部静态资源，stale-while-revalidate */
-var CACHE = 'qigong-v2.28.0';
+var CACHE = 'qigong-v2.29.0';
 var ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/style.css',
@@ -11,7 +11,8 @@ var ASSETS = [
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
     return Promise.all(ASSETS.map(function (u) {
-      return fetch(u).then(function (r) { return c.put(u, r); }).catch(function () { /* 单资源失败不阻塞 */ });
+      /* cache:'reload' 绕过浏览器 HTTP 磁盘缓存，确保预缓存的是本次部署的最新副本（避免版本升级后仍落旧 CSS/JS） */
+      return fetch(new Request(u, { cache: 'reload' })).then(function (r) { return c.put(u, r); }).catch(function () { /* 单资源失败不阻塞 */ });
     }));
   })); /* 不立即 skipWaiting：由页面提示用户确认后发消息再跳 */
 });
