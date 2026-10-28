@@ -300,6 +300,8 @@ button { font-family: inherit; cursor: pointer; }
   background: rgba(201, 168, 106, .12); border: 1px solid rgba(201, 168, 106, .4);
 }
 .move-head .desc { color: var(--sub); margin-top: 6px; }
+.move-head h2 .mv-fav-set { float: right; margin-top: 4px; font-weight: 400; }
+.move-head h2 .mv-fav-set.on { color: var(--gold); }
 .move-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
 .move-steps, .key-strip {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px;

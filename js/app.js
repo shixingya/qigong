@@ -762,7 +762,8 @@
 
     var msess = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场</span>' : '') + '</h2><p class="desc">' + curMove.desc + '</p>';
+      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场</span>' : '') +
+      '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
     $('#moveBenefit').textContent = curMove.benefit;
@@ -797,6 +798,15 @@
       openSet(curSet.id);
       openMove(moveId); /* 重进以刷新状态 */
     };
+    /* 单式页收藏整套快捷：与套页星、收功页同口径 */
+    var mfs = $('#mvFavSet');
+    if (mfs) mfs.addEventListener('click', function () {
+      S.toggleFav(curSet.id);
+      var on = S.isFav(curSet.id);
+      this.textContent = on ? '⭐ 已收藏这套' : '☆ 收藏这套';
+      this.classList.toggle('on', on);
+      renderHome();
+    });
     /* 常练星标：与目录格双向同步，重开即新 */
     var fs = $('#favMoveStar');
     function paintFavStar() {
@@ -1753,8 +1763,8 @@
   function paintKnowHead(sp) {
     sp = sp || $('#knowStats');
     if (!sp) return;
-    var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat();
-    sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (total && S.readCount() === total ? ' · 明理圆满 🎉' : '') +
+    var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat(), unread = total - S.readCount();
+    sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (unread > 0 ? ' · 待读 <b>' + unread + '</b> 篇' : ' · 明理圆满 🎉') +
       ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '') +
       (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '');
   }
