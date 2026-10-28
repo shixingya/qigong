@@ -1737,6 +1737,19 @@
       html += '<div class="cal-cell' + (n ? ' done' + (n > 1 ? ' multi' : '') : '') + (ds === today ? ' today' : '') + '"' + (n ? ' data-ds="' + ds + '" title="' + ds + ' · 练了 ' + n + ' 场，点看明细"' : '') + '>' + d + dots + '</div>';
     }
     $('#calGrid').innerHTML = html;
+    /* 本月汇总：练过的天数 + 总场次 + 最热一天，帮一眼看清这个月的功夫 */
+    var mDays = 0, mSess = 0, mMaxN = 0, mMaxDs = '';
+    Object.keys(map).forEach(function (k) {
+      var n = map[k] || 0;
+      if (n > 0) { mDays++; mSess += n; if (n > mMaxN) { mMaxN = n; mMaxDs = k; } }
+    });
+    var foot = $('#calFoot');
+    if (foot) {
+      var curMon = (y === new Date(S.todayStr()).getFullYear() && m === new Date(S.todayStr()).getMonth());
+      foot.innerHTML = mDays
+        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '')
+        : '这个月还没有练功记录，翻个月看看功夫足迹';
+    }
   }
   function hideDayPop() { var p = $('#dayPop'); if (p) { p.classList.add('hidden'); p.innerHTML = ''; } SHOW_ALL = {}; }
   var SHOW_ALL = {}; /* 当日明细的“展开全部式”开关，按行序号记，收起时清 */
@@ -1762,7 +1775,7 @@
     if (!pop) return;
     var recs = S.recordsOfDay(ds);
     if (!recs.length) { pop.classList.add('hidden'); return; }
-    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场<button class="btn ghost sm" id="dpX">收起</button></div>' +
+    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场 · 共约 ' + Math.max(1, Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60)) + ' 分钟<button class="btn ghost sm" id="dpX">收起</button></div>' +
       recs.map(function (r) {
         var st = DATA.sets.find(function (s) { return s.id === r.set; });
         var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';

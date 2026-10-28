@@ -403,6 +403,9 @@ button { font-family: inherit; cursor: pointer; }
 /* v2.26 日历彩色功法点 */
 .cal-dots { position: absolute; left: 0; right: 0; bottom: 3px; display: flex; justify-content: center; gap: 2px; }
 .cal-dots i { width: 4px; height: 4px; border-radius: 50%; display: block; }
+/* v2.53 日历本月汇总行 */
+.cal-foot { margin-top: 10px; padding: 8px 10px; border-radius: 10px; font-size: 13px; color: var(--sub); background: rgba(157, 184, 178, .08); border: 1px solid var(--line); text-align: center; }
+.cal-foot b { color: var(--jade); }
 .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 10px; }
 .badge {
   text-align: center; border: 1px solid var(--line); border-radius: 12px; padding: 12px 6px;
