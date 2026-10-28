@@ -511,6 +511,7 @@
     var _pdNow = new Date(S.todayStr());
     var _pMap = S.monthMap(_pdNow.getFullYear(), _pdNow.getMonth());
     var _pMonDays = Object.keys(_pMap).filter(function (k) { return _pMap[k] > 0; }).length;
+    var _pAllSess = S.totalSess();
     var cells = p.grid.map(function (g, i) {
       var cls = g.has ? 'done' : (g.past ? 'miss' : 'todo');
       return '<span class="p-cell ' + cls + '" title="' + g.d + '">' + (g.has ? '✿' : (i + 1)) + '</span>';
@@ -518,7 +519,7 @@
     var banner;
     if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
     else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
-    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + (_pMonDays ? ' · 本月练 ' + _pMonDays + ' 天' : '') + '</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + (_pMonDays ? ' · 本月练 ' + _pMonDays + ' 天' : '') + (_pAllSess ? ' · 累计 <b>' + _pAllSess + '</b> 场' : '') + '</div>';
     el.innerHTML =
       '<div class="plan-head"><span class="plan-icon">🏮</span>' +
       '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
@@ -734,11 +735,12 @@
     var _setAllMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === curSet.id ? (r.sec || 0) : 0); }, 0) / 60);
     var _setMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d && r.d.slice(0, 7) === _setMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _setWkMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d >= _setWkFrom) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
+    var _setTodayMove = (function () { var K = {}; S.recordsOfDay(S.todayStr()).forEach(function (r) { if (r.set === curSet.id) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
       '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
-      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + '</div>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setTodayMove ? ' · 今日练 <b>' + _setTodayMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
