@@ -297,9 +297,10 @@
       if (S.totalSess()) {
         self.classList.remove('hidden');
         var _calmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
+        var _calmMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === 'calm' ? (r.sec || 0) : 0); }, 0) / 60);
         var _learnedAll = DATA.sets.reduce(function (a, s) { return a + Math.min(S.learnedCount(s.id), s.moves.length); }, 0);
         var _wkSess = S.weekReport().sessions;
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -486,6 +487,9 @@
     var doneToday = S.recordsOfDay(S.todayStr()).some(function (r) { return r.set === st.id; });
     var _wkFromS = S.weekReport().rangeFrom;
     var _wkSetN = S.records().filter(function (r) { return r.set === st.id && r.d >= _wkFromS; }).length;
+    var _lastD = null;
+    S.records().forEach(function (r) { if (r.set === st.id && (!_lastD || r.d > _lastD)) _lastD = r.d; });
+    var _ago = (_lastD && _wkSetN === 0) ? Math.round((new Date(S.todayStr()) - new Date(_lastD)) / 86400000) : null;
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -493,7 +497,7 @@
       '<h3>' + st.name + '</h3>' +
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
-      '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
+      '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
       '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();

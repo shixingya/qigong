@@ -821,6 +821,11 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--gold); font-weight: 700; padding: 1px 9px; border-radius: 999px;
   background: rgba(217, 180, 106, .12); border: 1px solid rgba(217, 180, 106, .4);
 }
+/* ===== v2.45 功法卡久未练提示 ===== */
+.sc-ago {
+  color: var(--sub); font-weight: 600; padding: 1px 9px; border-radius: 999px;
+  background: rgba(157, 184, 178, .10); border: 1px solid var(--line);
+}
 .sc-slot { color: var(--gold); font-size: 12px; letter-spacing: 1px; margin-left: 4px; }
 .todo-moves { margin: 14px 0; padding: 14px 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
 .tm-head { font-size: 13.5px; color: var(--sub); margin-bottom: 10px; }
