@@ -768,8 +768,10 @@
     viewingMove = true;
 
     var msess = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
+    var _wkFrom = S.weekReport().rangeFrom;
+    var msessWk = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0 && r.d >= _wkFrom; }).length;
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场</span>' : '') +
+      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
@@ -1659,7 +1661,7 @@
     var goal = S.weekGoal(), sess = w.sessions || 0;
     var pct = Math.min(100, Math.round(sess / goal * 100));
     var hit = sess >= goal;
-    el.innerHTML = '<div class="wk-head">🗒 周练报告 <span class="wk-range">' + w.rangeFrom + ' ~ ' + w.rangeTo + '</span></div>' + body +
+    el.innerHTML = '<div class="wk-head">🗒 周练报告 <span class="wk-range">' + w.rangeFrom + ' ~ ' + w.rangeTo + '</span> <span class="wk-today' + (S.recordsOfDay(S.todayStr()).length ? ' on' : '') + '">' + (S.recordsOfDay(S.todayStr()).length ? '✓ 今日已练' : '⭕ 今日未练') + '</span></div>' + body +
       '<div class="wk-goal-row">' +
       '<div class="wk-ring' + (hit ? ' hit' : '') + '" style="--p:' + pct + '"><b>' + Math.min(sess, goal) + '/' + goal + '</b></div>' +
       '<div class="wk-goal-side">' +
