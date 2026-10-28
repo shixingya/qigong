@@ -49,3 +49,11 @@
 | T-316-2 | 知识页 `.qw-txt` | 已通小测关数 `_qwPass` | `已通 1 关` | S.quizCount()=quiz 中 true 的篇数=1 |
 
 冒烟结果：cp-txt=`已完成 … · 本月练 3 天 · 累计练 4 场 …`；qw-txt=`📕 待订正的错题 2 题——错一处，长一智 · 已通 1 关`；console error=0。✅
+
+## v3.1.7 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-317-1 | 打卡页 `.mr-head` | 涉猎套数 `_mrTouchSetN` | `涉猎 2 套` | 非 calm 记录 distinct set={baduanjin,liuzijue} |
+| T-317-2 | 功法页 `#setStat` | 累计练功场 `_ssAllSess` | `累计练 3 场` | 非 calm 记录数=3（排除 calm） |
+
+冒烟结果：mr-head=`…本月 20 分 · 涉猎 2 套 · 最勤 …`；setStat=`…本月定息 1 次 · 累计练 3 场`；console error=0。✅
