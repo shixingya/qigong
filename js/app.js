@@ -749,11 +749,12 @@
     var _setMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d && r.d.slice(0, 7) === _setMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _setWkMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d >= _setWkFrom) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _setTodayMove = (function () { var K = {}; S.recordsOfDay(S.todayStr()).forEach(function (r) { if (r.set === curSet.id) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
+    var _setEverDays = S.totalDays(); /* 累计练功天数：功法详情头部的大前提 */
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
       '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
-      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setTodayMove ? ' · 今日练 <b>' + _setTodayMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + '</div>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setTodayMove ? ' · 今日练 <b>' + _setTodayMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + (_setEverDays > 1 ? ' · 累计练 <b>' + _setEverDays + '</b> 天' : '') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
@@ -1012,7 +1013,8 @@
       }
       paintAmbBtn();
       $('#trainSetName').textContent = set.icon + ' ' + set.name +
-        (mode === 'single' ? ' · ' + moves[0].name : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
+        (mode === 'single' ? ' · ' + moves[0].name : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套') +
+        (S.totalDays() > 1 ? ' · 累计练 ' + S.totalDays() + ' 天' : ''); /* 跟练页大前提：坚持的天数一眼看见 */
       /* 跟练页也亮当前时段，与首页宜练、收功后语一条线贯通 */
       var tsl = $('#trainSlot');
       if (tsl) { tsl.textContent = SLOT_TXT[slotLabel(new Date().getHours())] || ''; tsl.classList.toggle('hidden', !tsl.textContent); }

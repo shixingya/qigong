@@ -220,3 +220,13 @@
 播种：标准种子 + settings.lastBackup='2026-10-27 10:00'（令备份区露出）。
 
 冒烟结果：backupInfo=`… 本月定息 2 次 · 本月练 3 式 · 累计练 2 天 · 记录跨度…`；knowStats=`已读 2 / 6 篇 · 待读 4 篇 · 明理 33% · 小测过关 0 / 6 · 累计练 2 天`；console error=0。✅
+
+## v3.1.25 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3125-1 | 功法详情 `.set-sess`（baduanjin） | 累计练功天数 `_setEverDays` | 尾部 `累计练 2 天` | S.totalDays()=2；本套 1 场不显“累计共分钟”（与本月相等）但天数照显 |
+| T-3125-2 | 跟练页 `#trainSetName` | 累计练功天数（行内 S.totalDays()） | `🌿 八段锦 · 整套 · 累计练 2 天` | totalDays=2；console 直调 Train.start 后读数 |
+
+播种：标准种子（courseStart 可缺省）；跟练页用 QGApp.Train.start(DATA.sets[0], DATA.sets[0].moves, 'full') 直达后读 #trainSetName，读完 Train.finish() 收场。
+
+冒烟结果：set-sess=`🔥 这套你已练 1 场 · … · 本月共 10 分钟 · 累计练 2 天`；trainSetName=`🌿 八段锦 · 整套 · 累计练 2 天`；console error=0。✅
