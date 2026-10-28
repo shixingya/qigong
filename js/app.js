@@ -418,7 +418,10 @@
     if (!keys.length) { sec.classList.add('hidden'); return; }
     var head = document.createElement('div');
     head.className = 'fm-head';
-    head.textContent = '⭐ 我的常练式（点一下就直接练这式）';
+    var _fmWkFrom = S.weekReport().rangeFrom, _fmWkK = {};
+    S.records().forEach(function (r) { if (r.d && r.d >= _fmWkFrom) (r.moves || []).forEach(function (m) { _fmWkK[m] = 1; }); });
+    var _fmWkTouch = keys.filter(function (k) { return _fmWkK[k.move]; }).length;
+    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + '）';
     sec.appendChild(head);
     var row = document.createElement('div');
     row.className = 'fm-row';
@@ -1690,7 +1693,7 @@
       row.className = 'tm-group';
       var lb = document.createElement('span');
       lb.className = 'tm-set';
-      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式');
+      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })();
       row.appendChild(lb);
       /* 集式进度微条：已练过多少式/共多少式，凑齐的动力看得见 */
       var doneCnt = g.set.moves.length - g.todo.length;
