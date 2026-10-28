@@ -1500,6 +1500,8 @@
     var _ckMonPre = S.todayStr().slice(0, 7);
     var _mMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _ckMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var _ckMonCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _ckMonPre; }).length;
+    var _ckWkFrom = S.weekReport().rangeFrom;
+    var _ckWkCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d >= _ckWkFrom; }).length;
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
@@ -1510,7 +1512,8 @@
       statBox(_mMin, '分钟', '本月时长') +
       statBox(S.learnedTotal(), '/' + moveTotal, '已学动作') +
       statBox(S.favIds().length, '套', '收藏功法') +
-      statBox(_ckMonCalm, '次', '本月定息');
+      statBox(_ckMonCalm, '次', '本月定息') +
+      statBox(_ckWkCalm, '次', '本周定息');
 
     renderCalendar();
     renderWeekCard();
@@ -1530,7 +1533,9 @@
 
     var list = $('#recordList');
     var recs = S.records().slice(-12).reverse();
-    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
+    var _rsWkFrom = S.weekReport().rangeFrom;
+    var _rsWkN = S.records().filter(function (r) { return r.d >= _rsWkFrom; }).length;
+    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
