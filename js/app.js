@@ -482,7 +482,7 @@
     var banner;
     if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
     else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
-    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + '</div>';
     el.innerHTML =
       '<div class="plan-head"><span class="plan-icon">🏮</span>' +
       '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
@@ -1351,7 +1351,7 @@
         '<button class="btn primary sm" id="' + btnId + '"' + (disabled ? ' disabled' : '') + (tip ? ' title="' + tip + '"' : '') + '>' + label + '</button></div>';
     }
     box.innerHTML =
-      row('🃏', '全量抽卡', '知识要点共 ' + total + ' 篇' + (fs.rounds ? ' · 已抽 ' + fs.rounds + ' 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : ''), 'rvFc', '开一轮抽卡', !total, '把所有要点打乱轮一遍') +
+      row('🃏', '全量抽卡', '知识要点共 ' + total + ' 篇' + (total - unread ? ' · 已读 ' + (total - unread) + ' 篇' : '') + (fs.rounds ? ' · 已抽 ' + fs.rounds + ' 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : ''), 'rvFc', '开一轮抽卡', !total, '把所有要点打乱轮一遍') +
       row('⛰', '难卡包', hn ? '包内 ' + hn + ' 张 · 卡面上随手归档' : '还没存难卡 · 抽卡时点「归入难卡」收进来', 'rvHard', '专攻难卡', !hn, '只抽被标记的难卡') +
       row('📕', '错题订正', ws ? '待订正 ' + ws + ' 题 · 补对自动销账' : '暂无错题 · 随堂小测答错就记进来', 'rvWrong', '直达第一篇', !ws, '跳到第一道待订正的篇目') +
       row('📖', '续读一篇', unread ? '还有 ' + unread + ' 篇未读完（已读 ' + (total - unread) + '/' + total + '）' : '全部读完 · 明理圆满 🎉', 'rvNext', unread ? '读下一篇未读的' : '无需再读', !unread, '展开未读的那篇并滚到眼前');
