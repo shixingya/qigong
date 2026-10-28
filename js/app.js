@@ -1161,11 +1161,12 @@
       var _doneMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _doneMonPre; }).length;
       var _doneMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _doneMonPre ? (r.sec || 0) : 0); }, 0) / 60);
       var _doneSetAll = S.records().filter(function (r) { return r.set === set.id; }).length;
+      var _doneSetDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === set.id && r.d) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本套练过的天数：收功页的大前提 */
       var _doneMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === set.id && r.d && r.d.slice(0, 7) === _doneMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
       var _doneSetMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === set.id ? (r.sec || 0) : 0); }, 0) / 60);
       var _doneAllMin = S.totalMin(); /* 累计练功分钟：含定息在内的一切记录 */
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天' + (_doneAllMin ? ' · 累计练 ' + _doneAllMin + ' 分' : '') + ' · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneSetAll > 1 && _doneSetMin ? ' · 这套共 ' + _doneSetMin + ' 分' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天' + (_doneAllMin ? ' · 累计练 ' + _doneAllMin + ' 分' : '') + ' · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneSetAll > 1 && _doneSetMin ? ' · 这套共 ' + _doneSetMin + ' 分' : '') + (_doneSetDays > 1 ? ' · 这套练 ' + _doneSetDays + ' 天' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
@@ -1807,7 +1808,7 @@
       row.className = 'tm-group';
       var lb = document.createElement('span');
       lb.className = 'tm-set';
-      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })() + (function () { var t = g.set.moves.filter(function (m) { return _tmTodayK[m.id]; }).length; return t ? ' · 今日练 ' + t + ' 式' : ''; })() + (function () { var mm = Math.round((_tmSetMin[g.set.id] || 0) / 60); return mm ? ' · 共 ' + mm + ' 分' : ''; })();
+      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })() + (function () { var t = g.set.moves.filter(function (m) { return _tmTodayK[m.id]; }).length; return t ? ' · 今日练 ' + t + ' 式' : ''; })() + (function () { var mm = Math.round((_tmSetMin[g.set.id] || 0) / 60); return mm ? ' · 共 ' + mm + ' 分' : ''; })() + (function () { var K = {}; S.records().forEach(function (r) { if (r.set === g.set.id && r.d) K[r.d] = 1; }); var n = Object.keys(K).length; return n > 1 ? ' · 这套练 ' + n + ' 天' : ''; })();
       row.appendChild(lb);
       /* 集式进度微条：已练过多少式/共多少式，凑齐的动力看得见 */
       var doneCnt = g.set.moves.length - g.todo.length;
