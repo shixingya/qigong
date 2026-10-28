@@ -304,7 +304,7 @@
       return {
         dayCount: Object.keys(days).length, sessions: cur.length,
         min: Math.round(sec / 60), sets: Object.keys(setCount).length,
-        topSet: top, topN: topN, topSlot: topSlot, topSlotN: topSlotN,
+        topSet: top, topN: topN, topSlot: topSlot, topSlotN: topSlotN, slotKinds: Object.keys(slotCount).length,
         prevDayCount: Object.keys(prev.reduce(function (m, r) { m[r.d] = 1; return m; }, {})).length,
         rangeFrom: a, rangeTo: todayStr()
       };

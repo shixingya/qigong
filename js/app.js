@@ -296,7 +296,7 @@
     if (self) {
       if (S.totalSess()) {
         self.classList.remove('hidden');
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟';
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -1618,7 +1618,7 @@
       var topSet = w.topSet && DATA.sets.find(function (x) { return x.id === w.topSet; });
       var line2 = topSet ? ('练得最多的是 ' + topSet.icon + ' ' + topSet.name + '（' + w.topN + ' 次）') : '先把第一套跟下来';
       var line3 = w.dayCount >= 5 ? '💚 已入佳境，气息渐稳' : w.dayCount >= 3 ? '🌿 节奏渐稳，继续保持' : '🌱 刚起步，下周试试隔天练一次';
-      var slotLine = w.topSlot ? ('⏰ 本周你最常在这个时段练：' + SLOT_TXT[w.topSlot] + '（' + w.topSlotN + ' 次）') : '';
+      var slotLine = w.topSlot ? ('⏰ 本周你最常在这个时段练：' + SLOT_TXT[w.topSlot] + '（' + w.topSlotN + ' 次）' + (w.slotKinds > 1 ? ' · 共跨 ' + w.slotKinds + ' 个时段' : ' · 只囿于一个时段')) : '';
       body = '<div class="wk-body">' +
         '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
