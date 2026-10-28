@@ -538,11 +538,15 @@
     if (!el) return;
     var nf = S.favIds().length, nm = S.moveFavKeys().length;
     var learnedAll = DATA.sets.reduce(function (a, s) { return a + Math.min(S.learnedCount(s.id), s.moves.length); }, 0);
+    var _rfS = S.weekReport().rangeFrom, _wkKinds = {};
+    S.records().forEach(function (r) { if (r.set !== 'calm' && r.d >= _rfS) _wkKinds[r.set] = 1; });
+    var _wkSetKinds = Object.keys(_wkKinds).length;
+    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '');
     if (!nf && !nm) {
-      el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆' + (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '');
+      el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆' + _tail;
       return;
     }
-    el.innerHTML = '⭐ 已收藏 <b>' + nf + '</b> 套功法 · 🔖 列常练 <b>' + nm + '</b> 式' + (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '');
+    el.innerHTML = '⭐ 已收藏 <b>' + nf + '</b> 套功法 · 🔖 列常练 <b>' + nm + '</b> 式' + _tail;
   }
 
   /* ---- 功法页搜索与部位标签筛选 ---- */
@@ -777,8 +781,12 @@
     var msess = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     var _wkFrom = S.weekReport().rangeFrom;
     var msessWk = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0 && r.d >= _wkFrom; }).length;
+    var _mLast = null;
+    S.records().forEach(function (r) { if ((r.moves || []).indexOf(curMove.id) >= 0 && (!_mLast || r.d > _mLast)) _mLast = r.d; });
+    var _mAgo = _mLast ? Math.round((new Date(S.todayStr()) - new Date(_mLast)) / 86400000) : null;
+    var _mAgoTxt = _mAgo === null ? '' : (_mAgo === 0 ? '今天练过' : '上次 ' + _mAgo + ' 天前');
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
