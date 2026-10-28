@@ -1,5 +1,5 @@
 /* 气功学堂 · Service Worker：预缓存全部静态资源，stale-while-revalidate */
-var CACHE = 'qigong-v3.1.16';
+var CACHE = 'qigong-v3.1.17';
 var ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/style.css',

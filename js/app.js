@@ -1151,8 +1151,9 @@
       var _doneSetAll = S.records().filter(function (r) { return r.set === set.id; }).length;
       var _doneMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === set.id && r.d && r.d.slice(0, 7) === _doneMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
       var _doneSetMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === set.id ? (r.sec || 0) : 0); }, 0) / 60);
+      var _doneAllMin = S.totalMin(); /* 累计练功分钟：含定息在内的一切记录 */
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneSetAll > 1 && _doneSetMin ? ' · 这套共 ' + _doneSetMin + ' 分' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天' + (_doneAllMin ? ' · 累计练 ' + _doneAllMin + ' 分' : '') + ' · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneSetAll > 1 && _doneSetMin ? ' · 这套共 ' + _doneSetMin + ' 分' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
@@ -1424,7 +1425,7 @@
       row('🃏', '全量抽卡', '知识要点共 ' + total + ' 篇' + (total - unread ? ' · 已读 ' + (total - unread) + ' 篇' : '') + (_rvPct ? ' · 明理 ' + _rvPct + '%' : '') + (fs.rounds ? ' · 已抽 ' + fs.rounds + ' 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '） · 上轮共 ' + fs.lastTotal + ' 张卡' : ''), 'rvFc', '开一轮抽卡', !total, '把所有要点打乱轮一遍') +
       row('⛰', '难卡包', hn ? '包内 ' + hn + ' 张 · 卡面上随手归档' : '还没存难卡 · 抽卡时点「归入难卡」收进来', 'rvHard', '专攻难卡', !hn, '只抽被标记的难卡') +
       row('🧘', '定息小结', (function () { var _rvCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length; var _rvCalmToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return r.set === 'calm'; }).length; return _rvCalmAll ? '累计定息 ' + _rvCalmAll + ' 次' + (_rvCalmToday ? ' · 今日已定息 ' + _rvCalmToday + ' 次' : ' · 今日还没定息，静一分钟也很养') : '还没定息过 · 首页「一分钟定息」开个头'; })(), 'rvCalm', '去首页定息', false, '回首页找一分钟定息入口') +
-      row('📕', '错题订正', ws ? '待订正 ' + ws + ' 题 · 补对自动销账' : '暂无错题 · 随堂小测答错就记进来', 'rvWrong', '直达第一篇', !ws, '跳到第一道待订正的篇目') +
+      row('📕', '错题订正', ws ? '待订正 ' + ws + ' 题 · 补对自动销账' + (S.quizCount() ? ' · 已补对 ' + S.quizCount() + ' 题' : '') : '暂无错题 · 随堂小测答错就记进来', 'rvWrong', '直达第一篇', !ws, '跳到第一道待订正的篇目') +
       row('📖', '续读一篇', unread ? '还有 ' + unread + ' 篇未读完（已读 ' + (total - unread) + '/' + total + '）' : '全部读完 · 明理圆满 🎉', 'rvNext', unread ? '读下一篇未读的' : '无需再读', !unread, '展开未读的那篇并滚到眼前');
     $('#rvFc').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(false); });
     $('#rvHard').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(true); });

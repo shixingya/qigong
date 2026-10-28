@@ -140,3 +140,13 @@
 播种同 v3.1.12 种子（learned={baduanjin:[bdj-1,bdj-2],wuqinxi:[wqx-0]} → learnedTotal=3）。
 
 冒烟结果：tc-sub=`… 累计练 2 天 …`；wk-body 首行=`… 明理 2 篇 · 累计练 2 天 · 已学 3/40 式`；console error=0。✅
+
+## v3.1.17 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3117-1 | 收功页 `#doneStats` | 累计练功分钟 `_doneAllMin` | `累计练 17 分`（新增本场后） | S.totalMin() 逐条 sec/60 取整求和：10+1+1+5(+本场 0) = 17 |
+| T-3117-2 | 复习台错题行 `.rv-stat` | 已补对题数 `S.quizCount()` | `已补对 1 题` | settings.quiz 非零键数={kn-base}=1；需 ws>0 才走待订正分支 |
+
+播种：标准种子 + settings.quizWrong={'kn-breath':1}、settings.quiz={'kn-base':1}（错题行需 ws>0 才显示已补对）。
+
+冒烟结果：doneStats=`… 累计 2 天 · 累计练 17 分 · 今日第 …`；错题行=`待订正 1 题 · 补对自动销账 · 已补对 1 题`；console error=0。✅
