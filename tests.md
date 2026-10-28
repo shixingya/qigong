@@ -270,3 +270,13 @@
 播种：标准种子 + 令五禽戏 wxq-0 跨 10-26/10-28 两日（保留 11 式待补）；baduanjin 不跑整套跟练则仍有待补式（否则被填满不进组）。收功页另用 Train.start+finish 验证（八段锦跨两日 selfDays=2）。
 
 冒烟结果：收功页 doneStats=`… · 这套累计 3 场 · 这套共 15 分 · 这套练 2 天 · 本月练这套 8 式 · …`✓；打卡页待补清单 .tm-set=`🌿 八段锦 · 差 5 式 · … · 共 15 分 · 这套练 2 天`与`🐾 五禽戏 · 差 11 式 · … · 共 8 分 · 这套练 2 天`，易筋经“还没碰过”无记录正确降级不显✓；console error=0。✅
+
+## v3.1.30 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3130-1 | 跟练页 `#trainSetName`（baduanjin 整套） | 本套练过天数 | 含 `这套练 2 天`（在“累计练 N 天”后） | baduanjin 跨 10-26/10-28；selfDays=2 |
+| T-3130-2 | 首页常练式区 `.fm-chip small`（bdj-1） | 本式练过天数 `_fmvDays` | 含 `练 2 天`（在“套名”后） | bdj-1 在 10-26/10-28 两日记录 moves 里；需 settings.favMoves 非空才渲染 |
+
+播种：标准种子 + settings.favMoves={'baduanjin/bdj-1':true}（bdj-1 已跨两日）；跟练页用 QGApp.Train.start(DATA.sets[0], DATA.sets[0].moves, 'full') 后读 #trainSetName（读完 Train.finish 收场）。需先 unregister SW + delete caches 再 reload，否则浏览器用旧 app.js。
+
+冒烟结果：首页 .fm-chip small=`🌿 八段锦 · 练 2 天`✓；跟练页 trainSetName=`🌿 八段锦 · 整套 · 累计练 2 天 · 这套练 2 天`✓；console error=0。✅

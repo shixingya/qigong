@@ -463,7 +463,8 @@
       if (!st2 || !m) return;
       var b = document.createElement('button');
       b.className = 'fm-chip';
-      b.innerHTML = '▶ ' + m.name + '<small>' + st2.icon + ' ' + st2.name + '</small>';
+      var _fmvDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.d && (r.moves || []).indexOf(m.id) >= 0) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本式练过的天数 */
+      b.innerHTML = '▶ ' + m.name + '<small>' + st2.icon + ' ' + st2.name + (_fmvDays > 1 ? ' · 练 ' + _fmvDays + ' 天' : '') + '</small>';
       b.title = '跟练 ' + m.name + ' 单式';
       b.addEventListener('click', function () { Train.start(st2, [m], 'single'); });
       row.appendChild(b);
@@ -1020,7 +1021,8 @@
       paintAmbBtn();
       $('#trainSetName').textContent = set.icon + ' ' + set.name +
         (mode === 'single' ? ' · ' + moves[0].name : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套') +
-        (S.totalDays() > 1 ? ' · 累计练 ' + S.totalDays() + ' 天' : ''); /* 跟练页大前提：坚持的天数一眼看见 */
+        (S.totalDays() > 1 ? ' · 累计练 ' + S.totalDays() + ' 天' : '') +
+        (function () { var K = {}; S.records().forEach(function (r) { if (r.set === set.id && r.d) K[r.d] = 1; }); var n = Object.keys(K).length; return n > 1 ? ' · 这套练 ' + n + ' 天' : ''; })(); /* 跟练页大前提：坚持的天数 + 本套练过天数 */
       /* 跟练页也亮当前时段，与首页宜练、收功后语一条线贯通 */
       var tsl = $('#trainSlot');
       if (tsl) { tsl.textContent = SLOT_TXT[slotLabel(new Date().getHours())] || ''; tsl.classList.toggle('hidden', !tsl.textContent); }
