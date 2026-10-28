@@ -450,7 +450,8 @@
     var _fmMonTouch = keys.filter(function (k) { return _fmMonK[k.move]; }).length;
     var _fmEverK = {}; S.records().forEach(function (r) { (r.moves || []).forEach(function (m) { _fmEverK[m] = 1; }); });
     var _fmEverTouch = keys.filter(function (k) { return _fmEverK[k.move]; }).length;
-    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + (_fmMonTouch ? ' · 本月练过 ' + _fmMonTouch + ' 式' : '') + (_fmEverTouch ? ' · 累计练过 ' + _fmEverTouch + ' 式' : '') + '）';
+    var _fmEverDays = S.totalDays(); /* 累计练功天数：常练式区的大前提 */
+    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + (_fmMonTouch ? ' · 本月练过 ' + _fmMonTouch + ' 式' : '') + (_fmEverTouch ? ' · 累计练过 ' + _fmEverTouch + ' 式' : '') + (_fmEverDays > 1 ? ' · 累计练 ' + _fmEverDays + ' 天' : '') + '）';
     sec.appendChild(head);
     var row = document.createElement('div');
     row.className = 'fm-row';
@@ -1658,7 +1659,8 @@
     var _tdMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _tdMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var _tdEverMoveK = {}; S.records().forEach(function (r) { if (r.set !== 'calm') (r.moves || []).forEach(function (m) { _tdEverMoveK[m] = 1; }); });
     var _tdEverMove = Object.keys(_tdEverMoveK).length;
-    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdMonMin ? ' · 本月 ' + _tdMonMin + ' 分' : '') + (_tdEverMove ? ' · 累计练 ' + _tdEverMove + ' 式' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    var _tdEverDays = S.totalDays(); /* 累计练功天数：时段分布的大前提 */
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdMonMin ? ' · 本月 ' + _tdMonMin + ' 分' : '') + (_tdEverMove ? ' · 累计练 ' + _tdEverMove + ' 式' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + (_tdEverDays > 1 ? ' · 累计练功 ' + _tdEverDays + ' 天' : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
     b.forEach(function (x, i) {

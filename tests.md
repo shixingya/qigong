@@ -180,3 +180,13 @@
 播种：标准种子（无需 plan/quizWrong）。
 
 冒烟结果：rec-sum=`… 累计定息 2 次 · 累计练 2 天`；calFoot=`… 练 3 式 · 累计 4 场`；console error=0。✅
+
+## v3.1.21 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3121-1 | 首页 `.fm-head` | 累计练功天数 `_fmEverDays` | `累计练 2 天`（在“累计练过 N 式”后） | S.totalDays()=2；需 favMoves 非空才渲染常练区 |
+| T-3121-2 | 打卡页 `.td-head` | 累计练功天数 `_tdEverDays` | `累计练功 2 天`（在“最勤 X”后） | S.totalDays()=2；需有带 hour 的记录才走 total>0 分支 |
+
+播种：标准种子 + settings.favMoves={'baduanjin/bdj-1':true}（令 fm-head 渲染）。
+
+冒烟结果：fm-head=`⭐ 我的常练式（… 共 1 式 · 累计练过 1 式 · 累计练 2 天）`；td-head=`⏰ 练功时段分布（… 累计练 3 式 · 最勤 … · 累计练功 2 天）`；console error=0。✅
