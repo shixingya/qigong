@@ -519,6 +519,7 @@ button { font-family: inherit; cursor: pointer; }
 .wk-body .wk-slot { color: var(--ink); }
 .wk-body .wk-busy { color: var(--gold); }
 .wk-body .wk-calm { color: var(--jade); }
+.wk-body .wk-var { color: #6fb3d6; }
 
 /* ===== 每日一句与帮助浮层 ===== */
 .daily-quote {

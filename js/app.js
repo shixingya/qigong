@@ -1635,10 +1635,16 @@
         busiLine = '🗓 本周最勤的是 ' + (WD[dt.getDay()] || w.topDay) + '（一天 ' + w.topDayN + ' 场），劳逸有度';
       }
       var calmLine = w.calmCount ? '🍃 本周定息 ' + w.calmCount + ' 次，静可生慧' : '';
+      /* 功法多样性：练得杂夸均衡，只咬一套则提醒换换 */
+      var varLine = '';
+      if (w.sets >= 3) varLine = '🌈 本周碰了 ' + w.sets + ' 种功法，五脏皆调';
+      else if (w.sets === 1 && w.sessions >= 3) varLine = '🔁 本周只咬着一套，换换功法更均衡';
+      var dayAvg = w.dayCount ? Math.round(w.min / w.dayCount) : 0;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
+        (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
         (busiLine ? '<div class="wk-busy">' + busiLine + '</div>' : '') +
         (calmLine ? '<div class="wk-calm">' + calmLine + '</div>' : '') +
         '<div>' + line3 + '</div></div>';
