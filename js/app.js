@@ -1721,6 +1721,10 @@
         busiLine = '🗓 本周最勤的是 ' + (WD[dt.getDay()] || w.topDay) + '（一天 ' + w.topDayN + ' 场），劳逸有度';
       }
       var calmLine = w.calmCount ? '🍃 本周定息 ' + w.calmCount + ' 次' + (w.calmMin ? '（共 ' + w.calmMin + ' 分）' : '') + '，静可生慧' : '';
+      var _monPreWk = S.todayStr().slice(0, 7);
+      var _monSessWk = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _monPreWk; }).length;
+      var _monCalmWk = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreWk; }).length;
+      if (_monCalmWk) calmLine = (calmLine || '🍃 定息') + ' · 本月定息 ' + _monCalmWk + ' 次';
       /* 功法多样性：练得杂夸均衡，只咬一套则提醒换换 */
       var varLine = '';
       if (w.sets >= 3) varLine = '🌈 本周碰了 ' + w.sets + ' 种功法，五脏皆调';
@@ -1730,7 +1734,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
