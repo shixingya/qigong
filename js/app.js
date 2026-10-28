@@ -296,7 +296,7 @@
     if (self) {
       if (S.totalSess()) {
         self.classList.remove('hidden');
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '');
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -1023,6 +1023,9 @@
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
       $('#doneStats').textContent =
         '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场';
+      /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
+      var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
+      $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
       if (S.planStatus()) {
         var pl = S.planInfo();
         $('#doneStats').textContent += pl && !pl.success && !pl.over ? ' · 21天挑战已点亮 ' + pl.done + '/21' : '';
