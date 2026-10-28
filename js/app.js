@@ -1488,7 +1488,8 @@
     var _bkMonPre = S.todayStr().slice(0, 7);
     var _bkMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
     var _bkMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _bkMonPre ? (r.sec || 0) : 0); }, 0) / 60);
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + _span;
+    var _bkMonCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + _span;
   }
 
   function renderCheckin() {
@@ -1667,7 +1668,8 @@
     var _tmWkFrom = S.weekReport().rangeFrom, _tmWkK = {};
     S.records().forEach(function (r) { if (r.d && r.d >= _tmWkFrom) (r.moves || []).forEach(function (m) { _tmWkK[m] = 1; }); });
     var _tmWkN = Object.keys(_tmWkK).length;
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
+    var _touchedSets = DATA.sets.filter(function (st) { return st.moves.some(function (m) { return seen[m.id]; }); }).length;
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
