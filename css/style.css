@@ -425,6 +425,8 @@ button { font-family: inherit; cursor: pointer; }
 .record-list li b { color: var(--ink); font-weight: 500; }
 .record-list .rec-slot { margin-left: 2px; font-size: 12px; }
 .record-list .empty { color: var(--sub); }
+.record-list .rec-sum { font-weight: 600; color: var(--ink); border-bottom: 1px solid var(--line); background: rgba(120, 160, 120, 0.06); padding: 8px 10px; border-radius: 8px; margin-bottom: 4px; }
+.record-list .rec-sum b { color: var(--acc, #4a7c59); }
 
 /* ---------- 备份与分享 ---------- */
 .backup-card {
