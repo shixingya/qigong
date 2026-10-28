@@ -552,9 +552,11 @@
     var nf = S.favIds().length, nm = S.moveFavKeys().length;
     var learnedAll = DATA.sets.reduce(function (a, s) { return a + Math.min(S.learnedCount(s.id), s.moves.length); }, 0);
     var _rfS = S.weekReport().rangeFrom, _wkKinds = {};
-    S.records().forEach(function (r) { if (r.set !== 'calm' && r.d >= _rfS) _wkKinds[r.set] = 1; });
+    var _monPreS = S.todayStr().slice(0, 7), _monKinds = {};
+    S.records().forEach(function (r) { if (r.set !== 'calm') { if (r.d >= _rfS) _wkKinds[r.set] = 1; if (r.d && r.d.slice(0, 7) === _monPreS) _monKinds[r.set] = 1; } });
     var _wkSetKinds = Object.keys(_wkKinds).length;
-    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '');
+    var _monSetKinds = Object.keys(_monKinds).length;
+    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '') + (_monSetKinds && _monSetKinds !== _wkSetKinds ? ' · 本月碰 <b>' + _monSetKinds + '</b> 套' : '');
     if (!nf && !nm) {
       el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆' + _tail;
       return;
@@ -671,11 +673,13 @@
     var sessN = S.records().filter(function (r) { return r.set === curSet.id; }).length;
     var _setWkFrom = S.weekReport().rangeFrom;
     var sessWkN = S.records().filter(function (r) { return r.set === curSet.id && r.d >= _setWkFrom; }).length;
+    var _setMonPre = S.todayStr().slice(0, 7);
+    var sessMonN = S.records().filter(function (r) { return r.set === curSet.id && r.d && r.d.slice(0, 7) === _setMonPre; }).length;
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
       '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
-      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + '</div>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
