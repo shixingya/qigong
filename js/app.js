@@ -1592,7 +1592,9 @@
     var recs = S.records().slice(-12).reverse();
     var _rsWkFrom = S.weekReport().rangeFrom;
     var _rsWkN = S.records().filter(function (r) { return r.d >= _rsWkFrom; }).length;
-    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
+    var _rsMonTouch = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _ckMonPre && r.set !== 'calm') _rsMonTouch[r.set] = 1; });
+    var _rsMonTouchN = Object.keys(_rsMonTouch).length;
+    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + (_rsMonTouchN >= 2 ? ' · 本月碰 <b>' + _rsMonTouchN + '</b> 套' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
@@ -2006,7 +2008,9 @@
     if (!sp) return;
     var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat(), unread = total - S.readCount();
     var _wl = S.wrongList().length;
+    var _rdPct = total ? Math.round(S.readCount() / total * 100) : 0;
     sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (unread > 0 ? ' · 待读 <b>' + unread + '</b> 篇' : ' · 明理圆满 🎉') +
+      (_rdPct > 0 && _rdPct < 100 ? ' · 明理 <b>' + _rdPct + '%</b>' : '') +
       ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '') +
       (_wl ? ' · 待复习错题 <b>' + _wl + '</b> 道' : '') +
       (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '');
