@@ -1540,7 +1540,9 @@
     var _bkWkFrom = S.weekReport().rangeFrom;
     var _bkWkN = S.records().filter(function (r) { return r.d && r.d >= _bkWkFrom; }).length;
     var _bkWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _bkWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkWkMin ? ' · 本周 <b>' + _bkWkMin + '</b> 分' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + _span;
+    var _bkMonMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _bkMonPre && r.set !== 'calm') (r.moves || []).forEach(function (m) { _bkMonMoveK[m] = 1; }); });
+    var _bkMonMove = Object.keys(_bkMonMoveK).length;
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkWkMin ? ' · 本周 <b>' + _bkWkMin + '</b> 分' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + (_bkMonMove ? ' · 本月练 <b>' + _bkMonMove + '</b> 式' : '') + _span;
   }
 
   function renderCheckin() {
@@ -1634,7 +1636,9 @@
     var _tdWkN = S.records().filter(function (r) { return r.d && r.d >= _tdWkFrom && r.hour != null; }).length;
     var _tdTopName = (total && topIdx >= 0) ? (b[topIdx].icon + ' ' + b[topIdx].name) : '';
     var _tdMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _tdMonPre ? (r.sec || 0) : 0); }, 0) / 60);
-    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdMonMin ? ' · 本月 ' + _tdMonMin + ' 分' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    var _tdEverMoveK = {}; S.records().forEach(function (r) { if (r.set !== 'calm') (r.moves || []).forEach(function (m) { _tdEverMoveK[m] = 1; }); });
+    var _tdEverMove = Object.keys(_tdEverMoveK).length;
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdMonMin ? ' · 本月 ' + _tdMonMin + ' 分' : '') + (_tdEverMove ? ' · 累计练 ' + _tdEverMove + ' 式' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
     b.forEach(function (x, i) {
