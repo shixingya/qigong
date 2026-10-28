@@ -1503,9 +1503,10 @@
       row.className = 'td-row';
       row.title = x.tip;
       var w = max ? Math.round(x.n / max * 100) : 0;
+      var pct = total ? Math.round(x.n / total * 100) : 0;
       row.innerHTML = '<span class="td-lb">' + x.icon + ' ' + x.name + '</span>' +
         '<span class="td-bar"><i style="width:' + w + '%"></i></span>' +
-        '<span class="td-n">' + (x.n ? x.n + ' 次' : '—') + '</span>';
+        '<span class="td-n">' + (x.n ? x.n + ' 次 · ' + pct + '%' : '—') + '</span>';
       el.appendChild(row);
     });
   }
@@ -1528,6 +1529,8 @@
     /* 先取全量（大 n），过滤掉字典里查不到的旧式 id，再截前 8：免脏 id 挤掉好卡、造成序号空洞 */
     var all = S.moveRank(9999).filter(function (it) { return !!findMove(it.move); });
     var rk = all.slice(0, 8);
+    var _rkWkFrom = S.weekReport().rangeFrom;
+    var _wkRecs = S.records().filter(function (r) { return r.d >= _rkWkFrom; });
     el.innerHTML = '';
     if (!rk.length) { el.classList.add('hidden'); return; }
     el.classList.remove('hidden');
@@ -1561,7 +1564,8 @@
       row.appendChild(star);
       var meta = document.createElement('span');
       meta.className = 'mr-meta';
-      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last;
+      var _wkN = _wkRecs.filter(function (r) { return (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
+      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '');
       row.appendChild(meta);
       el.appendChild(row);
     });
