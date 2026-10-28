@@ -623,7 +623,8 @@
     var pctN = Math.round(doneN / curSet.moves.length * 100);
     var sessN = S.records().filter(function (r) { return r.set === curSet.id; }).length;
     head.innerHTML =
-      '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span></h2>' +
+      '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
+      '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
       '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' : '🌱 还没练过这套，不如今天开个张') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
@@ -639,6 +640,14 @@
       '<button class="btn ghost hidden" id="trainCustom"></button></div>';
     $('#trainFull').addEventListener('click', function () {
       Train.start(curSet, curSet.moves, 'full');
+    });
+    var sf = $('#setFavStar');
+    if (sf) sf.addEventListener('click', function () {
+      S.toggleFav(curSet.id);
+      var on = S.isFav(curSet.id);
+      this.textContent = on ? '⭐ 已收藏' : '☆ 收藏这套';
+      this.classList.toggle('on', on);
+      renderHome();
     });
     $('#learnFrom1').addEventListener('click', function () {
       var next = curSet.moves.find(function (m) { return !S.isLearned(curSet.id, m.id); }) || curSet.moves[0];
@@ -1567,9 +1576,11 @@
       var topSet = w.topSet && DATA.sets.find(function (x) { return x.id === w.topSet; });
       var line2 = topSet ? ('练得最多的是 ' + topSet.icon + ' ' + topSet.name + '（' + w.topN + ' 次）') : '先把第一套跟下来';
       var line3 = w.dayCount >= 5 ? '💚 已入佳境，气息渐稳' : w.dayCount >= 3 ? '🌿 节奏渐稳，继续保持' : '🌱 刚起步，下周试试隔天练一次';
+      var slotLine = w.topSlot ? ('⏰ 本周你最常在这个时段练：' + SLOT_TXT[w.topSlot] + '（' + w.topSlotN + ' 次）') : '';
       body = '<div class="wk-body">' +
         '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
+        (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         '<div>' + line3 + '</div></div>';
     }
     /* 目标环：次数达标转金色，首次跨线补一声磬 */
