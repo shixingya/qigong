@@ -82,3 +82,11 @@
 | T-3110-2 | 功法页 八段锦 bdj-1 单式头 `.mv-sess` | 本套累计场 `_mSetSess` | `这套练 2 场` | baduanjin 非空日期记录数=2 |
 
 冒烟结果：statSelf=`…场均 5 分 · 本月练 3 天`；mv-sess=`已练 2 场 … 这套练 2 场`；console error=0。✅
+
+## v3.1.11 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3111-1 | 收功页 `#doneStats` | 本套累计时长 `_doneSetMin` | `这套共 12 分` | baduanjin 全部 sec=(600+400+本场≈260)/60≈12 |
+| T-3111-2 | 打卡页 `#statRow` 末格 | 本周碰套数 `_ckWkTouch` | `本周碰套 2 套` | 周内非 calm 记录的 set 去重={baduanjin,wuqinxi}=2 |
+
+播种：records=[baduanjin 10-26 600s moves[bdj-1,bdj-2], baduanjin 10-15 400s moves[bdj-1], calm 10-28 60s, wuqinxi 10-26 300s moves[wqx-0]]；本周碰套需排除 calm。T-3111-1 通过 QGApp.Train.start(八段锦前1式,'single') 后直接 Train.finish() 触达收功页。

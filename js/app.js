@@ -1146,8 +1146,9 @@
       var _doneMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _doneMonPre ? (r.sec || 0) : 0); }, 0) / 60);
       var _doneSetAll = S.records().filter(function (r) { return r.set === set.id; }).length;
       var _doneMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === set.id && r.d && r.d.slice(0, 7) === _doneMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
+      var _doneSetMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === set.id ? (r.sec || 0) : 0); }, 0) / 60);
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '') + (_doneSetAll > 1 && _doneSetMin ? ' · 这套共 ' + _doneSetMin + ' 分' : '') + (_doneMonMove ? ' · 本月练这套 ' + _doneMonMove + ' 式' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
@@ -1568,6 +1569,8 @@
     var _ckTodayMin = Math.round(S.recordsOfDay(S.todayStr()).reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60);
     var _ckCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
     var _ckSessAll = S.records().filter(function (r) { return r.set !== 'calm'; }).length;
+    var _ckWkTouchK = {}; S.records().forEach(function (r) { if (r.d && r.d >= _ckWkFrom && r.set !== 'calm') _ckWkTouchK[r.set] = 1; });
+    var _ckWkTouch = Object.keys(_ckWkTouchK).length;
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
@@ -1585,7 +1588,8 @@
       statBox(_ckWkMin, '分钟', '本周时长') +
       statBox(_ckTodayMin, '分钟', '今日时长') +
       statBox(_ckCalmAll, '次', '累计定息') +
-      statBox(_ckSessAll, '场', '累计练功');
+      statBox(_ckSessAll, '场', '累计练功') +
+      statBox(_ckWkTouch, '套', '本周碰套');
 
     renderCalendar();
     renderWeekCard();
