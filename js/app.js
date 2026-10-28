@@ -313,13 +313,15 @@
       lastSet = DATA.sets.find(function (s) { return s.id === allRec[li].set; });
       if (lastSet) break;
     }
+    var _lc = S.learnedCount(st.id), _lt = st.moves.length;
+    var _learnLine = (_lc > 0 && _lc < _lt) ? ' · 本套已学 <b>' + _lc + '/' + _lt + '</b> 式' : (_lc >= _lt && _lt ? ' · 本套 <b>' + _lt + '</b> 式已学满' : '');
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1629,11 +1631,13 @@
         var dt = new Date(w.topDay + 'T00:00:00');
         busiLine = '🗓 本周最勤的是 ' + (WD[dt.getDay()] || w.topDay) + '（一天 ' + w.topDayN + ' 场），劳逸有度';
       }
+      var calmLine = w.calmCount ? '🍃 本周定息 ' + w.calmCount + ' 次，静可生慧' : '';
       body = '<div class="wk-body">' +
         '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (busiLine ? '<div class="wk-busy">' + busiLine + '</div>' : '') +
+        (calmLine ? '<div class="wk-calm">' + calmLine + '</div>' : '') +
         '<div>' + line3 + '</div></div>';
     }
     /* 目标环：次数达标转金色，首次跨线补一声磬 */
