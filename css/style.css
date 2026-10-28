@@ -519,7 +519,14 @@ button { font-family: inherit; cursor: pointer; }
   margin-top: 14px; padding: 10px 14px; border-left: 3px solid #c9a86a;
   background: rgba(201, 168, 106, .08); border-radius: 0 10px 10px 0;
   color: var(--ink); font-size: 14px; line-height: 1.7;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
+.dq-txt { flex: 1 1 auto; min-width: 0; }
+.dq-next {
+  flex: 0 0 auto; cursor: pointer; font-size: 12.5px; color: var(--sub);
+  background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px;
+}
+.dq-next:hover { color: var(--gold); border-color: var(--gold); }
 .help-list { margin: 6px 0 14px; padding-left: 0; list-style: none; }
 .help-list li { margin: 6px 0; color: var(--sub); font-size: 14px; }
 .help-list kbd {

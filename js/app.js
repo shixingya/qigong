@@ -324,9 +324,11 @@
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
       '<button class="btn ghost sm" id="todaySwap" title="此时段还有别的功法则换一套，否则去下一个时段宜练的">🔄 换一套</button>' +
       '<button class="btn ghost sm" id="todayReview" title="练完温一温：抽卡、难卡、错题、续读一处直达">🧠 复习台</button>' +
+      '<button class="btn ghost sm" id="todayFav" title="收藏/取消收藏这套（与目录页星、首页常用同口径）">' + (S.isFav(st.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button>' +
       (lastSet ? '<button class="btn ghost sm" id="todayResume" title="接着上次那套练整套">↩️ 接着练' + lastSet.name + '</button>' : '') +
       '</div>';
     $('#todayGo').addEventListener('click', function () { Train.start(st, st.moves, 'full'); });
+    $('#todayFav').addEventListener('click', function () { S.toggleFav(st.id); renderHome(); });
     $('#todayQuick').addEventListener('click', function () { Train.start(st, quick, 'custom'); });
     $('#todayReview').addEventListener('click', reviewOpen);
     $('#todaySwap').addEventListener('click', function () {
@@ -1364,7 +1366,8 @@
   $('#helpClose').addEventListener('click', function () { toggleHelp(false); });
   $('#helpMask').addEventListener('click', function (e) { if (e.target === this) toggleHelp(false); });
 
-  /* ---- 每日一句养生箴言（按年内天数轮换） ---- */
+  /* ---- 每日一句养生箴言（按年内天数轮换，可手动换一句） ---- */
+  var quoteOffset = 0;
   function renderQuote() {
     var el = $('#dailyQuote');
     if (!el) return;
@@ -1372,8 +1375,11 @@
     if (!qs.length) { el.classList.add('hidden'); return; }
     var now = new Date();
     var doy = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 0)) / 86400000);
-    var q = qs[doy % qs.length];
-    el.textContent = '🍵 今日一句：' + q.t + ' —— ' + q.s;
+    var q = qs[(doy + quoteOffset) % qs.length];
+    el.innerHTML = '<span class="dq-txt">🍵 今日一句：' + q.t + ' —— ' + q.s + '</span>' +
+      (qs.length > 1 ? '<button class="dq-next" id="quoteNext" title="换一句箴言看看">↻ 换一句</button>' : '');
+    var nb = $('#quoteNext');
+    if (nb) nb.addEventListener('click', function () { quoteOffset = (quoteOffset + 1) % qs.length; renderQuote(); });
   }
 
   /* ================= 打卡成就页 ================= */
