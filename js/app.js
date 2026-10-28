@@ -317,13 +317,14 @@
     }
     var _lc = S.learnedCount(st.id), _lt = st.moves.length;
     var _learnLine = (_lc > 0 && _lc < _lt) ? ' · 本套已学 <b>' + _lc + '/' + _lt + '</b> 式' : (_lc >= _lt && _lt ? ' · 本套 <b>' + _lt + '</b> 式已学满' : '');
+    var _calmNudge = S.calmToday() ? '' : ' · 🍃 今日未定息，静一分钟也很养';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1032,6 +1033,10 @@
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
+      /* 连续天数追平/刷新个人最长：streak 已等于 streakMax 且超 1 天才提 */
+      if (S.streak() > 1 && S.streak() >= S.streakMax()) {
+        $('#doneStats').textContent += ' · 🔥 连练 ' + S.streak() + ' 天，追平个人最长';
+      }
       if (S.planStatus()) {
         var pl = S.planInfo();
         $('#doneStats').textContent += pl && !pl.success && !pl.over ? ' · 21天挑战已点亮 ' + pl.done + '/21' : '';
