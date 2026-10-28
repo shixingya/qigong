@@ -595,7 +595,9 @@
     var _wkMinS = Math.round(_wkSecS / 60);
     var _wkMoveS = Object.keys(_wkMoveK2).length;
     var _monCalmS = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreS; }).length;
-    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '') + (_wkMoveS ? ' · 本周练 <b>' + _wkMoveS + '</b> 式' : '') + (_wkMinS ? ' · 本周练 <b>' + _wkMinS + '</b> 分' : '') + (_monSetKinds && _monSetKinds !== _wkSetKinds ? ' · 本月碰 <b>' + _monSetKinds + '</b> 套' : '') + (_monMinS ? ' · 本月练 <b>' + _monMinS + '</b> 分' : '') + (_monCalmS ? ' · 本月定息 <b>' + _monCalmS + '</b> 次' : '');
+    var _monMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPreS && r.set !== 'calm') (r.moves || []).forEach(function (m) { _monMoveK[m] = 1; }); });
+    var _monMoveS = Object.keys(_monMoveK).length;
+    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '') + (_wkMoveS ? ' · 本周练 <b>' + _wkMoveS + '</b> 式' : '') + (_wkMinS ? ' · 本周练 <b>' + _wkMinS + '</b> 分' : '') + (_monSetKinds && _monSetKinds !== _wkSetKinds ? ' · 本月碰 <b>' + _monSetKinds + '</b> 套' : '') + (_monMoveS ? ' · 本月练 <b>' + _monMoveS + '</b> 式' : '') + (_monMinS ? ' · 本月练 <b>' + _monMinS + '</b> 分' : '') + (_monCalmS ? ' · 本月定息 <b>' + _monCalmS + '</b> 次' : '');
     if (!nf && !nm) {
       el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆' + _tail;
       return;
@@ -1537,6 +1539,7 @@
     var _ckWkMove = Object.keys(_ckWkMoveK).length;
     var _ckWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _ckWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
     var _ckTodayMin = Math.round(S.recordsOfDay(S.todayStr()).reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60);
+    var _ckCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
@@ -1552,7 +1555,8 @@
       statBox(_ckMonMove, '式', '本月练式') +
       statBox(_ckWkMove, '式', '本周练式') +
       statBox(_ckWkMin, '分钟', '本周时长') +
-      statBox(_ckTodayMin, '分钟', '今日时长');
+      statBox(_ckTodayMin, '分钟', '今日时长') +
+      statBox(_ckCalmAll, '次', '累计定息');
 
     renderCalendar();
     renderWeekCard();
