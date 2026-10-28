@@ -826,8 +826,9 @@
     var _mPosTxt = _mIdx >= 0 ? '第 ' + (_mIdx + 1) + '/' + curSet.moves.length + ' 式' : '';
     var _mIsFav = S.moveFavKeys().some(function (k) { return k.set === curSet.id && k.move === curMove.id; });
     var msessToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
+    var _mTotalMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
@@ -1088,8 +1089,9 @@
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
       var _doneMonPre = S.todayStr().slice(0, 7);
       var _doneMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _doneMonPre; }).length;
+      var _doneMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _doneMonPre ? (r.sec || 0) : 0); }, 0) / 60);
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '');
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
