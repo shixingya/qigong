@@ -100,3 +100,15 @@
 | T-3112-2 | 打卡页 `.wk-body` 首行 | 明理篇数 `S.readCount()` | `明理 2 篇` | read 中 true 的篇数=2 |
 
 播种（在第 2 次播种基础上）：records=[baduanjin 10-26 600s, calm 10-28 60s, calm 10-26 60s, wuqinxi 10-28 300s]；read={'kn-base':true,'kn-breath':true}。复习台通 QGApp 或点“复习”入口，若无入口则 `QGApp.showPage('home')` 后点带 rvMask 的按钮；冒烟时若复习台按钮不可达，可直接 DOM 触发 reviewOpen 所在按钮。
+
+冒烟结果：rvBody 定息行=`累计定息 2 次 · 今日已定息 1 次`；wk-body 首行=`… 累计练 4 场 · 明理 2 篇`；rvCalm 点击后 rvMask 关闭且回到首页；console error=0。✅
+
+## v3.1.13 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3113-1 | 打卡页 `.rec-sum` 尾部 | 累计定息次数 `_rsCalmAll` | `累计定息 2 次` | set==='calm' 记录数=2 |
+| T-3113-2 | 打卡页 `.wk-body` 首行 | 累计分钟 `S.totalMin()` | `累计 17 分钟` | app 口径为逐条取整求和：10+1+1+5=17 |
+
+播种同 v3.1.12（沿用同一种子即可，无新增 settings 依赖）。
+
+冒烟结果：rec-sum 尾部=`本周练 3 式 · 累计定息 2 次`；wk-body 首行=`… 累计练 4 场 · 累计 17 分钟 · 明理 2 篇`；console error=0。✅

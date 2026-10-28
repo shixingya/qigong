@@ -1617,7 +1617,8 @@
     var _rsMonTouchN = Object.keys(_rsMonTouch).length;
     var _rsWkMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d >= _rsWkFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _rsWkMoveK[m] = 1; }); });
     var _rsWkMoveN = Object.keys(_rsWkMoveK).length;
-    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + (_rsMonTouchN >= 2 ? ' · 本月碰 <b>' + _rsMonTouchN + '</b> 套' : '') + (_rsWkMoveN ? ' · 本周练 <b>' + _rsWkMoveN + '</b> 式' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
+    var _rsCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
+    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + (_rsMonTouchN >= 2 ? ' · 本月碰 <b>' + _rsMonTouchN + '</b> 套' : '') + (_rsWkMoveN ? ' · 本周练 <b>' + _rsWkMoveN + '</b> 式' : '') + (_rsCalmAll ? ' · 累计定息 <b>' + _rsCalmAll + '</b> 次' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
@@ -1864,7 +1865,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + (S.totalMin() ? ' · 累计 <b>' + S.totalMin() + '</b> 分钟' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
