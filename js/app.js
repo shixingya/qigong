@@ -477,7 +477,7 @@
     var banner;
     if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
     else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
-    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成</div>';
     el.innerHTML =
       '<div class="plan-head"><span class="plan-icon">🏮</span>' +
       '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
@@ -1616,7 +1616,7 @@
     }
     var head = document.createElement('div');
     head.className = 'tm-head';
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式）';
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式';
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
