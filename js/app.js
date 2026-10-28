@@ -311,9 +311,10 @@
         var _mvMonSelf = Object.keys(_mvMonK).length;
         var _mvWkFromSelf = S.weekReport().rangeFrom, _mvWkK = {}; S.records().forEach(function (r) { if (r.d && r.d >= _mvWkFromSelf && r.set !== 'calm') (r.moves || []).forEach(function (m) { _mvWkK[m] = 1; }); });
         var _mvWkSelf = Object.keys(_mvWkK).length;
+        var _wkMinSelf = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _mvWkFromSelf ? (r.sec || 0) : 0); }, 0) / 60);
         var _monTouchedK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPre && r.set !== 'calm') _monTouchedK[r.set] = 1; });
         var _monTouchedSelf = Object.keys(_monTouchedK).length;
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (_monMinSelf ? ' · 本月 <b>' + _monMinSelf + '</b> 分' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (_monTouchedSelf >= 2 ? ' · 本月碰 <b>' + _monTouchedSelf + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_mvFavN ? ' · 常练 <b>' + _mvFavN + '</b> 式' : '') + (_mvWkSelf ? ' · 本周练 <b>' + _mvWkSelf + '</b> 式' : '') + (_mvMonSelf ? ' · 本月练 <b>' + _mvMonSelf + '</b> 式' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_wkMinSelf ? ' · 本周 <b>' + _wkMinSelf + '</b> 分' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (_monMinSelf ? ' · 本月 <b>' + _monMinSelf + '</b> 分' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (_monTouchedSelf >= 2 ? ' · 本月碰 <b>' + _monTouchedSelf + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_mvFavN ? ' · 常练 <b>' + _mvFavN + '</b> 式' : '') + (_mvWkSelf ? ' · 本周练 <b>' + _mvWkSelf + '</b> 式' : '') + (_mvMonSelf ? ' · 本月练 <b>' + _mvMonSelf + '</b> 式' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -506,6 +507,9 @@
       return;
     }
     var p = S.planInfo();
+    var _pdNow = new Date(S.todayStr());
+    var _pMap = S.monthMap(_pdNow.getFullYear(), _pdNow.getMonth());
+    var _pMonDays = Object.keys(_pMap).filter(function (k) { return _pMap[k] > 0; }).length;
     var cells = p.grid.map(function (g, i) {
       var cls = g.has ? 'done' : (g.past ? 'miss' : 'todo');
       return '<span class="p-cell ' + cls + '" title="' + g.d + '">' + (g.has ? '✿' : (i + 1)) + '</span>';
@@ -513,7 +517,7 @@
     var banner;
     if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
     else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
-    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + '</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + (_pMonDays ? ' · 本月练 ' + _pMonDays + ' 天' : '') + '</div>';
     el.innerHTML =
       '<div class="plan-head"><span class="plan-icon">🏮</span>' +
       '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
