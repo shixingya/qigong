@@ -871,8 +871,9 @@
     var msessToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     var _mTotalMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
     var _mWkMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 && r.d >= _wkFrom ? (r.sec || 0) : 0); }, 0) / 60);
+    var _mMonMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 && r.d && r.d.slice(0, 7) === _mMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessWk && _mWkMin ? ' 约 ' + _mWkMin + ' 分' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessWk && _mWkMin ? ' 约 ' + _mWkMin + ' 分' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' + (_mMonMin ? ' 约 ' + _mMonMin + ' 分' : '') : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
@@ -1672,9 +1673,10 @@
     var _wkRankTotal = _wkRecs.reduce(function (a, r) { return a + ((r.moves || []).length); }, 0);
     var _rkMonPre = S.todayStr().slice(0, 7);
     var _monRankTotal = S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _rkMonPre && r.set !== 'calm' ? (r.moves || []).length : 0); }, 0);
+    var _rkMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _rkMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var _mrTop = all.length && all[0].count > 1 ? (findMove(all[0].move) || {}).move : null;
     var _mrFavN = all.filter(function (it) { var fm = findMove(it.move); return fm && S.isMoveFav(fm.set.id, fm.move.id); }).length;
-    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + (_mrTop ? ' · 最勤 ' + _mrTop.name + ' ' + all[0].count + ' 次' : '') + (_mrFavN ? ' · 常练 ' + _mrFavN + ' 式' : '') + '，点一下重练这一式）';
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + (_rkMonMin ? ' · 本月 ' + _rkMonMin + ' 分' : '') + (_mrTop ? ' · 最勤 ' + _mrTop.name + ' ' + all[0].count + ' 次' : '') + (_mrFavN ? ' · 常练 ' + _mrFavN + ' 式' : '') + '，点一下重练这一式）';
     el.appendChild(head);
     rk.forEach(function (it, i) {
       var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
