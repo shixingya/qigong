@@ -1453,12 +1453,16 @@
 
   function renderCheckin() {
     var mins = S.totalSec() > 0 ? Math.max(1, Math.round(S.totalSec() / 60)) : 0;
+    var _td = new Date(S.todayStr());
+    var _mMap = S.monthMap(_td.getFullYear(), _td.getMonth());
+    var _mSess = Object.keys(_mMap).reduce(function (a, k) { return a + (_mMap[k] || 0); }, 0);
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
       statBox(S.totalDays(), '天', '累计打卡', true) +
       statBox(mins, '分钟', '累计练功时长') +
       statBox(S.weekReport().sessions, '次', '本周练功') +
+      statBox(_mSess, '次', '本月练功') +
       statBox(S.learnedTotal(), '/' + moveTotal, '已学动作') +
       statBox(S.favIds().length, '套', '收藏功法');
 
@@ -1844,8 +1848,10 @@
     sp = sp || $('#knowStats');
     if (!sp) return;
     var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat(), unread = total - S.readCount();
+    var _wl = S.wrongList().length;
     sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (unread > 0 ? ' · 待读 <b>' + unread + '</b> 篇' : ' · 明理圆满 🎉') +
       ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '') +
+      (_wl ? ' · 待复习错题 <b>' + _wl + '</b> 道' : '') +
       (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '');
   }
   function renderKnowledge() {
