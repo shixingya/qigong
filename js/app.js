@@ -1022,7 +1022,7 @@
       if (global.QGAmbient) QGAmbient.stop();
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练';
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场';
       if (S.planStatus()) {
         var pl = S.planInfo();
         $('#doneStats').textContent += pl && !pl.success && !pl.over ? ' · 21天挑战已点亮 ' + pl.done + '/21' : '';
@@ -1619,10 +1619,18 @@
       var line2 = topSet ? ('练得最多的是 ' + topSet.icon + ' ' + topSet.name + '（' + w.topN + ' 次）') : '先把第一套跟下来';
       var line3 = w.dayCount >= 5 ? '💚 已入佳境，气息渐稳' : w.dayCount >= 3 ? '🌿 节奏渐稳，继续保持' : '🌱 刚起步，下周试试隔天练一次';
       var slotLine = w.topSlot ? ('⏰ 本周你最常在这个时段练：' + SLOT_TXT[w.topSlot] + '（' + w.topSlotN + ' 次）' + (w.slotKinds > 1 ? ' · 共跨 ' + w.slotKinds + ' 个时段' : ' · 只囿于一个时段')) : '';
+      /* 单日最勤：某天练了 2 场以上才值得单拎出来，否则天天打平没意义 */
+      var WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      var busiLine = '';
+      if (w.topDay && w.topDayN >= 2) {
+        var dt = new Date(w.topDay + 'T00:00:00');
+        busiLine = '🗓 本周最勤的是 ' + (WD[dt.getDay()] || w.topDay) + '（一天 ' + w.topDayN + ' 场），劳逸有度';
+      }
       body = '<div class="wk-body">' +
         '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '</b> 种功法</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
+        (busiLine ? '<div class="wk-busy">' + busiLine + '</div>' : '') +
         '<div>' + line3 + '</div></div>';
     }
     /* 目标环：次数达标转金色，首次跨线补一声磬 */

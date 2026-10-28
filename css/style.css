@@ -517,6 +517,7 @@ button { font-family: inherit; cursor: pointer; }
 .wk-body b { color: var(--ink); font-size: 15px; }
 .wk-body .wk-empty { color: var(--sub); }
 .wk-body .wk-slot { color: var(--ink); }
+.wk-body .wk-busy { color: var(--gold); }
 
 /* ===== 每日一句与帮助浮层 ===== */
 .daily-quote {
