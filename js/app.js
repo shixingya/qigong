@@ -967,9 +967,11 @@
     finish: function () {
       if (!this.active) return;
       var set = this._set, min = Math.round(this._doneSec / 60 * 10) / 10;
+      var daysBefore = S.totalDays(); /* 落盘前的累计天数，用来看本场是否刚跨过里程碑 */
       var gotBefore = {};
       try { S.badges(DATA.sets.length, moveTotal).forEach(function (a) { gotBefore[a.id] = a.got; }); } catch (e) { if (global.console) global.console.warn('成就快照读取失败，跳过解锁提示', e); }
       S.addRecord(set.id, this._doneSec, this._moveIds);
+      var daysNow = S.totalDays();
       lastSession = {
         set: set, min: min, mode: this._mode, n: this._moveIds.length,
         days: S.totalDays(), streak: S.streak(), learned: S.learnedTotal(),
@@ -987,6 +989,15 @@
       }
       speak('收功。' + set.name + '练习完成，今日打卡已记录。');
       chime(196, 0.2, 2.6); /* 收功大磬 */
+      /* 累计天数里程碑：只在跨过那一档的本场提一句，不重复扰 */
+      var MILE = { 7: '七日不辍，气感初成', 21: '廿一天小成，习惯已立', 30: '满月功期，脱胎换骨之始', 50: '五十日半载，气血自盈', 100: '百日筑基圆满，功夫上身' };
+      var dm = $('#doneMile');
+      var mileTxt = (daysNow > daysBefore && MILE[daysNow]) ? MILE[daysNow] : '';
+      if (dm) {
+        dm.textContent = mileTxt ? '🏅 里程碑 · 累计打卡 ' + daysNow + ' 天——' + mileTxt : '';
+        dm.classList.toggle('hidden', !mileTxt);
+      }
+      if (mileTxt) setTimeout(function () { speak('恭喜，' + MILE[daysNow]); }, 3200);
       /* 收功后语随时段：早护升发、午宜小憩、晚安神、夜忌再见光 */
       var SLOT_DONE = {
         '早': '🌅 晨练收功，阳气已升 —— 宜温水缓饮，不宜即刻寒凉生冷。',
@@ -1555,6 +1566,25 @@
   });
 
   /* ================= 知识页 ================= */
+  /* 只看未读：把读过的暂时藏起、没读的排在前，切页/标记后都重画 */
+  var knUnread = false;
+  function applyKnowFilter() {
+    var hint = $('#knFilterHint');
+    if (!hint) return;
+    if (!knUnread) {
+      $$('#knowList .know-card').forEach(function (el) { el.classList.remove('khide'); });
+      hint.classList.add('hidden'); hint.textContent = ''; return;
+    }
+    var hid = 0;
+    $$('#knowList .know-card').forEach(function (el) {
+      var hide = S.isRead(el._kn.id);
+      el.classList.toggle('khide', hide);
+      if (hide) hid++;
+    });
+    var unread = DATA.knowledge.length - S.readCount();
+    hint.textContent = '📖 只看未读 · 待读 ' + unread + ' 篇' + (hid ? '（已藏起读过的 ' + hid + ' 篇）' : '（都还没读，全在这）');
+    hint.classList.remove('hidden');
+  }
   /* 统计条提升到模块级：抽卡过完一轮也能回头重画，不困在闭包里 */
   function paintKnowHead(sp) {
     sp = sp || $('#knowStats');
@@ -1573,14 +1603,18 @@
     var hn = S.hardCount();
     head.innerHTML = '<span id="knowStats"></span> <button class="btn ghost sm" id="rvBtn" title="抽卡、难卡、错题、续读一处直达">🧠 复习台</button>' +
       '<button class="btn ghost sm" id="fcBtn">🃏 抽卡复习</button>' +
-      '<button class="btn ghost sm" id="fcHardBtn" title="卡面上随手归档的难卡，单独抽一轮">⛰ 难卡包 ' + hn + '</button>';
+      '<button class="btn ghost sm" id="fcHardBtn" title="卡面上随手归档的难卡，单独抽一轮">⛰ 难卡包 ' + hn + '</button>' +
+      '<button class="btn ghost sm" id="knUnreadBtn" title="只留没读过的，读完的自然往后藏">📖 只看未读</button>';
     box.appendChild(head);
+    var kfh = document.createElement('div'); kfh.id = 'knFilterHint'; kfh.className = 'kn-hint hidden'; box.appendChild(kfh);
     paintKnowHead();
     $('#rvBtn').addEventListener('click', reviewOpen);
     $('#fcBtn').addEventListener('click', function () { fcOpen(false); });
     var fhh = $('#fcHardBtn');
     fhh.disabled = !hn; /* 零卡时钮灰，不抽空包 */
     fhh.addEventListener('click', function () { fcOpen(true); });
+    var ubn = $('#knUnreadBtn');
+    if (ubn) { ubn.classList.toggle('on', knUnread); ubn.addEventListener('click', function () { knUnread = !knUnread; ubn.classList.toggle('on', knUnread); applyKnowFilter(); }); }
     /* 错题本横幅：答错记账、补对销账，一键直达待订正篇 */
     var wbar = document.createElement('div');
     wbar.className = 'quiz-wrongs hidden';
@@ -1645,6 +1679,7 @@
           el.querySelector('summary').appendChild(s);
         } else if (!nowRead && dot) { dot.remove(); }
         paintKnowHead();
+        applyKnowFilter(); /* 只看未读开着时，刚读完的就地往后藏 */
       });
       f.appendChild(btn);
 
@@ -1692,6 +1727,7 @@
       }
       box.appendChild(el);
     });
+    applyKnowFilter();
 
     /* 五音听医：点一声长音，配一句脏腑提示 */
     if (DATA.wuxing && DATA.wuxing.length) {
