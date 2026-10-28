@@ -1090,8 +1090,9 @@
       var _doneMonPre = S.todayStr().slice(0, 7);
       var _doneMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _doneMonPre; }).length;
       var _doneMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _doneMonPre ? (r.sec || 0) : 0); }, 0) / 60);
+      var _doneSetAll = S.records().filter(function (r) { return r.set === set.id; }).length;
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '');
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '') + (_doneMonMin ? ' · 本月练 ' + _doneMonMin + ' 分' : '') + (_doneSetAll > 1 ? ' · 这套累计 ' + _doneSetAll + ' 场' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
@@ -1551,7 +1552,9 @@
     head.className = 'td-head';
     var _tdMonPre = S.todayStr().slice(0, 7);
     var _tdMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _tdMonPre && r.hour != null; }).length;
-    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    var _tdWkFrom = S.weekReport().rangeFrom;
+    var _tdWkN = S.records().filter(function (r) { return r.d && r.d >= _tdWkFrom && r.hour != null; }).length;
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
     b.forEach(function (x, i) {
