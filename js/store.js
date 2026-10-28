@@ -197,6 +197,14 @@
       arr.sort(function (a, b) { return b.count - a.count || (a.last < b.last ? 1 : a.last > b.last ? -1 : 0); });
       return arr.slice(0, n || 8);
     },
+    /* 所有记录里出现过的式 id 集合（供“待补的式”反查：从未练过的才要补） */
+    trainedMoveIds: function () {
+      var seen = {};
+      this._data.records.forEach(function (r) {
+        (r.moves || []).forEach(function (mid) { seen[mid] = true; });
+      });
+      return seen;
+    },
     /* 清空本机全部练功数据（备份导出后可从文件恢复） */
     wipeAll: function () {
       var old = this._data.settings || {};

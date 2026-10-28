@@ -474,13 +474,14 @@
     var learned = Math.min(S.learnedCount(st.id), st.moves.length);
     var est = estMin(st);
     var lpct = Math.round(learned / st.moves.length * 100);
+    var doneToday = S.recordsOfDay(S.todayStr()).some(function (r) { return r.set === st.id; });
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
       '<button class="fav-star' + (S.isFav(st.id) ? ' on' : '') + '" title="收藏/取消收藏常用功法">' + (S.isFav(st.id) ? '⭐' : '☆') + '</button>' +
       '<h3>' + st.name + '</h3>' +
       '<div class="py">' + st.pinyin + ' · ' + st.level + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
-      '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span></div>' +
+      '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
       '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
@@ -1334,6 +1335,7 @@
     renderWeekCard();
     renderTimeDist();
     renderMoveRank();
+    renderTodoMoves();
 
     var bg = $('#badgeGrid');
     bg.innerHTML = '';
@@ -1438,6 +1440,72 @@
       row.appendChild(meta);
       el.appendChild(row);
     });
+  }
+
+  /* 待补的式：把从未在任何记录里出现过的式按功法分组列出，鼓动凑齐 */
+  function renderTodoMoves() {
+    var el = $('#todoMoves');
+    if (!el) return;
+    el.innerHTML = '';
+    if (!S.totalSess()) { el.classList.add('hidden'); return; } /* 还没开练不剧透，不留一整墙待补吓人 */
+    var seen = S.trainedMoveIds();
+    var groups = [], todoTotal = 0;
+    DATA.sets.forEach(function (st) {
+      var todo = st.moves.filter(function (m) { return !seen[m.id]; });
+      todoTotal += todo.length;
+      if (todo.length) groups.push({ set: st, todo: todo, full: todo.length === st.moves.length });
+    });
+    el.classList.remove('hidden');
+    if (!todoTotal) {
+      var ok = document.createElement('div');
+      ok.className = 'tm-head tm-done';
+      ok.textContent = '🈵 待补清单已清空——四功 ' + moveTotal + ' 式都至少练过一遍了';
+      el.appendChild(ok);
+      return;
+    }
+    var head = document.createElement('div');
+    head.className = 'tm-head';
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式）';
+    el.appendChild(head);
+    var shown = 0, CAP = 14;
+    groups.forEach(function (g) {
+      if (shown >= CAP) return;
+      var row = document.createElement('div');
+      row.className = 'tm-group';
+      var lb = document.createElement('span');
+      lb.className = 'tm-set';
+      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式');
+      row.appendChild(lb);
+      if (g.full) { /* 整套未碰：不拆成一堆单式，直接给整套开练 */
+        var fb = document.createElement('button');
+        fb.className = 'btn primary sm';
+        fb.textContent = '▶ 整套开练';
+        fb.addEventListener('click', function () { Train.start(g.set, g.set.moves, 'full'); });
+        row.appendChild(fb);
+        el.appendChild(row);
+        return;
+      }
+      var chips = document.createElement('div');
+      chips.className = 'tm-chips';
+      g.todo.forEach(function (m) {
+        if (shown >= CAP) return;
+        var c = document.createElement('button');
+        c.className = 'tm-chip';
+        c.textContent = m.name;
+        c.title = '跟练 ' + m.name + ' 单式';
+        c.addEventListener('click', function () { Train.start(g.set, [m], 'single'); });
+        chips.appendChild(c);
+        shown++;
+      });
+      row.appendChild(chips);
+      el.appendChild(row);
+    });
+    if (todoTotal > CAP) {
+      var more = document.createElement('div');
+      more.className = 'tm-more';
+      more.textContent = '……另有 ' + (todoTotal - CAP) + ' 式待补，零散多练几场就集齐了';
+      el.appendChild(more);
+    }
   }
 
   /* 周练报告：近 7 天小结 + 周练目标环，完全由真实打卡记录推导 */

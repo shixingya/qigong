@@ -776,6 +776,24 @@ button { font-family: inherit; cursor: pointer; }
 .mr-meta { flex: 1; min-width: 0; color: var(--sub); font-size: 12.5px; }
 .btn.danger { color: #e08a8a; border-color: rgba(224, 138, 138, .45); }
 .btn.danger:hover { border-color: #e08a8a; }
+/* ===== v2.24 待补的式 + 今日已练角标 ===== */
+.sc-today {
+  color: var(--jade); font-weight: 700; padding: 1px 9px; border-radius: 999px;
+  background: rgba(95, 214, 184, .12); border: 1px solid rgba(95, 214, 184, .4);
+}
+.todo-moves { margin: 14px 0; padding: 14px 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+.tm-head { font-size: 13.5px; color: var(--sub); margin-bottom: 10px; }
+.tm-head.tm-done { color: var(--jade); font-weight: 700; margin-bottom: 0; }
+.tm-group { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 7px 0; border-top: 1px dashed var(--line); }
+.tm-group:first-of-type { border-top: 0; }
+.tm-set { flex: none; min-width: 130px; font-size: 13px; color: var(--ink); }
+.tm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tm-chip {
+  font: inherit; font-size: 12.5px; cursor: pointer; padding: 3px 11px; border-radius: 999px;
+  color: var(--jade); background: rgba(95, 214, 184, .07); border: 1px solid rgba(95, 214, 184, .34);
+}
+.tm-chip:hover { border-color: var(--jade); }
+.tm-more { margin-top: 8px; font-size: 12px; color: var(--sub); }
 .wipe-box { max-width: 420px; width: 92vw; text-align: left; }
 .wipe-box h3 { text-align: center; }
 .wp-tip { margin: 0 0 8px; font-size: 14px; color: var(--ink); line-height: 1.7; }
