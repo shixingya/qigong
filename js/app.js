@@ -1494,7 +1494,8 @@
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
       var slotIco = (typeof r.hour === 'number') ? SLOT_ICON[slotLabel(r.hour)] : '';
-      li.innerHTML = '<b>' + r.d + (slotIco ? ' <i class="rec-slot" title="' + slotLabel(r.hour) + '时练" style="font-style:normal">' + slotIco + '</i>' : '') + '</b><span>' + (r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法')) + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') + '</span>' +
+      var _wd = ['日', '一', '二', '三', '四', '五', '六'][new Date(r.d).getDay()];
+      li.innerHTML = '<b>' + r.d + ' <i class="rec-wk">周' + _wd + '</i>' + (slotIco ? ' <i class="rec-slot" title="' + slotLabel(r.hour) + '时练" style="font-style:normal">' + slotIco + '</i>' : '') + '</b><span>' + (r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法')) + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') + '</span>' +
         (r.note ? '<i class="rec-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '');
       list.appendChild(li);
     });
@@ -1507,21 +1508,21 @@
   function renderTimeDist() {
     var el = $('#timeDist');
     if (!el) return;
-    var b = S.timeBuckets(), max = 0, total = 0;
-    b.forEach(function (x) { if (x.n > max) max = x.n; total += x.n; });
+    var b = S.timeBuckets(), max = 0, total = 0, topIdx = -1;
+    b.forEach(function (x, i) { if (x.n > max) { max = x.n; topIdx = i; } total += x.n; });
     el.innerHTML = '';
     var head = document.createElement('div');
     head.className = 'td-head';
     head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
-    b.forEach(function (x) {
+    b.forEach(function (x, i) {
       var row = document.createElement('div');
-      row.className = 'td-row';
+      row.className = 'td-row' + (i === topIdx ? ' td-top' : '');
       row.title = x.tip;
       var w = max ? Math.round(x.n / max * 100) : 0;
       var pct = total ? Math.round(x.n / total * 100) : 0;
-      row.innerHTML = '<span class="td-lb">' + x.icon + ' ' + x.name + '</span>' +
+      row.innerHTML = '<span class="td-lb">' + x.icon + ' ' + x.name + (i === topIdx ? ' <em class="td-flag">最勤</em>' : '') + '</span>' +
         '<span class="td-bar"><i style="width:' + w + '%"></i></span>' +
         '<span class="td-n">' + (x.n ? x.n + ' 次 · ' + pct + '%' : '—') + '</span>';
       el.appendChild(row);
