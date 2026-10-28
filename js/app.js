@@ -1080,8 +1080,10 @@
       cancelAnimationFrame(this._raf);
       if (global.QGAmbient) QGAmbient.stop();
       $('#doneTitle').textContent = this._mode === 'single' ? '此式功成！' : '功成！' + (S.checkedToday() ? '今日打卡已点亮' : '');
+      var _doneMonPre = S.todayStr().slice(0, 7);
+      var _doneMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _doneMonPre; }).length;
       $('#doneStats').textContent =
-        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场';
+        '本次跟练 ' + set.name + '，用时约 ' + min + ' 分钟 · 连续打卡 ' + S.streak() + ' 天 · 累计 ' + S.totalDays() + ' 天 · 今日第 ' + S.recordsOfDay(S.todayStr()).length + ' 练 · 本周第 ' + S.weekReport().sessions + ' 场' + (_doneMonN ? ' · 本月第 ' + _doneMonN + ' 场' : '');
       /* 本周目标进度：跟练完当场回音，未达报差几场、已达则庆 */
       var _wsess = S.weekReport().sessions, _wgoal = S.weekGoal();
       $('#doneStats').textContent += _wsess >= _wgoal ? ' · 本周目标已达成 🎉' : ' · 距周目标还差 ' + (_wgoal - _wsess) + ' 场';
@@ -1536,7 +1538,9 @@
     el.innerHTML = '';
     var head = document.createElement('div');
     head.className = 'td-head';
-    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    var _tdMonPre = S.todayStr().slice(0, 7);
+    var _tdMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _tdMonPre && r.hour != null; }).length;
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
     b.forEach(function (x, i) {
