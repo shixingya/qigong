@@ -150,3 +150,13 @@
 播种：标准种子 + settings.quizWrong={'kn-breath':1}、settings.quiz={'kn-base':1}（错题行需 ws>0 才显示已补对）。
 
 冒烟结果：doneStats=`… 累计 2 天 · 累计练 17 分 · 今日第 …`；错题行=`待订正 1 题 · 补对自动销账 · 已补对 1 题`；console error=0。✅
+
+## v3.1.18 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3118-1 | 首页 21天挑战横幅 `.plan-banner.go` | 累计练功天数 `_pnEverDays` | `累计练 2 天` | S.totalDays()=去重日 {10-26,10-28}=2；需 plan 非 null 且未成功未过期 |
+| T-3118-2 | 知识页 `#knowStats` | 错题总笔数 `S.wrongSum()` | `错过 3 笔` | quizWrong={'kn-base':2,'kn-breath':1} → 和=3 > 道数 2 才露 |
+
+播种：标准种子 + plan={start:'2026-10-20'}（横幅在役） + settings.quizWrong={'kn-base':2,'kn-breath':1}。
+
+冒烟结果：横幅=`… 累计 4 场 · 累计练 2 天`；knowStats=`… 待复习错题 2 道 · 错过 3 笔 …`；console error=0。✅

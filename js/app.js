@@ -520,6 +520,7 @@
     var _pMap = S.monthMap(_pdNow.getFullYear(), _pdNow.getMonth());
     var _pMonDays = Object.keys(_pMap).filter(function (k) { return _pMap[k] > 0; }).length;
     var _pAllSess = S.totalSess();
+    var _pnEverDays = S.totalDays(); /* 累计练功天数：与挑战打卡同根不同框 */
     var cells = p.grid.map(function (g, i) {
       var cls = g.has ? 'done' : (g.past ? 'miss' : 'todo');
       return '<span class="p-cell ' + cls + '" title="' + g.d + '">' + (g.has ? '✿' : (i + 1)) + '</span>';
@@ -527,7 +528,7 @@
     var banner;
     if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
     else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
-    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + (_pMonDays ? ' · 本月练 ' + _pMonDays + ' 天' : '') + (_pAllSess ? ' · 累计 <b>' + _pAllSess + '</b> 场' : '') + '</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + (_pMonDays ? ' · 本月练 ' + _pMonDays + ' 天' : '') + (_pAllSess ? ' · 累计 <b>' + _pAllSess + '</b> 场' : '') + (_pnEverDays > 1 ? ' · 累计练 <b>' + _pnEverDays + '</b> 天' : '') + '</div>';
     el.innerHTML =
       '<div class="plan-head"><span class="plan-icon">🏮</span>' +
       '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
@@ -2049,11 +2050,13 @@
     var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat(), unread = total - S.readCount();
     var _wl = S.wrongList().length;
     var _khHard = S.hardCount();
+    var _khWrongSum = S.wrongSum(); /* 错题总笔数：同一篇可多次答错 */
     var _rdPct = total ? Math.round(S.readCount() / total * 100) : 0;
     sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (unread > 0 ? ' · 待读 <b>' + unread + '</b> 篇' : ' · 明理圆满 🎉') +
       (_rdPct > 0 && _rdPct < 100 ? ' · 明理 <b>' + _rdPct + '%</b>' : '') +
       ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '') +
       (_wl ? ' · 待复习错题 <b>' + _wl + '</b> 道' : '') +
+      (_khWrongSum > _wl ? ' · 错过 <b>' + _khWrongSum + '</b> 笔' : '') +
       (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '') +
       (_khHard ? ' · 难卡 <b>' + _khHard + '</b> 张' : '');
   }

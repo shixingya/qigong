@@ -376,6 +376,10 @@
       var w = this._data.settings.quizWrong || {};
       return Object.keys(w).filter(function (k) { return w[k]; });
     },
+    wrongSum: function () {
+      var w = this._data.settings.quizWrong || {};
+      return Object.keys(w).reduce(function (a, k) { return a + (w[k] || 0); }, 0);
+    },
     quizCount: function () {
       var q = this._data.settings.quiz || {};
       return Object.keys(q).filter(function (k) { return q[k]; }).length;
