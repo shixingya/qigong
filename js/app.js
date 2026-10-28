@@ -296,7 +296,8 @@
     if (self) {
       if (S.totalSess()) {
         self.classList.remove('hidden');
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
+        var _calmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -1649,7 +1650,7 @@
       '<div class="wk-ring' + (hit ? ' hit' : '') + '" style="--p:' + pct + '"><b>' + Math.min(sess, goal) + '/' + goal + '</b></div>' +
       '<div class="wk-goal-side">' +
       '<span class="wk-goal-t">🎯 周练目标 <button id="goalDn" title="减一次">−</button> ' + goal + ' 次/周 <button id="goalUp" title="加一次">+</button></span>' +
-      '<span class="wk-goal-hint">' + (hit ? '目标已达成，功夫没白下 🎉' : '还差 ' + (goal - sess) + ' 次，一套八段锦也就十分钟') + '</span>' +
+      '<span class="wk-goal-hint">' + (hit ? (sess > goal ? ('目标已超额 ' + (sess - goal) + ' 场，功夫没白下 🎉') : '目标恰好达成，功夫没白下 🎉') : '还差 ' + (goal - sess) + ' 次，一套八段锦也就十分钟') + '</span>' +
       '</div></div>';
     $('#goalDn').addEventListener('click', function () { S.setWeekGoal(S.weekGoal() - 1); renderWeekCard(); });
     $('#goalUp').addEventListener('click', function () { S.setWeekGoal(S.weekGoal() + 1); renderWeekCard(); });
