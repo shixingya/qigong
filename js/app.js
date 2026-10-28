@@ -969,6 +969,7 @@
       if (!this.active) return;
       var set = this._set, min = Math.round(this._doneSec / 60 * 10) / 10;
       var daysBefore = S.totalDays(); /* 落盘前的累计天数，用来看本场是否刚跨过里程碑 */
+      var lastMoveId = (this._mode === 'single' && this._moveIds.length === 1) ? this._moveIds[0] : null;
       var gotBefore = {};
       try { S.badges(DATA.sets.length, moveTotal).forEach(function (a) { gotBefore[a.id] = a.got; }); } catch (e) { if (global.console) global.console.warn('成就快照读取失败，跳过解锁提示', e); }
       S.addRecord(set.id, this._doneSec, this._moveIds);
@@ -1040,6 +1041,15 @@
         if (nm) { nm.textContent = ''; }
         var nb = $('#doneNoteSave'); if (nb) nb.disabled = false;
       }
+      /* 单式且不是末式：露“接着练下一式”，一点就顺下去 */
+      var nb2 = $('#doneNextBtn'), nextMv = null;
+      if (this._mode === 'single' && lastMoveId) {
+        var mi = -1;
+        set.moves.forEach(function (m, i) { if (m.id === lastMoveId) mi = i; });
+        if (mi >= 0 && mi + 1 < set.moves.length) nextMv = set.moves[mi + 1];
+      }
+      doneNextMove = nextMv ? { set: set, move: nextMv } : null;
+      if (nb2) { nb2.classList.toggle('hidden', !nextMv); nb2.textContent = nextMv ? ('▶ 接着练下一式：' + nextMv.name) : '▶ 接着练下一式'; }
       showPage('done');
     }
   };
@@ -1066,6 +1076,12 @@
   });
   $('#doneNoteInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') $('#doneNoteSave').click();
+  });
+
+  /* 单式跟练后的一键接下一式（finish 里赋值 doneNextMove） */
+  var doneNextMove = null;
+  $('#doneNextBtn').addEventListener('click', function () {
+    if (doneNextMove) Train.start(doneNextMove.set, [doneNextMove.move], 'single');
   });
 
   /* ================= 定息 · 数呼吸（吸4呼6 × 六息） ================= */
@@ -1476,6 +1492,13 @@
       lb.className = 'tm-set';
       lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式');
       row.appendChild(lb);
+      /* 集式进度微条：已练过多少式/共多少式，凑齐的动力看得见 */
+      var doneCnt = g.set.moves.length - g.todo.length;
+      var pctv = Math.round(doneCnt / g.set.moves.length * 100);
+      var pb = document.createElement('span');
+      pb.className = 'tm-prog';
+      pb.innerHTML = '集 ' + doneCnt + '/' + g.set.moves.length + '<i class="tm-prog-bar"><b style="width:' + pctv + '%"></b></i>';
+      row.appendChild(pb);
       if (g.full) { /* 整套未碰：不拆成一堆单式，直接给整套开练 */
         var fb = document.createElement('button');
         fb.className = 'btn primary sm';
