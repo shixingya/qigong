@@ -332,6 +332,8 @@
     var _stWkFrom = S.weekReport().rangeFrom;
     var _stWkN = S.records().filter(function (r) { return r.set === st.id && r.d >= _stWkFrom; }).length;
     var _stWkLine = _stWkN ? ' · 本套本周 <b>' + _stWkN + '</b> 场' : '';
+    var _stWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id && r.d >= _stWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
+    var _stWkMinLine = _stWkMin ? ' · 本套本周共 <b>' + _stWkMin + '</b> 分钟' : '';
     var _stMonPre = S.todayStr().slice(0, 7);
     var _stMonN = S.records().filter(function (r) { return r.set === st.id && r.d && r.d.slice(0, 7) === _stMonPre; }).length;
     var _stMonLine = (_stMonN && _stMonN !== _stWkN) ? ' · 本套本月 <b>' + _stMonN + '</b> 场' : '';
@@ -345,7 +347,7 @@
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stWkLine + _stMonLine + _stMonMinLine + _stAllLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stWkLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stAllLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1651,7 +1653,10 @@
     var _tmMonPre = S.todayStr().slice(0, 7), _tmMonK = {};
     S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _tmMonPre) (r.moves || []).forEach(function (m) { _tmMonK[m] = 1; }); });
     var _tmMonN = Object.keys(_tmMonK).length;
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '');
+    var _tmWkFrom = S.weekReport().rangeFrom, _tmWkK = {};
+    S.records().forEach(function (r) { if (r.d && r.d >= _tmWkFrom) (r.moves || []).forEach(function (m) { _tmWkK[m] = 1; }); });
+    var _tmWkN = Object.keys(_tmWkK).length;
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
