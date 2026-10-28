@@ -442,7 +442,9 @@
     var _fmMonPre = S.todayStr().slice(0, 7), _fmMonK = {};
     S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _fmMonPre) (r.moves || []).forEach(function (m) { _fmMonK[m] = 1; }); });
     var _fmMonTouch = keys.filter(function (k) { return _fmMonK[k.move]; }).length;
-    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + (_fmMonTouch ? ' · 本月练过 ' + _fmMonTouch + ' 式' : '') + '）';
+    var _fmEverK = {}; S.records().forEach(function (r) { (r.moves || []).forEach(function (m) { _fmEverK[m] = 1; }); });
+    var _fmEverTouch = keys.filter(function (k) { return _fmEverK[k.move]; }).length;
+    head.textContent = '⭐ 我的常练式（点一下就直接练这式 · 共 ' + keys.length + ' 式' + (_fmWkTouch ? ' · 本周练过 ' + _fmWkTouch + ' 式' : '') + (_fmMonTouch ? ' · 本月练过 ' + _fmMonTouch + ' 式' : '') + (_fmEverTouch ? ' · 累计练过 ' + _fmEverTouch + ' 式' : '') + '）';
     sec.appendChild(head);
     var row = document.createElement('div');
     row.className = 'fm-row';
@@ -1600,7 +1602,9 @@
     var _rsWkN = S.records().filter(function (r) { return r.d >= _rsWkFrom; }).length;
     var _rsMonTouch = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _ckMonPre && r.set !== 'calm') _rsMonTouch[r.set] = 1; });
     var _rsMonTouchN = Object.keys(_rsMonTouch).length;
-    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + (_rsMonTouchN >= 2 ? ' · 本月碰 <b>' + _rsMonTouchN + '</b> 套' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
+    var _rsWkMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d >= _rsWkFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _rsWkMoveK[m] = 1; }); });
+    var _rsWkMoveN = Object.keys(_rsWkMoveK).length;
+    list.innerHTML = recs.length ? ('<li class="rec-sum">🗂 本月共 <b>' + _mSess + '</b> 场 · 约 <b>' + _mMin + '</b> 分钟' + (_rsWkN ? ' · 本周 <b>' + _rsWkN + '</b> 场' : '') + (_rsMonTouchN >= 2 ? ' · 本月碰 <b>' + _rsMonTouchN + '</b> 套' : '') + (_rsWkMoveN ? ' · 本周练 <b>' + _rsWkMoveN + '</b> 式' : '') + '</li>') : '<li class="empty">还没有跟练记录，去功法学堂挑一套开练吧 🌿</li>';
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
