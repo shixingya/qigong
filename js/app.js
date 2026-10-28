@@ -488,7 +488,7 @@
     var banner;
     if (p.success) banner = '<div class="plan-banner ok">🎉 挑战功成！四十九日而基础固，此后功夫自有境界</div>';
     else if (p.over) banner = '<div class="plan-banner fail">挑战窗口已结束（累计点亮 ' + p.done + '/21）。可以重整旗鼓再报一次</div>';
-    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + '</div>';
+    else banner = '<div class="plan-banner go">第 <b>' + p.dayIdx + '</b> / 21 天 · 已点亮 <b>' + p.done + '</b> 朵 · 完成 <b>' + Math.round(p.done / 21 * 100) + '</b>% · 还差 <b>' + Math.max(0, p.need) + '</b> 天功成' + (p.dayIdx < 21 ? ' · 还剩 <b>' + (21 - p.dayIdx) + '</b> 天窗口' : '') + (S.weekReport().dayCount ? ' · 本周练 ' + S.weekReport().dayCount + ' 天' : '') + '</div>';
     el.innerHTML =
       '<div class="plan-head"><span class="plan-icon">🏮</span>' +
       '<div><div class="plan-title">21 天入门挑战 · ' + p.start + ' 起</div>' +
@@ -1604,7 +1604,8 @@
     var _wkRankTotal = _wkRecs.reduce(function (a, r) { return a + ((r.moves || []).length); }, 0);
     var _rkMonPre = S.todayStr().slice(0, 7);
     var _monRankTotal = S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _rkMonPre && r.set !== 'calm' ? (r.moves || []).length : 0); }, 0);
-    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + '，点一下重练这一式）';
+    var _mrTop = all.length && all[0].count > 1 ? (findMove(all[0].move) || {}).move : null;
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + (_mrTop ? ' · 最勤 ' + _mrTop.name + ' ' + all[0].count + ' 次' : '') + '，点一下重练这一式）';
     el.appendChild(head);
     rk.forEach(function (it, i) {
       var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
