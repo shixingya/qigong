@@ -358,6 +358,9 @@
     var _stTouchLine = _stTouchN ? ' · 本套练过 <b>' + _stTouchN + '/' + _lt + '</b> 式' : '';
     var _stFavMv = S.moveFavKeys().filter(function (k) { return k.set === st.id; }).length;
     var _stFavMvLine = _stFavMv ? ' · 本套常练 <b>' + _stFavMv + '</b> 式' : '';
+    var _stTodayMoveK = {}; recs.forEach(function (r) { if (r.set === st.id) (r.moves || []).forEach(function (m) { _stTodayMoveK[m] = 1; }); });
+    var _stTodayMove = Object.keys(_stTodayMoveK).length;
+    var _stTodayMoveLine = _stTodayMove ? ' · 本套今日练 <b>' + _stTodayMove + '</b> 式' : '';
     var _todayMin = Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60);
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
@@ -365,7 +368,7 @@
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次' + (_todayMin ? ' · 约 <b>' + _todayMin + '</b> 分钟' : '') + ' · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1540,6 +1543,7 @@
     var _ckWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _ckWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
     var _ckTodayMin = Math.round(S.recordsOfDay(S.todayStr()).reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60);
     var _ckCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length;
+    var _ckSessAll = S.records().filter(function (r) { return r.set !== 'calm'; }).length;
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
@@ -1556,7 +1560,8 @@
       statBox(_ckWkMove, '式', '本周练式') +
       statBox(_ckWkMin, '分钟', '本周时长') +
       statBox(_ckTodayMin, '分钟', '今日时长') +
-      statBox(_ckCalmAll, '次', '累计定息');
+      statBox(_ckCalmAll, '次', '累计定息') +
+      statBox(_ckSessAll, '场', '累计练功');
 
     renderCalendar();
     renderWeekCard();
