@@ -370,13 +370,15 @@
     var _todayMin = Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60);
     var _stEverDays = S.totalDays();
     var _stEverDaysLine = _stEverDays > 1 ? ' · 累计练 <b>' + _stEverDays + '</b> 天' : '';
+    var _stSelfDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本套练过的天数 */
+    var _stSelfDaysLine = _stSelfDays > 1 ? ' · 这套练 <b>' + _stSelfDays + '</b> 天' : '';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次' + (_todayMin ? ' · 约 <b>' + _todayMin + '</b> 分钟' : '') + ' · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stEverDaysLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stEverDaysLine + _stSelfDaysLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -892,8 +894,9 @@
     var _mMonMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 && r.d && r.d.slice(0, 7) === _mMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var _mSetSess = S.records().filter(function (r) { return r.set === curSet.id && r.d; }).length;
     var _mEverDays = S.totalDays(); /* 累计练功天数：单式详情的大前提 */
+    var _mSetSelfDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本套练过的天数 */
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessWk && _mWkMin ? ' 约 ' + _mWkMin + ' 分' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' + (_mMonMin ? ' 约 ' + _mMonMin + ' 分' : '') : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mSetSess ? ' · 这套练 ' + _mSetSess + ' 场' : '') + (_mEverDays > 1 ? ' · 累计练 ' + _mEverDays + ' 天' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessWk && _mWkMin ? ' 约 ' + _mWkMin + ' 分' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' + (_mMonMin ? ' 约 ' + _mMonMin + ' 分' : '') : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mSetSess ? ' · 这套练 ' + _mSetSess + ' 场' : '') + (_mEverDays > 1 ? ' · 累计练 ' + _mEverDays + ' 天' : '') + (_mSetSelfDays > 1 ? ' · 这套练 ' + _mSetSelfDays + ' 天' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;

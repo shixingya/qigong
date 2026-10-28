@@ -240,3 +240,13 @@
 播种：标准种子 + 追加 {d:'2026-10-28',set:'baduanjin',sec:300,hour:9,moves:['bdj-3']}（令本套跨 2 日，selfDays=2 可显）。
 
 冒烟结果：卡片 .prog=`已学 3/8 式 · … · 这套练 2 场 · 这套练 2 天 · 共 15 分钟`；详情 .set-sess 尾=`累计练 2 天 · 这套练 2 天`；console error=0。✅
+
+## v3.1.27 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3127-1 | 首页 tc-sub（今日推荐） | 本套练过天数 `_stSelfDaysLine` | 含 `这套练 2 天`（若推荐 baduanjin） | 推荐套跨 10-26/10-28 两日；selfDays=2 |
+| T-3127-2 | 单式详情 `.mv-sess`（bdj-1） | 本套练过天数 `_mSetSelfDays` | `这套练 2 场 · 累计练 2 天 · 这套练 2 天` | baduanjin 跨 2 日；totalDays=2 |
+
+播种：同 v3.1.26（标准种子 + 追加 {d:'2026-10-28',set:'baduanjin',sec:300,hour:9,moves:['bdj-3']}，learned 含 bdj-3）。
+
+冒烟结果：夜晚时段推荐六字诀：无记录时 tc-sub 不显“这套练 N 天”（降级正确）；给 liuzijue 补 10-26/10-28 两场后 tc-sub=`… 累计练 2 天 · 这套练 2 天 · …`✓；单式详情 bdj-1 mv-sess=`… 这套练 2 场 · 累计练 2 天 · 这套练 2 天`✓；console error=0。✅
