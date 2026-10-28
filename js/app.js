@@ -1434,7 +1434,9 @@
     var bi = S.backupInfo();
     if (!bi.lastBackup && !bi.lastImport) { el.classList.add('hidden'); el.textContent = ''; return; }
     el.classList.remove('hidden');
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录';
+    var _ds = S.records().map(function (r) { return r.d; }).sort();
+    var _span = _ds.length ? ' · 记录跨度 <b>' + _ds[0] + '</b> ~ <b>' + _ds[_ds.length - 1] + '</b>' : '';
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录' + _span;
   }
 
   function renderCheckin() {
@@ -1657,7 +1659,7 @@
         var dt = new Date(w.topDay + 'T00:00:00');
         busiLine = '🗓 本周最勤的是 ' + (WD[dt.getDay()] || w.topDay) + '（一天 ' + w.topDayN + ' 场），劳逸有度';
       }
-      var calmLine = w.calmCount ? '🍃 本周定息 ' + w.calmCount + ' 次，静可生慧' : '';
+      var calmLine = w.calmCount ? '🍃 本周定息 ' + w.calmCount + ' 次' + (w.calmMin ? '（共 ' + w.calmMin + ' 分）' : '') + '，静可生慧' : '';
       /* 功法多样性：练得杂夸均衡，只咬一套则提醒换换 */
       var varLine = '';
       if (w.sets >= 3) varLine = '🌈 本周碰了 ' + w.sets + ' 种功法，五脏皆调';

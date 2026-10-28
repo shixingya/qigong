@@ -290,11 +290,11 @@
       var inWin = function (r, from, to) { return r.d >= from && r.d <= to; };
       var cur = recs.filter(function (r) { return inWin(r, a, todayStr()); });
       var prev = recs.filter(function (r) { return inWin(r, b, c); });
-      var days = {}, daySess = {}, setCount = {}, sec = 0, slotCount = {}, calmCount = 0;
+      var days = {}, daySess = {}, setCount = {}, sec = 0, slotCount = {}, calmCount = 0, calmSec = 0;
       var slotOf = function (h) { return h >= 5 && h < 11 ? '早' : h >= 11 && h < 17 ? '午' : h >= 17 && h < 23 ? '晚' : '夜'; };
       cur.forEach(function (r) {
         days[r.d] = 1; daySess[r.d] = (daySess[r.d] || 0) + 1; sec += r.sec || 0;
-        if (r.set === 'calm') { calmCount++; } else { setCount[r.set] = (setCount[r.set] || 0) + 1; } /* 定息单独计，不算碰了一套功法 */
+        if (r.set === 'calm') { calmCount++; calmSec += r.sec || 0; } else { setCount[r.set] = (setCount[r.set] || 0) + 1; } /* 定息单独计，不算碰了一套功法 */
         if (typeof r.hour === 'number' && r.hour >= 0 && r.hour <= 23) { var sk = slotOf(r.hour); slotCount[sk] = (slotCount[sk] || 0) + 1; }
       });
       var top = null, topN = 0;
@@ -307,7 +307,7 @@
         dayCount: Object.keys(days).length, sessions: cur.length,
         min: Math.round(sec / 60), sets: Object.keys(setCount).length,
         topSet: top, topN: topN, topSlot: topSlot, topSlotN: topSlotN, slotKinds: Object.keys(slotCount).length,
-        topDay: topDay, topDayN: topDayN, calmCount: calmCount,
+        topDay: topDay, topDayN: topDayN, calmCount: calmCount, calmMin: Math.round(calmSec / 60),
         prevDayCount: Object.keys(prev.reduce(function (m, r) { m[r.d] = 1; return m; }, {})).length,
         rangeFrom: a, rangeTo: todayStr()
       };
