@@ -354,13 +354,15 @@
     var _stTouchK = {}; S.records().forEach(function (r) { if (r.set === st.id) (r.moves || []).forEach(function (m) { _stTouchK[m] = 1; }); });
     var _stTouchN = Object.keys(_stTouchK).length;
     var _stTouchLine = _stTouchN ? ' · 本套练过 <b>' + _stTouchN + '/' + _lt + '</b> 式' : '';
+    var _stFavMv = S.moveFavKeys().filter(function (k) { return k.set === st.id; }).length;
+    var _stFavMvLine = _stFavMv ? ' · 本套常练 <b>' + _stFavMv + '</b> 式' : '';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stAllLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1526,6 +1528,8 @@
     var _ckWkCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d >= _ckWkFrom; }).length;
     var _ckMonMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _ckMonPre && r.set !== 'calm') (r.moves || []).forEach(function (m) { _ckMonMoveK[m] = 1; }); });
     var _ckMonMove = Object.keys(_ckMonMoveK).length;
+    var _ckWkMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d >= _ckWkFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _ckWkMoveK[m] = 1; }); });
+    var _ckWkMove = Object.keys(_ckWkMoveK).length;
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
@@ -1538,7 +1542,8 @@
       statBox(S.favIds().length, '套', '收藏功法') +
       statBox(_ckMonCalm, '次', '本月定息') +
       statBox(_ckWkCalm, '次', '本周定息') +
-      statBox(_ckMonMove, '式', '本月练式');
+      statBox(_ckMonMove, '式', '本月练式') +
+      statBox(_ckWkMove, '式', '本周练式');
 
     renderCalendar();
     renderWeekCard();
