@@ -148,6 +148,18 @@
       });
       return m;
     },
+    /* 每日练过哪几套（去重的 set id），给日历格子涂彩色功法点 */
+    monthSetMap: function (year, month) {
+      var prefix = year + '-' + String(month + 1).padStart(2, '0');
+      var m = {};
+      this._data.records.forEach(function (r) {
+        if (r.d && r.d.indexOf(prefix) === 0) {
+          var a = m[r.d] = m[r.d] || [];
+          if (r.set && a.indexOf(r.set) < 0) a.push(r.set);
+        }
+      });
+      return m;
+    },
 
     /* ---- 成就（由真实数据运行时计算） ---- */
     badges: function (setCount, moveTotal) {

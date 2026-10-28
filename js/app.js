@@ -621,9 +621,11 @@
     var head = $('#setHead');
     var doneN = curSet.moves.filter(function (m) { return S.isLearned(curSet.id, m.id); }).length;
     var pctN = Math.round(doneN / curSet.moves.length * 100);
+    var sessN = S.records().filter(function (r) { return r.set === curSet.id; }).length;
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span></h2>' +
       '<p>' + curSet.intro + '</p>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' : '🌱 还没练过这套，不如今天开个张') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
@@ -1576,6 +1578,7 @@
     var week = ['日', '一', '二', '三', '四', '五', '六'];
     $('#calWeek').innerHTML = week.map(function (w) { return '<div>' + w + '</div>'; }).join('');
     var map = S.monthMap(y, m);
+    var smap = S.monthSetMap(y, m);
     var first = new Date(y, m, 1).getDay();
     var days = new Date(y, m + 1, 0).getDate();
     var today = S.todayStr();
@@ -1584,7 +1587,17 @@
     for (var d = 1; d <= days; d++) {
       var ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
       var n = map[ds] || 0;
-      html += '<div class="cal-cell' + (n ? ' done' + (n > 1 ? ' multi' : '') : '') + (ds === today ? ' today' : '') + '"' + (n ? ' data-ds="' + ds + '" title="' + ds + ' · 练了 ' + n + ' 场，点看明细"' : '') + '>' + d + '</div>';
+      /* 彩色功法点：那天练过哪几套就涂哪几个色（定息用青色） */
+      var dots = '';
+      var sids = smap[ds] || [];
+      if (sids.length) {
+        dots = '<span class="cal-dots">' + sids.slice(0, 4).map(function (sid) {
+          var s0 = DATA.sets.find(function (x) { return x.id === sid; });
+          var col = s0 ? s0.color : (sid === 'calm' ? '#5fd6b8' : 'var(--sub)');
+          return '<i style="background:' + col + '" title="' + (s0 ? s0.name : sid === 'calm' ? '定息' : sid) + '"></i>';
+        }).join('') + '</span>';
+      }
+      html += '<div class="cal-cell' + (n ? ' done' + (n > 1 ? ' multi' : '') : '') + (ds === today ? ' today' : '') + '"' + (n ? ' data-ds="' + ds + '" title="' + ds + ' · 练了 ' + n + ' 场，点看明细"' : '') + '>' + d + dots + '</div>';
     }
     $('#calGrid').innerHTML = html;
   }
