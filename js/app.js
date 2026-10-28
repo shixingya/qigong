@@ -343,13 +343,16 @@
     var _stMonMinLine = _stMonMin ? ' · 本套本月共 <b>' + _stMonMin + '</b> 分钟' : '';
     var _stAllN = S.records().filter(function (r) { return r.set === st.id; }).length;
     var _stAllLine = _stAllN > _stWkN ? ' · 本套累计 <b>' + _stAllN + '</b> 场' : '';
+    var _stTouchK = {}; S.records().forEach(function (r) { if (r.set === st.id) (r.moves || []).forEach(function (m) { _stTouchK[m] = 1; }); });
+    var _stTouchN = Object.keys(_stTouchK).length;
+    var _stTouchLine = _stTouchN ? ' · 本套练过 <b>' + _stTouchN + '/' + _lt + '</b> 式' : '';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stWkLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stAllLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stWkLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stAllLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1834,8 +1837,10 @@
       var _monCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreCal; }).length;
       var _monMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPreCal && r.set !== 'calm') (r.moves || []).forEach(function (m) { _monMoveK[m] = 1; }); });
       var _monMoveCal = Object.keys(_monMoveK).length;
+      var _monCalmSec = S.records().reduce(function (a, r) { return a + (r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreCal ? (r.sec || 0) : 0); }, 0);
+      var _monCalmMin = Math.round(_monCalmSec / 60);
       foot.innerHTML = mDays
-        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '') + (_monCalm ? ' · 定息 <b>' + _monCalm + '</b> 次' : '') + (_monMoveCal ? ' · 练 <b>' + _monMoveCal + '</b> 式' : '')
+        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '') + (_monCalm ? ' · 定息 <b>' + _monCalm + '</b> 次' + (_monCalmMin ? '（共 <b>' + _monCalmMin + '</b> 分）' : '') : '') + (_monMoveCal ? ' · 练 <b>' + _monMoveCal + '</b> 式' : '')
         : '这个月还没有练功记录，翻个月看看功夫足迹';
     }
   }
