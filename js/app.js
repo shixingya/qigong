@@ -735,8 +735,9 @@
     $('#moveDetail').classList.remove('hidden');
     viewingMove = true;
 
+    var msess = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + '</h2><p class="desc">' + curMove.desc + '</p>';
+      '<h2>' + curMove.name + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场</span>' : '') + '</h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
     $('#moveBenefit').textContent = curMove.benefit;
@@ -1052,6 +1053,13 @@
       }
       doneNextMove = nextMv ? { set: set, move: nextMv } : null;
       if (nb2) { nb2.classList.toggle('hidden', !nextMv); nb2.textContent = nextMv ? ('▶ 接着练下一式：' + nextMv.name) : '▶ 接着练下一式'; }
+      /* 收功顺手收藏这套为常用（定息无套可藏） */
+      var fb2 = $('#doneFavSet');
+      doneFavSetId = (set.id !== 'calm') ? set.id : null;
+      if (fb2) {
+        fb2.classList.toggle('hidden', !doneFavSetId);
+        if (doneFavSetId) fb2.textContent = S.isFav(doneFavSetId) ? '✓ 已收藏这套' : '⭐ 收藏这套';
+      }
       showPage('done');
     }
   };
@@ -1084,6 +1092,15 @@
   var doneNextMove = null;
   $('#doneNextBtn').addEventListener('click', function () {
     if (doneNextMove) Train.start(doneNextMove.set, [doneNextMove.move], 'single');
+  });
+
+  /* 收功页收藏/取消本套为常用（与目录页星、首页收藏区同一口径） */
+  var doneFavSetId = null;
+  $('#doneFavSet').addEventListener('click', function () {
+    if (!doneFavSetId) return;
+    S.toggleFav(doneFavSetId);
+    this.textContent = S.isFav(doneFavSetId) ? '✓ 已收藏这套' : '⭐ 收藏这套';
+    renderHome();
   });
 
   /* ================= 定息 · 数呼吸（吸4呼6 × 六息） ================= */
