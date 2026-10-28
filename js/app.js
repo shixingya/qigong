@@ -269,6 +269,7 @@
     return h >= 5 && h < 11 ? '早' : h >= 11 && h < 17 ? '午' : h >= 17 && h < 23 ? '晚' : '夜';
   }
   var SLOT_TXT = { '早': '☀️ 早晨宜升发', '午': '🌤 日中宜养长', '晚': '🌙 入夜宜收敛', '夜': '⭐ 夜深宜安眠' };
+  var SLOT_ICON = { '早': '☀️', '午': '🌤', '晚': '🌙', '夜': '⭐' }; /* 最近跟练列表的时段角标，与 SLOT_TXT 同一套图标 */
   var pickIdx = -1; /* 「换一套」的手动偏移；-1 表示按日期确定性轮 */
   var labLock = ''; /* 手动跳去别的时段时锁住那个 lab，免得重渲染又跳回来 */
   var lockHour = -1; /* 锁定发生在几点：真跨了时段就自动撒手，不跟时钟拧着来 */
@@ -1385,6 +1386,16 @@
   /* ================= 打卡成就页 ================= */
   var calDate = new Date();
 
+  /* 备份区上次备份/恢复时间小结：只在有记录时露出 */
+  function renderBackupInfo() {
+    var el = $('#backupInfo');
+    if (!el) return;
+    var bi = S.backupInfo();
+    if (!bi.lastBackup && !bi.lastImport) { el.classList.add('hidden'); el.textContent = ''; return; }
+    el.classList.remove('hidden');
+    el.textContent = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未');
+  }
+
   function renderCheckin() {
     var mins = S.totalSec() > 0 ? Math.max(1, Math.round(S.totalSec() / 60)) : 0;
     $('#statRow').innerHTML =
@@ -1399,6 +1410,7 @@
     renderTimeDist();
     renderMoveRank();
     renderTodoMoves();
+    renderBackupInfo();
 
     var bg = $('#badgeGrid');
     bg.innerHTML = '';
@@ -1415,7 +1427,8 @@
     recs.forEach(function (r) {
       var st = DATA.sets.find(function (s) { return s.id === r.set; });
       var li = document.createElement('li');
-      li.innerHTML = '<b>' + r.d + '</b><span>' + (r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法')) + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') + '</span>' +
+      var slotIco = (typeof r.hour === 'number') ? SLOT_ICON[slotLabel(r.hour)] : '';
+      li.innerHTML = '<b>' + r.d + (slotIco ? ' <i class="rec-slot" title="' + slotLabel(r.hour) + '时练" style="font-style:normal">' + slotIco + '</i>' : '') + '</b><span>' + (r.set === 'calm' ? '🍃 定息六息' : (st ? st.icon + ' ' + st.name : '🍂 旧存档功法')) + '</span><span>约 ' + Math.max(1, Math.round((r.sec || 0) / 60)) + ' 分钟</span><span>' + (r.set === 'calm' ? (r.breaths || 6) + ' 息' : ((r.moves || []).length) + ' 式') + '</span>' +
         (r.note ? '<i class="rec-note">💬 ' + String(r.note).replace(/[<>]/g, '') + '</i>' : '');
       list.appendChild(li);
     });
@@ -2249,6 +2262,8 @@
     a.href = URL.createObjectURL(blob);
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+    S.setLastBackup();
+    renderBackupInfo();
     $('#importMsg').textContent = '✓ 已导出备份文件（纯本地，未上传）';
   });
   $('#importBtn').addEventListener('click', function () { $('#importFile').click(); });
@@ -2265,6 +2280,7 @@
       msg.textContent = '✓ 导入完成：新增 ' + added + ' 条跟练记录（重复自动去重）'
         + (srcD ? ' · 来自 ' + srcD + ' 的备份，共 ' + (res.meta.total || 0) + ' 条' : '');
       msg.className = 'import-msg ok';
+      S.setLastImport();
       renderCheckin();
     };
     rd.onerror = function () { msg.textContent = '✕ 文件读取失败'; msg.className = 'import-msg err'; };

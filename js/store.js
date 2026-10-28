@@ -500,6 +500,13 @@
         plan: this._data.plan || null
       }, null, 1);
     },
+    /* 上次备份/恢复日期（本地记忆，仅存日期串，供备份区展示） */
+    setLastBackup: function () { this._data.settings.lastBackup = todayStr(); save(this._data); },
+    setLastImport: function () { this._data.settings.lastImport = todayStr(); save(this._data); },
+    backupInfo: function () {
+      var s = this._data.settings || {};
+      return { lastBackup: s.lastBackup || '', lastImport: s.lastImport || '' };
+    },
     /* 校验并清洗外部 JSON，容忍脏数据不崩 */
     parseImport: function (text) {
       var p;

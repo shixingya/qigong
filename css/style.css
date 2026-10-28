@@ -412,6 +412,7 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; gap: 10px; flex-wrap: wrap;
 }
 .record-list li b { color: var(--ink); font-weight: 500; }
+.record-list .rec-slot { margin-left: 2px; font-size: 12px; }
 .record-list .empty { color: var(--sub); }
 
 /* ---------- 备份与分享 ---------- */
@@ -422,6 +423,7 @@ button { font-family: inherit; cursor: pointer; }
 .backup-card h3 { font-size: 16px; margin-bottom: 6px; }
 .backup-card .bd-sub { color: var(--sub); font-size: 13px; margin-bottom: 12px; }
 .backup-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+.backup-info { margin: 10px 0 0; font-size: 12.5px; }
 .import-msg { margin-top: 10px; font-size: 13.5px; color: var(--sub); min-height: 18px; }
 .import-msg.ok { color: var(--jade); }
 .import-msg.err { color: var(--danger); }
