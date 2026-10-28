@@ -800,6 +800,8 @@
     var msess = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     var _wkFrom = S.weekReport().rangeFrom;
     var msessWk = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0 && r.d >= _wkFrom; }).length;
+    var _mMonPre = S.todayStr().slice(0, 7);
+    var msessMon = S.records().filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0 && r.d && r.d.slice(0, 7) === _mMonPre; }).length;
     var _mLast = null;
     S.records().forEach(function (r) { if ((r.moves || []).indexOf(curMove.id) >= 0 && (!_mLast || r.d > _mLast)) _mLast = r.d; });
     var _mAgo = _mLast ? Math.round((new Date(S.todayStr()) - new Date(_mLast)) / 86400000) : null;
@@ -807,7 +809,7 @@
     var _mIdx = curSet.moves.indexOf(curMove);
     var _mPosTxt = _mIdx >= 0 ? '第 ' + (_mIdx + 1) + '/' + curSet.moves.length + ' 式' : '';
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
@@ -1600,10 +1602,11 @@
     el.innerHTML = '';
     if (!S.totalSess()) { el.classList.add('hidden'); return; } /* 还没开练不剧透，不留一整墙待补吓人 */
     var seen = S.trainedMoveIds();
-    var groups = [], todoTotal = 0;
+    var groups = [], todoTotal = 0, fullSets = 0;
     DATA.sets.forEach(function (st) {
       var todo = st.moves.filter(function (m) { return !seen[m.id]; });
       todoTotal += todo.length;
+      if (!todo.length) fullSets++;
       if (todo.length) groups.push({ set: st, todo: todo, full: todo.length === st.moves.length });
     });
     el.classList.remove('hidden');
@@ -1616,7 +1619,7 @@
     }
     var head = document.createElement('div');
     head.className = 'tm-head';
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式';
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套';
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
