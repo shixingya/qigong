@@ -57,3 +57,12 @@
 | T-317-2 | 功法页 `#setStat` | 累计练功场 `_ssAllSess` | `累计练 3 场` | 非 calm 记录数=3（排除 calm） |
 
 冒烟结果：mr-head=`…本月 20 分 · 涉猎 2 套 · 最勤 …`；setStat=`…本月定息 1 次 · 累计练 3 场`；console error=0。✅
+
+## v3.1.8 用例
+> 需额外播种 `settings.hardCards={'kn-base':1,'kn-breath':1}`（否则难卡段隐）。
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-318-1 | 知识页 `#knowStats` | 难卡数 `_khHard` | `难卡 2 张` | S.hardCount()=hardCards 键数=2 |
+| T-318-2 | 打卡页 `.tm-head` | 累计练功场 `_tmAllSess` | `累计练 4 场` | S.totalSess()=records.length=4（含 calm） |
+
+冒烟结果：knowStats=`… 小测过关 1 / 6 · 待复习错题 2 道 · 难卡 2 张`；tm-head=`…本月碰 2 套 · 累计练 4 场`；console error=0。✅

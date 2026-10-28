@@ -1762,7 +1762,8 @@
     var _tmMonSetK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _tmMonPre && r.set !== 'calm') _tmMonSetK[r.set] = 1; });
     var _tmMonSetN = Object.keys(_tmMonSetK).length;
     var _touchedSets = DATA.sets.filter(function (st) { return st.moves.some(function (m) { return seen[m.id]; }); }).length;
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 完成 ' + Math.round((moveTotal - todoTotal) / moveTotal * 100) + '% · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '') + (_tmMonSetN >= 2 ? ' · 本月碰 ' + _tmMonSetN + ' 套' : '');
+    var _tmAllSess = S.totalSess();
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 完成 ' + Math.round((moveTotal - todoTotal) / moveTotal * 100) + '% · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '') + (_tmMonSetN >= 2 ? ' · 本月碰 ' + _tmMonSetN + ' 套' : '') + (_tmAllSess ? ' · 累计练 ' + _tmAllSess + ' 场' : '');
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
@@ -2029,12 +2030,14 @@
     if (!sp) return;
     var total = DATA.knowledge.length, qc = S.quizCount(), fs = S.fcStat(), unread = total - S.readCount();
     var _wl = S.wrongList().length;
+    var _khHard = S.hardCount();
     var _rdPct = total ? Math.round(S.readCount() / total * 100) : 0;
     sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (unread > 0 ? ' · 待读 <b>' + unread + '</b> 篇' : ' · 明理圆满 🎉') +
       (_rdPct > 0 && _rdPct < 100 ? ' · 明理 <b>' + _rdPct + '%</b>' : '') +
       ' · 小测过关 <b>' + qc + '</b> / ' + total + (qc === total && total ? ' · 全部拿捏 🈴' : '') +
       (_wl ? ' · 待复习错题 <b>' + _wl + '</b> 道' : '') +
-      (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '');
+      (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '') +
+      (_khHard ? ' · 难卡 <b>' + _khHard + '</b> 张' : '');
   }
   function renderKnowledge() {
     var box = $('#knowList');
