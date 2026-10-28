@@ -1699,7 +1699,8 @@
       var _wkN = _wkRecs.filter(function (r) { return (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
       var _monN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _rkMonPre && (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
       var _mvMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(fm.move.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
-      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' : '') + (_mvMin ? ' · 共约 ' + _mvMin + ' 分' : '') + (S.isMoveFav(fm.set.id, fm.move.id) ? ' · ⭐ 常练' : '');
+      var _mvMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _rkMonPre && (r.moves || []).indexOf(fm.move.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
+      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' + (_mvMonMin ? ' 约 ' + _mvMonMin + ' 分' : '') : '') + (_mvMin ? ' · 共约 ' + _mvMin + ' 分' : '') + (S.isMoveFav(fm.set.id, fm.move.id) ? ' · ⭐ 常练' : '');
       row.appendChild(meta);
       el.appendChild(row);
     });
@@ -1736,6 +1737,7 @@
     S.records().forEach(function (r) { if (r.d && r.d >= _tmWkFrom) (r.moves || []).forEach(function (m) { _tmWkK[m] = 1; }); });
     var _tmWkN = Object.keys(_tmWkK).length;
     var _tmSetMin = {}; S.records().forEach(function (r) { if (r.set && r.set !== 'calm') _tmSetMin[r.set] = (_tmSetMin[r.set] || 0) + (r.sec || 0); });
+    var _tmTodayK = {}; S.recordsOfDay(S.todayStr()).forEach(function (r) { (r.moves || []).forEach(function (m) { _tmTodayK[m] = 1; }); });
     var _touchedSets = DATA.sets.filter(function (st) { return st.moves.some(function (m) { return seen[m.id]; }); }).length;
     head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 完成 ' + Math.round((moveTotal - todoTotal) / moveTotal * 100) + '% · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
     el.appendChild(head);
@@ -1746,7 +1748,7 @@
       row.className = 'tm-group';
       var lb = document.createElement('span');
       lb.className = 'tm-set';
-      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })() + (function () { var mm = Math.round((_tmSetMin[g.set.id] || 0) / 60); return mm ? ' · 共 ' + mm + ' 分' : ''; })();
+      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })() + (function () { var t = g.set.moves.filter(function (m) { return _tmTodayK[m.id]; }).length; return t ? ' · 今日练 ' + t + ' 式' : ''; })() + (function () { var mm = Math.round((_tmSetMin[g.set.id] || 0) / 60); return mm ? ' · 共 ' + mm + ' 分' : ''; })();
       row.appendChild(lb);
       /* 集式进度微条：已练过多少式/共多少式，凑齐的动力看得见 */
       var doneCnt = g.set.moves.length - g.todo.length;
