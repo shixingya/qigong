@@ -812,8 +812,9 @@
     var _mIdx = curSet.moves.indexOf(curMove);
     var _mPosTxt = _mIdx >= 0 ? '第 ' + (_mIdx + 1) + '/' + curSet.moves.length + ' 式' : '';
     var _mIsFav = S.moveFavKeys().some(function (k) { return k.set === curSet.id && k.move === curMove.id; });
+    var msessToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
@@ -1473,6 +1474,8 @@
     var _td = new Date(S.todayStr());
     var _mMap = S.monthMap(_td.getFullYear(), _td.getMonth());
     var _mSess = Object.keys(_mMap).reduce(function (a, k) { return a + (_mMap[k] || 0); }, 0);
+    var _ckMonPre = S.todayStr().slice(0, 7);
+    var _mMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _ckMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     $('#statRow').innerHTML =
       statBox(S.streak(), '天', '当前连续', true) +
       statBox(S.streakMax(), '天', '最长连续') +
@@ -1480,6 +1483,7 @@
       statBox(mins, '分钟', '累计练功时长') +
       statBox(S.weekReport().sessions, '次', '本周练功') +
       statBox(_mSess, '次', '本月练功') +
+      statBox(_mMin, '分钟', '本月时长') +
       statBox(S.learnedTotal(), '/' + moveTotal, '已学动作') +
       statBox(S.favIds().length, '套', '收藏功法');
 
