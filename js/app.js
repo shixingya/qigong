@@ -1481,7 +1481,8 @@
     var _span = _ds.length ? ' · 记录跨度 <b>' + _ds[0] + '</b> ~ <b>' + _ds[_ds.length - 1] + '</b>' : '';
     var _bkMonPre = S.todayStr().slice(0, 7);
     var _bkMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + _span;
+    var _bkMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _bkMonPre ? (r.sec || 0) : 0); }, 0) / 60);
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + _span;
   }
 
   function renderCheckin() {
@@ -1815,8 +1816,10 @@
       var _monSetK = {}; Object.keys(smap).forEach(function (k) { (smap[k] || []).forEach(function (sid) { if (sid !== 'calm') _monSetK[sid] = 1; }); });
       var _monSetN = Object.keys(_monSetK).length;
       var _monCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPreCal; }).length;
+      var _monMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPreCal && r.set !== 'calm') (r.moves || []).forEach(function (m) { _monMoveK[m] = 1; }); });
+      var _monMoveCal = Object.keys(_monMoveK).length;
       foot.innerHTML = mDays
-        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '') + (_monCalm ? ' · 定息 <b>' + _monCalm + '</b> 次' : '')
+        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '') + (_monCalm ? ' · 定息 <b>' + _monCalm + '</b> 次' : '') + (_monMoveCal ? ' · 练 <b>' + _monMoveCal + '</b> 式' : '')
         : '这个月还没有练功记录，翻个月看看功夫足迹';
     }
   }
