@@ -1627,7 +1627,8 @@
     var _tdWkFrom = S.weekReport().rangeFrom;
     var _tdWkN = S.records().filter(function (r) { return r.d && r.d >= _tdWkFrom && r.hour != null; }).length;
     var _tdTopName = (total && topIdx >= 0) ? (b[topIdx].icon + ' ' + b[topIdx].name) : '';
-    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
+    var _tdMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _tdMonPre ? (r.sec || 0) : 0); }, 0) / 60);
+    head.textContent = total ? '⏰ 练功时段分布（按时分归段，共 ' + total + ' 次带时刻的跟练' + (_tdWkN ? ' · 本周 ' + _tdWkN + ' 次' : '') + (_tdMonN ? ' · 本月 ' + _tdMonN + ' 次' : '') + (_tdMonMin ? ' · 本月 ' + _tdMonMin + ' 分' : '') + (_tdTopName ? ' · 最勤 ' + _tdTopName : '') + '）' : '⏰ 练功时段分布：完成一次带时刻记录的跟练后，这里会长出你的练功生物钟';
     el.appendChild(head);
     if (!total) return;
     b.forEach(function (x, i) {
@@ -1745,8 +1746,10 @@
     var _tmWkN = Object.keys(_tmWkK).length;
     var _tmSetMin = {}; S.records().forEach(function (r) { if (r.set && r.set !== 'calm') _tmSetMin[r.set] = (_tmSetMin[r.set] || 0) + (r.sec || 0); });
     var _tmTodayK = {}; S.recordsOfDay(S.todayStr()).forEach(function (r) { (r.moves || []).forEach(function (m) { _tmTodayK[m] = 1; }); });
+    var _tmMonSetK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _tmMonPre && r.set !== 'calm') _tmMonSetK[r.set] = 1; });
+    var _tmMonSetN = Object.keys(_tmMonSetK).length;
     var _touchedSets = DATA.sets.filter(function (st) { return st.moves.some(function (m) { return seen[m.id]; }); }).length;
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 完成 ' + Math.round((moveTotal - todoTotal) / moveTotal * 100) + '% · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 完成 ' + Math.round((moveTotal - todoTotal) / moveTotal * 100) + '% · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '') + (_tmMonSetN >= 2 ? ' · 本月碰 ' + _tmMonSetN + ' 套' : '');
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
