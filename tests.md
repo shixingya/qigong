@@ -230,3 +230,13 @@
 播种：标准种子（courseStart 可缺省）；跟练页用 QGApp.Train.start(DATA.sets[0], DATA.sets[0].moves, 'full') 直达后读 #trainSetName，读完 Train.finish() 收场。
 
 冒烟结果：set-sess=`🔥 这套你已练 1 场 · … · 本月共 10 分钟 · 累计练 2 天`；trainSetName=`🌿 八段锦 · 整套 · 累计练 2 天`；console error=0。✅
+
+## v3.1.26 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3126-1 | 功法卡 `.set-card .prog`（baduanjin） | 本套练过天数 `_scSelfDays` | `这套练 2 场 · 这套练 2 天` | baduanjin 记录跨 10-26/10-28 两日 |
+| T-3126-2 | 功法详情 `.set-sess`（baduanjin） | 本套练过天数 `_setSelfDays` | 尾部 `累计练 2 天 · 这套练 2 天` | 同上；totalDays=2 |
+
+播种：标准种子 + 追加 {d:'2026-10-28',set:'baduanjin',sec:300,hour:9,moves:['bdj-3']}（令本套跨 2 日，selfDays=2 可显）。
+
+冒烟结果：卡片 .prog=`已学 3/8 式 · … · 这套练 2 场 · 这套练 2 天 · 共 15 分钟`；详情 .set-sess 尾=`累计练 2 天 · 这套练 2 天`；console error=0。✅
