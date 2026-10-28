@@ -90,3 +90,13 @@
 | T-3111-2 | 打卡页 `#statRow` 末格 | 本周碰套数 `_ckWkTouch` | `本周碰套 2 套` | 周内非 calm 记录的 set 去重={baduanjin,wuqinxi}=2 |
 
 播种：records=[baduanjin 10-26 600s moves[bdj-1,bdj-2], baduanjin 10-15 400s moves[bdj-1], calm 10-28 60s, wuqinxi 10-26 300s moves[wqx-0]]；本周碰套需排除 calm。T-3111-1 通过 QGApp.Train.start(八段锦前1式,'single') 后直接 Train.finish() 触达收功页。
+
+冒烟结果：doneStats=`… 这套累计 3 场 · 这套共 17 分 …`（app 按分钟取整 10+7+0=17，自洽）；statRow 末格=`2 套 本周碰套`；console error=0。✅
+
+## v3.1.12 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3112-1 | 复习台 `#rvBody` 新增行 | 累计定息+今日定息 `_rvCalmAll/_rvCalmToday` | `累计定息 2 次 · 今日已定息 1 次` | calm 记录={10-28,10-26}=2，今日=1 |
+| T-3112-2 | 打卡页 `.wk-body` 首行 | 明理篇数 `S.readCount()` | `明理 2 篇` | read 中 true 的篇数=2 |
+
+播种（在第 2 次播种基础上）：records=[baduanjin 10-26 600s, calm 10-28 60s, calm 10-26 60s, wuqinxi 10-28 300s]；read={'kn-base':true,'kn-breath':true}。复习台通 QGApp 或点“复习”入口，若无入口则 `QGApp.showPage('home')` 后点带 rvMask 的按钮；冒烟时若复习台按钮不可达，可直接 DOM 触发 reviewOpen 所在按钮。

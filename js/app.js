@@ -1419,10 +1419,12 @@
     box.innerHTML =
       row('🃏', '全量抽卡', '知识要点共 ' + total + ' 篇' + (total - unread ? ' · 已读 ' + (total - unread) + ' 篇' : '') + (_rvPct ? ' · 明理 ' + _rvPct + '%' : '') + (fs.rounds ? ' · 已抽 ' + fs.rounds + ' 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : ''), 'rvFc', '开一轮抽卡', !total, '把所有要点打乱轮一遍') +
       row('⛰', '难卡包', hn ? '包内 ' + hn + ' 张 · 卡面上随手归档' : '还没存难卡 · 抽卡时点「归入难卡」收进来', 'rvHard', '专攻难卡', !hn, '只抽被标记的难卡') +
+      row('🧘', '定息小结', (function () { var _rvCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length; var _rvCalmToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return r.set === 'calm'; }).length; return _rvCalmAll ? '累计定息 ' + _rvCalmAll + ' 次' + (_rvCalmToday ? ' · 今日已定息 ' + _rvCalmToday + ' 次' : ' · 今日还没定息，静一分钟也很养') : '还没定息过 · 首页「一分钟定息」开个头'; })(), 'rvCalm', '去首页定息', false, '回首页找一分钟定息入口') +
       row('📕', '错题订正', ws ? '待订正 ' + ws + ' 题 · 补对自动销账' : '暂无错题 · 随堂小测答错就记进来', 'rvWrong', '直达第一篇', !ws, '跳到第一道待订正的篇目') +
       row('📖', '续读一篇', unread ? '还有 ' + unread + ' 篇未读完（已读 ' + (total - unread) + '/' + total + '）' : '全部读完 · 明理圆满 🎉', 'rvNext', unread ? '读下一篇未读的' : '无需再读', !unread, '展开未读的那篇并滚到眼前');
     $('#rvFc').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(false); });
     $('#rvHard').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(true); });
+    $('#rvCalm').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); showPage('home'); });
     $('#rvWrong').addEventListener('click', function () {
       $('#rvMask').classList.add('hidden');
       showPage('knowledge');
@@ -1862,7 +1864,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
