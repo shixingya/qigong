@@ -505,7 +505,7 @@
       if (p.read && typeof p.read === 'object') {
         Object.keys(p.read).forEach(function (kid) { if (p.read[kid]) read[String(kid).slice(0, 40)] = true; });
       }
-      return { ok: true, data: { records: records, learned: learned, read: read, plan: (p.plan && p.plan.start && DATE_RE.test(p.plan.start)) ? { start: p.plan.start } : null } };
+      return { ok: true, data: { records: records, learned: learned, read: read, plan: (p.plan && p.plan.start && DATE_RE.test(p.plan.start)) ? { start: p.plan.start } : null }, meta: { exportedAt: (typeof p.exportedAt === 'string') ? p.exportedAt : '', total: records.length } };
     },
     /* 合并导入：记录按唯一键去重，已学取并集 */
     mergeImport: function (inc) {

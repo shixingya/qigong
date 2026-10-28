@@ -846,6 +846,9 @@
       paintAmbBtn();
       $('#trainSetName').textContent = set.icon + ' ' + set.name +
         (mode === 'single' ? ' · ' + moves[0].name : mode === 'custom' ? ' · 选式 ' + moves.length + ' 式' : ' · 整套');
+      /* 跟练页也亮当前时段，与首页宜练、收功后语一条线贯通 */
+      var tsl = $('#trainSlot');
+      if (tsl) { tsl.textContent = SLOT_TXT[slotLabel(new Date().getHours())] || ''; tsl.classList.toggle('hidden', !tsl.textContent); }
       $('#btnPause').textContent = '⏸ 暂停';
       this.enterStep(0);
       this.renderTick(); /* 开场即刷新步数，不留上一场残值 */
@@ -2070,7 +2073,10 @@
       var res = S.parseImport(String(rd.result));
       if (!res.ok) { msg.textContent = '✕ 导入失败：' + res.err; msg.className = 'import-msg err'; return; }
       var added = S.mergeImport(res.data);
-      msg.textContent = '✓ 导入完成：新增 ' + added + ' 条跟练记录（重复记录自动去重）';
+      /* 若能读出备份来源时间就一并报，让用户知道合的是哪一份、新旧如何 */
+      var srcD = res.meta && res.meta.exportedAt ? String(res.meta.exportedAt).slice(0, 10) : '';
+      msg.textContent = '✓ 导入完成：新增 ' + added + ' 条跟练记录（重复自动去重）'
+        + (srcD ? ' · 来自 ' + srcD + ' 的备份，共 ' + (res.meta.total || 0) + ' 条' : '');
       msg.className = 'import-msg ok';
       renderCheckin();
     };

@@ -305,6 +305,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 .train-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
 .train-set { color: var(--gold); font-size: 13px; letter-spacing: 3px; }
+.train-slot {
+  display: inline-block; margin-top: 5px; padding: 2px 10px; border-radius: 999px;
+  font-size: 12px; letter-spacing: 1px; color: var(--jade);
+  background: rgba(95, 214, 184, .1); border: 1px solid rgba(95, 214, 184, .34);
+}
 .train-move { font-size: 26px; margin-top: 4px; }
 .breath-ring-wrap { flex-shrink: 0; }
 .breath-ring {
