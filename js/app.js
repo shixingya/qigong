@@ -302,6 +302,7 @@
         var _wkSess = S.weekReport().sessions;
         var _monPre = S.todayStr().slice(0, 7);
         var _monSess = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _monPre; }).length;
+        var _monCalmSelf = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _monPre; }).length;
         var _monMinSelf = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _monPre ? (r.sec || 0) : 0); }, 0) / 60);
         var _setsTouched = {}; S.records().forEach(function (r) { if (r.set !== 'calm') _setsTouched[r.set] = 1; });
         var _touchedN = Object.keys(_setsTouched).length;
@@ -314,7 +315,7 @@
         var _wkMinSelf = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _mvWkFromSelf ? (r.sec || 0) : 0); }, 0) / 60);
         var _monTouchedK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPre && r.set !== 'calm') _monTouchedK[r.set] = 1; });
         var _monTouchedSelf = Object.keys(_monTouchedK).length;
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_wkMinSelf ? ' · 本周 <b>' + _wkMinSelf + '</b> 分' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (_monMinSelf ? ' · 本月 <b>' + _monMinSelf + '</b> 分' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (_monTouchedSelf >= 2 ? ' · 本月碰 <b>' + _monTouchedSelf + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_mvFavN ? ' · 常练 <b>' + _mvFavN + '</b> 式' : '') + (_mvWkSelf ? ' · 本周练 <b>' + _mvWkSelf + '</b> 式' : '') + (_mvMonSelf ? ' · 本月练 <b>' + _mvMonSelf + '</b> 式' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_wkMinSelf ? ' · 本周 <b>' + _wkMinSelf + '</b> 分' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (_monMinSelf ? ' · 本月 <b>' + _monMinSelf + '</b> 分' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (_monCalmSelf ? ' · 本月定息 <b>' + _monCalmSelf + '</b> 次' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (_monTouchedSelf >= 2 ? ' · 本月碰 <b>' + _monTouchedSelf + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_mvFavN ? ' · 常练 <b>' + _mvFavN + '</b> 式' : '') + (_mvWkSelf ? ' · 本周练 <b>' + _mvWkSelf + '</b> 式' : '') + (_mvMonSelf ? ' · 本月练 <b>' + _mvMonSelf + '</b> 式' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -548,6 +549,7 @@
     var _scMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d.slice(0, 7) === _scMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _scWkMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d >= _wkFromS) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _scAllMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id ? (r.sec || 0) : 0); }, 0) / 60);
+    var _scMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id && r.d && r.d.slice(0, 7) === _scMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -556,7 +558,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_scMonN && _scMonN !== _wkSetN ? '<span class="sc-wk" title="本月跟练这套的场次">本月 ' + _scMonN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + (_scAllMin ? ' · 共 <b>' + _scAllMin + '</b> 分钟' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + (_scMonMin && _scMonMin !== _scAllMin ? ' · 本月 <b>' + _scMonMin + '</b> 分' : '') + (_scAllMin ? ' · 共 <b>' + _scAllMin + '</b> 分钟' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
