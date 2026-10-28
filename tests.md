@@ -120,3 +120,13 @@
 | T-3114-2 | 首页 `#statSelf` | 本周碰套数 `_wkTouchSelf` | `本周碰 2 套` | 周内(≥10-25)非 calm 记录 set 去重={baduanjin,wuqinxi}=2，排在“本月碰”后“收藏”前 |
 
 播种：同 v3.1.12 种子 + settings.fcard={rounds:2,lastGot:4,lastTotal:6}；需先点知识 nav 渲染过一次复习台入口后打开 rvMask 读抽卡行；首页 chip 需渲染后读 statSelf。
+
+冒烟结果：statSelf=`… 本月碰 2 套 · 本周碰 2 套 · …`（位置正确）；抽卡行=`… 已抽 2 轮（上轮记住 4/6） · 上轮共 6 张卡`；console error=0。✅（线上抽验首次 FAIL 为检查脚本中文 needle 被 PS5.1 按 ANSI 误读，改用 [char] 码拼接后 FAIL=0，非产品回归）
+
+## v3.1.15 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3115-1 | 打卡页 `#calFoot` | 日均场次 `_mAvgSess` | `日均 2 场` | mSess/mDays=4/2=2（monthMap 含 calm 场次） |
+| T-3115-2 | 打卡页 `#statRow` 新增格 | 累计练功天 `S.totalDays()` | `2 天 累计练功天` | 去重日期={10-26,10-28}=2 |
+
+播种同 v3.1.12 种子（无需 fcard，但沿用无妨）。
