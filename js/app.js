@@ -336,6 +336,9 @@
     var _stWkLine = _stWkN ? ' · 本套本周 <b>' + _stWkN + '</b> 场' : '';
     var _stWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id && r.d >= _stWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
     var _stWkMinLine = _stWkMin ? ' · 本套本周共 <b>' + _stWkMin + '</b> 分钟' : '';
+    var _stWkTouchK = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d >= _stWkFrom) (r.moves || []).forEach(function (m) { _stWkTouchK[m] = 1; }); });
+    var _stWkTouchN = Object.keys(_stWkTouchK).length;
+    var _stWkTouchLine = _stWkTouchN ? ' · 本套本周练 <b>' + _stWkTouchN + '</b> 式' : '';
     var _stMonPre = S.todayStr().slice(0, 7);
     var _stMonN = S.records().filter(function (r) { return r.set === st.id && r.d && r.d.slice(0, 7) === _stMonPre; }).length;
     var _stMonLine = (_stMonN && _stMonN !== _stWkN) ? ' · 本套本月 <b>' + _stMonN + '</b> 场' : '';
@@ -352,7 +355,7 @@
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stWkLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stAllLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stAllLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -523,6 +526,7 @@
     var _ago = (_lastD && _wkSetN === 0) ? Math.round((new Date(S.todayStr()) - new Date(_lastD)) / 86400000) : null;
     var _favMv = S.moveFavKeys().filter(function (k) { return k.set === st.id; }).length;
     var _scMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d.slice(0, 7) === _scMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
+    var _scWkMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d >= _wkFromS) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -531,7 +535,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_scMonN && _scMonN !== _wkSetN ? '<span class="sc-wk" title="本月跟练这套的场次">本月 ' + _scMonN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
