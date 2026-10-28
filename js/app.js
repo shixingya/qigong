@@ -1643,7 +1643,8 @@
       var meta = document.createElement('span');
       meta.className = 'mr-meta';
       var _wkN = _wkRecs.filter(function (r) { return (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
-      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '');
+      var _monN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _rkMonPre && (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
+      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' : '');
       row.appendChild(meta);
       el.appendChild(row);
     });
@@ -1872,7 +1873,9 @@
     if (!recs.length) { pop.classList.add('hidden'); return; }
     var _dpK = {}; recs.forEach(function (r) { if (r.set !== 'calm') _dpK[r.set] = 1; });
     var _dpSets = Object.keys(_dpK).length;
-    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场' + (_dpSets >= 2 ? ' · 涉猎 ' + _dpSets + ' 套' : '') + ' · 共约 ' + Math.max(1, Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60)) + ' 分钟<button class="btn ghost sm" id="dpX">收起</button></div>' +
+    var _dpMoveK = {}; recs.forEach(function (r) { if (r.set !== 'calm') (r.moves || []).forEach(function (m) { _dpMoveK[m] = 1; }); });
+    var _dpMoves = Object.keys(_dpMoveK).length;
+    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场' + (_dpSets >= 2 ? ' · 涉猎 ' + _dpSets + ' 套' : '') + (_dpMoves ? ' · 练 ' + _dpMoves + ' 式' : '') + ' · 共约 ' + Math.max(1, Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60)) + ' 分钟<button class="btn ghost sm" id="dpX">收起</button></div>' +
       recs.map(function (r) {
         var st = DATA.sets.find(function (s) { return s.id === r.set; });
         var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';
