@@ -332,6 +332,8 @@
     var _stMonPre = S.todayStr().slice(0, 7);
     var _stMonN = S.records().filter(function (r) { return r.set === st.id && r.d && r.d.slice(0, 7) === _stMonPre; }).length;
     var _stMonLine = (_stMonN && _stMonN !== _stWkN) ? ' · 本套本月 <b>' + _stMonN + '</b> 场' : '';
+    var _stMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id && r.d && r.d.slice(0, 7) === _stMonPre ? (r.sec || 0) : 0); }, 0) / 60);
+    var _stMonMinLine = _stMonMin ? ' · 本套本月共 <b>' + _stMonMin + '</b> 分钟' : '';
     var _stAllN = S.records().filter(function (r) { return r.set === st.id; }).length;
     var _stAllLine = _stAllN > _stWkN ? ' · 本套累计 <b>' + _stAllN + '</b> 场' : '';
     $('#todayCard').innerHTML =
@@ -340,7 +342,7 @@
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stWkLine + _stMonLine + _stAllLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stWkLine + _stMonLine + _stMonMinLine + _stAllLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -556,11 +558,12 @@
     var nf = S.favIds().length, nm = S.moveFavKeys().length;
     var learnedAll = DATA.sets.reduce(function (a, s) { return a + Math.min(S.learnedCount(s.id), s.moves.length); }, 0);
     var _rfS = S.weekReport().rangeFrom, _wkKinds = {};
-    var _monPreS = S.todayStr().slice(0, 7), _monKinds = {};
-    S.records().forEach(function (r) { if (r.set !== 'calm') { if (r.d >= _rfS) _wkKinds[r.set] = 1; if (r.d && r.d.slice(0, 7) === _monPreS) _monKinds[r.set] = 1; } });
+    var _monPreS = S.todayStr().slice(0, 7), _monKinds = {}, _monSecS = 0;
+    S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPreS) _monSecS += (r.sec || 0); if (r.set !== 'calm') { if (r.d >= _rfS) _wkKinds[r.set] = 1; if (r.d && r.d.slice(0, 7) === _monPreS) _monKinds[r.set] = 1; } });
     var _wkSetKinds = Object.keys(_wkKinds).length;
     var _monSetKinds = Object.keys(_monKinds).length;
-    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '') + (_monSetKinds && _monSetKinds !== _wkSetKinds ? ' · 本月碰 <b>' + _monSetKinds + '</b> 套' : '');
+    var _monMinS = Math.round(_monSecS / 60);
+    var _tail = (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '') + (_wkSetKinds ? ' · 本周碰 <b>' + _wkSetKinds + '</b> 套' : '') + (_monSetKinds && _monSetKinds !== _wkSetKinds ? ' · 本月碰 <b>' + _monSetKinds + '</b> 套' : '') + (_monMinS ? ' · 本月练 <b>' + _monMinS + '</b> 分' : '');
     if (!nf && !nm) {
       el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆' + _tail;
       return;
