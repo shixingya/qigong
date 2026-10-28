@@ -1649,7 +1649,8 @@
     var _rkMonPre = S.todayStr().slice(0, 7);
     var _monRankTotal = S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _rkMonPre && r.set !== 'calm' ? (r.moves || []).length : 0); }, 0);
     var _mrTop = all.length && all[0].count > 1 ? (findMove(all[0].move) || {}).move : null;
-    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + (_mrTop ? ' · 最勤 ' + _mrTop.name + ' ' + all[0].count + ' 次' : '') + '，点一下重练这一式）';
+    var _mrFavN = all.filter(function (it) { var fm = findMove(it.move); return fm && S.isMoveFav(fm.set.id, fm.move.id); }).length;
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + (_mrTop ? ' · 最勤 ' + _mrTop.name + ' ' + all[0].count + ' 次' : '') + (_mrFavN ? ' · 常练 ' + _mrFavN + ' 式' : '') + '，点一下重练这一式）';
     el.appendChild(head);
     rk.forEach(function (it, i) {
       var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
@@ -1717,7 +1718,7 @@
     var _tmWkN = Object.keys(_tmWkK).length;
     var _tmSetMin = {}; S.records().forEach(function (r) { if (r.set && r.set !== 'calm') _tmSetMin[r.set] = (_tmSetMin[r.set] || 0) + (r.sec || 0); });
     var _touchedSets = DATA.sets.filter(function (st) { return st.moves.some(function (m) { return seen[m.id]; }); }).length;
-    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
+    head.textContent = '🧩 待补的式 · 还有 ' + todoTotal + ' 式没练过（点一下补这一式） · 已凑 ' + (moveTotal - todoTotal) + '/' + moveTotal + ' 式 · 完成 ' + Math.round((moveTotal - todoTotal) / moveTotal * 100) + '% · 集齐 ' + fullSets + '/' + DATA.sets.length + ' 套' + (_touchedSets ? ' · 已动 ' + _touchedSets + '/' + DATA.sets.length + ' 套' : '') + (_tmMonN ? ' · 本月练过 ' + _tmMonN + ' 式' : '') + (_tmWkN ? ' · 本周练过 ' + _tmWkN + ' 式' : '');
     el.appendChild(head);
     var shown = 0, CAP = 14;
     groups.forEach(function (g) {
