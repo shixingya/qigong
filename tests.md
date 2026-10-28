@@ -40,3 +40,12 @@
 | T-315-2 | 打卡页 `.td-head` | 累计练式数 `_tdEverMove` | `累计练 5 式` | 全量非 calm 去重式=同上 5 |
 
 冒烟结果：backupInfo=`… 本月定息 1 次 · 本月练 5 式 · 记录跨度 …`；td-head=`…本月 20 分 · 累计练 5 式 · 最勤 …`；console error=0。✅
+
+## v3.1.6 用例
+> 需额外播种 `settings.quizWrong={'kn-base':1,'kn-breath':1}` 与 `settings.quiz={'kn-state':true}`（否则错题本隐藏）。
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-316-1 | 入门页 `#courseProg .cp-txt` | 累计练功场 `_courseAllSess` | `累计练 4 场` | S.totalSess()=records.length=4 |
+| T-316-2 | 知识页 `.qw-txt` | 已通小测关数 `_qwPass` | `已通 1 关` | S.quizCount()=quiz 中 true 的篇数=1 |
+
+冒烟结果：cp-txt=`已完成 … · 本月练 3 天 · 累计练 4 场 …`；qw-txt=`📕 待订正的错题 2 题——错一处，长一智 · 已通 1 关`；console error=0。✅

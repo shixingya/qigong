@@ -2063,7 +2063,8 @@
       var ws = S.wrongList();
       if (!ws.length) { wbar.classList.add('hidden'); wbar.innerHTML = ''; return; }
       var kn0 = DATA.knowledge.find(function (k) { return ws.indexOf(k.id) >= 0; });
-      wbar.innerHTML = '<span class="qw-txt">📕 待订正的错题 <b>' + ws.length + '</b> 题——错一处，长一智</span>';
+      var _qwPass = S.quizCount();
+      wbar.innerHTML = '<span class="qw-txt">📕 待订正的错题 <b>' + ws.length + '</b> 题——错一处，长一智' + (_qwPass ? ' · 已通 <b>' + _qwPass + '</b> 关' : '') + '</span>';
       if (kn0) {
         var gb = document.createElement('button');
         gb.className = 'btn primary sm';
@@ -2269,6 +2270,7 @@
     var _courseMonPre = S.todayStr().slice(0, 7), _courseDayK = {};
     S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _courseMonPre) _courseDayK[r.d] = 1; });
     var _courseMonDays = Object.keys(_courseDayK).length;
+    var _courseAllSess = S.totalSess();
     /* 自我锚点定位：首次进页定为第 1 天，之后按日数亮“今日”格 */
     var cs = S.courseStart();
     var dayIdx = Math.round((new Date(S.todayStr()) - new Date(cs)) / 86400000) + 1;
@@ -2281,7 +2283,7 @@
     }
     $('#courseProg').innerHTML =
       '<div class="cp-bar"><i style="width:' + pct + '%"></i></div>' +
-      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' + (_courseMonDays ? ' · 本月练 <b>' + _courseMonDays + '</b> 天' : '') + locTxt +
+      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' + (_courseMonDays ? ' · 本月练 <b>' + _courseMonDays + '</b> 天' : '') + (_courseAllSess ? ' · 累计练 <b>' + _courseAllSess + '</b> 场' : '') + locTxt +
       (doneN === total && total > 0 ? ' 🎉 四周圆满！' : '') + locBtn + '</div>';
     var box = $('#courseWeeks'); box.innerHTML = '';
     var gno = 0, todayCell = null;
