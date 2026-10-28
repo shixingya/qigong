@@ -170,3 +170,13 @@
 播种：标准种子（无需 plan/quizWrong）。
 
 冒烟结果：mr-head=`… 涉猎 2 套 · 最勤 … · 累计练 2 天，点一下重练这一式）`；tm-head=`… 累计练 4 场 · 累计练 2 天`；console error=0。✅
+
+## v3.1.20 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3120-1 | 打卡页 `.rec-sum` | 累计练功天数 `_rsEverDays` | `累计练 2 天`（在“累计定息 2 次”后） | S.totalDays()=去重日 {10-26,10-28}=2 |
+| T-3120-2 | 打卡页 `#calFoot` | 累计练功场 `_calAllSess` | `累计 4 场` | S.totalSess()=records.length=4（含 calm） |
+
+播种：标准种子（无需 plan/quizWrong）。
+
+冒烟结果：rec-sum=`… 累计定息 2 次 · 累计练 2 天`；calFoot=`… 练 3 式 · 累计 4 场`；console error=0。✅
