@@ -307,7 +307,9 @@
         var _touchedN = Object.keys(_setsTouched).length;
         var _avgSess = S.totalSess() ? Math.round(S.totalMin() / S.totalSess()) : 0;
         var _mvFavN = S.moveFavKeys().length;
-        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (_monMinSelf ? ' · 本月 <b>' + _monMinSelf + '</b> 分' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_mvFavN ? ' · 常练 <b>' + _mvFavN + '</b> 式' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
+        var _mvMonK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _monPre && r.set !== 'calm') (r.moves || []).forEach(function (m) { _mvMonK[m] = 1; }); });
+        var _mvMonSelf = Object.keys(_mvMonK).length;
+        self.innerHTML = '🌿 你已练 <b>' + S.totalSess() + '</b> 场 · 累计 <b>' + S.totalMin() + '</b> 分钟' + (_wkSess ? ' · 本周 <b>' + _wkSess + '</b> 场' : '') + (_monSess ? ' · 本月 <b>' + _monSess + '</b> 场' : '') + (_monMinSelf ? ' · 本月 <b>' + _monMinSelf + '</b> 分' : '') + (S.streak() > 1 ? ' · 连续 <b>' + S.streak() + '</b> 天' : '') + (_learnedAll ? ' · 已学 <b>' + _learnedAll + '/' + moveTotal + '</b> 式' : '') + (_calmAll ? ' · 定息 <b>' + _calmAll + '</b> 次' + (_calmMin ? '（共 <b>' + _calmMin + '</b> 分）' : '') : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (_touchedN >= 2 ? ' · 涉猎 <b>' + _touchedN + '/' + DATA.sets.length + '</b> 套' : '') + (S.favIds().length ? ' · 收藏 <b>' + S.favIds().length + '</b> 套' : '') + (_mvFavN ? ' · 常练 <b>' + _mvFavN + '</b> 式' : '') + (_mvMonSelf ? ' · 本月练 <b>' + _mvMonSelf + '</b> 式' : '') + (_avgSess ? ' · 场均 <b>' + _avgSess + '</b> 分' : '');
       } else self.classList.add('hidden');
     }
     /* 今日习练推荐：先按时段筛，再按日期确定性轮换，不随机不骚扰 */
@@ -1586,7 +1588,9 @@
     head.className = 'mr-head';
     var _rankTotal = all.reduce(function (a, x) { return a + (x.count || 0); }, 0);
     var _wkRankTotal = _wkRecs.reduce(function (a, r) { return a + ((r.moves || []).length); }, 0);
-    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + '，点一下重练这一式）';
+    var _rkMonPre = S.todayStr().slice(0, 7);
+    var _monRankTotal = S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _rkMonPre && r.set !== 'calm' ? (r.moves || []).length : 0); }, 0);
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + (_monRankTotal ? ' · 本月 ' + _monRankTotal + ' 次' : '') + '，点一下重练这一式）';
     el.appendChild(head);
     rk.forEach(function (it, i) {
       var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
