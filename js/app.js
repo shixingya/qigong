@@ -1562,7 +1562,8 @@
     var medal = ['🥇', '🥈', '🥉'];
     var head = document.createElement('div');
     head.className = 'mr-head';
-    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式，点一下重练这一式）';
+    var _rankTotal = all.reduce(function (a, x) { return a + (x.count || 0); }, 0);
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次，点一下重练这一式）';
     el.appendChild(head);
     rk.forEach(function (it, i) {
       var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
@@ -1764,8 +1765,11 @@
     var foot = $('#calFoot');
     if (foot) {
       var curMon = (y === new Date(S.todayStr()).getFullYear() && m === new Date(S.todayStr()).getMonth());
+      var _monPreCal = y + '-' + String(m + 1).padStart(2, '0');
+      var _monSec = S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _monPreCal ? (r.sec || 0) : 0); }, 0);
+      var _monMin = Math.round(_monSec / 60);
       foot.innerHTML = mDays
-        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '')
+        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '')
         : '这个月还没有练功记录，翻个月看看功夫足迹';
     }
   }
