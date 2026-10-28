@@ -1563,7 +1563,8 @@
     var head = document.createElement('div');
     head.className = 'mr-head';
     var _rankTotal = all.reduce(function (a, x) { return a + (x.count || 0); }, 0);
-    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次，点一下重练这一式）';
+    var _wkRankTotal = _wkRecs.reduce(function (a, r) { return a + ((r.moves || []).length); }, 0);
+    head.textContent = '🏆 我的功夫榜 · 练得最多的式（共练过 ' + all.length + ' 式 · 累计练式 ' + _rankTotal + ' 次' + (_wkRankTotal ? ' · 本周 ' + _wkRankTotal + ' 次' : '') + '，点一下重练这一式）';
     el.appendChild(head);
     rk.forEach(function (it, i) {
       var fm = findMove(it.move); /* 上面已过滤，这里必命中 */
@@ -1768,8 +1769,10 @@
       var _monPreCal = y + '-' + String(m + 1).padStart(2, '0');
       var _monSec = S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _monPreCal ? (r.sec || 0) : 0); }, 0);
       var _monMin = Math.round(_monSec / 60);
+      var _monSetK = {}; Object.keys(smap).forEach(function (k) { (smap[k] || []).forEach(function (sid) { if (sid !== 'calm') _monSetK[sid] = 1; }); });
+      var _monSetN = Object.keys(_monSetK).length;
       foot.innerHTML = mDays
-        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '')
+        ? '<b>' + (curMon ? '本月' : '该月') + '</b>练功 <b>' + mDays + '</b> 天 · 共 <b>' + mSess + '</b> 场' + (mMaxN > 1 ? ' · 最勤 ' + mMaxDs.slice(5) + '（' + mMaxN + ' 场）' : '') + (_monMin ? ' · 约 <b>' + _monMin + '</b> 分钟' : '') + (_monSetN >= 2 ? ' · 涉猎 <b>' + _monSetN + '</b> 套' : '')
         : '这个月还没有练功记录，翻个月看看功夫足迹';
     }
   }
