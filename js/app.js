@@ -522,6 +522,7 @@
     S.records().forEach(function (r) { if (r.set === st.id && (!_lastD || r.d > _lastD)) _lastD = r.d; });
     var _ago = (_lastD && _wkSetN === 0) ? Math.round((new Date(S.todayStr()) - new Date(_lastD)) / 86400000) : null;
     var _favMv = S.moveFavKeys().filter(function (k) { return k.set === st.id; }).length;
+    var _scMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d.slice(0, 7) === _scMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -530,7 +531,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_scMonN && _scMonN !== _wkSetN ? '<span class="sc-wk" title="本月跟练这套的场次">本月 ' + _scMonN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
@@ -1497,7 +1498,9 @@
     var _bkMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
     var _bkMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d.slice(0, 7) === _bkMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var _bkMonCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + _span;
+    var _bkWkFrom = S.weekReport().rangeFrom;
+    var _bkWkN = S.records().filter(function (r) { return r.d && r.d >= _bkWkFrom; }).length;
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + _span;
   }
 
   function renderCheckin() {
