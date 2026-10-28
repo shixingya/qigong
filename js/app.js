@@ -320,13 +320,16 @@
     var _lc = S.learnedCount(st.id), _lt = st.moves.length;
     var _learnLine = (_lc > 0 && _lc < _lt) ? ' · 本套已学 <b>' + _lc + '/' + _lt + '</b> 式' : (_lc >= _lt && _lt ? ' · 本套 <b>' + _lt + '</b> 式已学满' : '');
     var _calmNudge = S.calmToday() ? '' : ' · 🍃 今日未定息，静一分钟也很养';
+    var _stWkFrom = S.weekReport().rangeFrom;
+    var _stWkN = S.records().filter(function (r) { return r.set === st.id && r.d >= _stWkFrom; }).length;
+    var _stWkLine = _stWkN ? ' · 本套本周 <b>' + _stWkN + '</b> 场' : '';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次 · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stWkLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1446,6 +1449,7 @@
       statBox(S.streakMax(), '天', '最长连续') +
       statBox(S.totalDays(), '天', '累计打卡', true) +
       statBox(mins, '分钟', '累计练功时长') +
+      statBox(S.weekReport().sessions, '次', '本周练功') +
       statBox(S.learnedTotal(), '/' + moveTotal, '已学动作');
 
     renderCalendar();
