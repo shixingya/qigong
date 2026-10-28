@@ -1514,7 +1514,8 @@
     var _bkMonCalm = S.records().filter(function (r) { return r.set === 'calm' && r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
     var _bkWkFrom = S.weekReport().rangeFrom;
     var _bkWkN = S.records().filter(function (r) { return r.d && r.d >= _bkWkFrom; }).length;
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + _span;
+    var _bkWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _bkWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkWkMin ? ' · 本周 <b>' + _bkWkMin + '</b> 分' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + _span;
   }
 
   function renderCheckin() {
@@ -1673,7 +1674,7 @@
       var _wkN = _wkRecs.filter(function (r) { return (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
       var _monN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _rkMonPre && (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
       var _mvMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(fm.move.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
-      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' : '') + (_mvMin ? ' · 共约 ' + _mvMin + ' 分' : '');
+      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' : '') + (_mvMin ? ' · 共约 ' + _mvMin + ' 分' : '') + (S.isMoveFav(fm.set.id, fm.move.id) ? ' · ⭐ 常练' : '');
       row.appendChild(meta);
       el.appendChild(row);
     });
