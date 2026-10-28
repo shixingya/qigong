@@ -493,6 +493,7 @@
     var _lastD = null;
     S.records().forEach(function (r) { if (r.set === st.id && (!_lastD || r.d > _lastD)) _lastD = r.d; });
     var _ago = (_lastD && _wkSetN === 0) ? Math.round((new Date(S.todayStr()) - new Date(_lastD)) / 86400000) : null;
+    var _favMv = S.moveFavKeys().filter(function (k) { return k.set === st.id; }).length;
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -501,7 +502,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
@@ -1450,7 +1451,8 @@
       statBox(S.totalDays(), '天', '累计打卡', true) +
       statBox(mins, '分钟', '累计练功时长') +
       statBox(S.weekReport().sessions, '次', '本周练功') +
-      statBox(S.learnedTotal(), '/' + moveTotal, '已学动作');
+      statBox(S.learnedTotal(), '/' + moveTotal, '已学动作') +
+      statBox(S.favIds().length, '套', '收藏功法');
 
     renderCalendar();
     renderWeekCard();
