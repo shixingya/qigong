@@ -194,9 +194,19 @@
 ## v3.1.22 用例
 | 编号 | 位置 | 指标 | 期望值 | 手算依据 |
 | --- | --- | --- | --- | --- |
-| T-3122-1 | 功法页 `#setStat` | 累计练功天数 `_ssEverDays` | `累计练 2 天`（在“累计练 3 场”后） | S.totalDays()=2；_ssAllSess=3（排除 calm） |
+| T-3122-1 | 功法页 `#setStat` | 累计练功天数 `_ssEverDays` | `累计练 2 天`（在“累计练 2 场”后） | S.totalDays()=2；_ssAllSess=2（排除 calm） |
 | T-3122-2 | 单式详情 `.mv-sess`（bdj-1） | 累计练功天数 `_mEverDays` | `这套练 1 场 · 累计练 2 天` | 本套 baduanjin 有记录日=1；totalDays=2 |
 
 播种：标准种子（bdj-1 已练，进单式需先点 set-card 再点 move-cell）。
 
-冒烟结果：setStat=`… 累计练 3 场 · 累计练 2 天`；mv-sess=`已练 1 场 · 共约 10 分 · … · 这套练 1 场 · 累计练 2 天`；console error=0。✅
+冒烟结果：setStat=`… 累计练 2 场 · 累计练 2 天`；mv-sess=`已练 1 场 · 共约 10 分 · … · 这套练 1 场 · 累计练 2 天`；console error=0。✅
+
+## v3.1.23 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3123-1 | 入门页 `#courseProg` | 累计练功天数 `_courseEverDays` | `累计练 4 场 · 累计练 2 天` | S.totalSess()=4（含 calm）；S.totalDays()=2 |
+| T-3123-2 | 复习台定息小结行 `_rvEverDays` | 累计练功天数 | `累计定息 2 次 · 累计练 2 天` | calm 记录=2；totalDays=2 |
+
+播种：标准种子（totalDays=2、totalSess=4、calm=2）；复习台需点首页“复习台”入口或 reviewOpen 打开 #rvMask。
+
+冒烟结果：courseProg=`已完成 2 / 28 天 · 7% · 本月练 2 天 · 累计练 4 场 · 累计练 2 天 · …`；复习台定息小结行=`累计定息 2 次 · 累计练 2 天 · 今日已定息…`；console error=0。✅

@@ -1428,7 +1428,7 @@
     box.innerHTML =
       row('🃏', '全量抽卡', '知识要点共 ' + total + ' 篇' + (total - unread ? ' · 已读 ' + (total - unread) + ' 篇' : '') + (_rvPct ? ' · 明理 ' + _rvPct + '%' : '') + (fs.rounds ? ' · 已抽 ' + fs.rounds + ' 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '） · 上轮共 ' + fs.lastTotal + ' 张卡' : ''), 'rvFc', '开一轮抽卡', !total, '把所有要点打乱轮一遍') +
       row('⛰', '难卡包', hn ? '包内 ' + hn + ' 张 · 卡面上随手归档' : '还没存难卡 · 抽卡时点「归入难卡」收进来', 'rvHard', '专攻难卡', !hn, '只抽被标记的难卡') +
-      row('🧘', '定息小结', (function () { var _rvCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length; var _rvCalmToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return r.set === 'calm'; }).length; return _rvCalmAll ? '累计定息 ' + _rvCalmAll + ' 次' + (_rvCalmToday ? ' · 今日已定息 ' + _rvCalmToday + ' 次' : ' · 今日还没定息，静一分钟也很养') : '还没定息过 · 首页「一分钟定息」开个头'; })(), 'rvCalm', '去首页定息', false, '回首页找一分钟定息入口') +
+      row('🧘', '定息小结', (function () { var _rvCalmAll = S.records().filter(function (r) { return r.set === 'calm'; }).length; var _rvCalmToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return r.set === 'calm'; }).length; var _rvEverDays = S.totalDays(); return _rvCalmAll ? '累计定息 ' + _rvCalmAll + ' 次' + (_rvEverDays > 1 ? ' · 累计练 ' + _rvEverDays + ' 天' : '') + (_rvCalmToday ? ' · 今日已定息 ' + _rvCalmToday + ' 次' : ' · 今日还没定息，静一分钟也很养') : '还没定息过 · 首页「一分钟定息」开个头'; })(), 'rvCalm', '去首页定息', false, '回首页找一分钟定息入口') +
       row('📕', '错题订正', ws ? '待订正 ' + ws + ' 题 · 补对自动销账' + (S.quizCount() ? ' · 已补对 ' + S.quizCount() + ' 题' : '') : '暂无错题 · 随堂小测答错就记进来', 'rvWrong', '直达第一篇', !ws, '跳到第一道待订正的篇目') +
       row('📖', '续读一篇', unread ? '还有 ' + unread + ' 篇未读完（已读 ' + (total - unread) + '/' + total + '）' : '全部读完 · 明理圆满 🎉', 'rvNext', unread ? '读下一篇未读的' : '无需再读', !unread, '展开未读的那篇并滚到眼前');
     $('#rvFc').addEventListener('click', function () { $('#rvMask').classList.add('hidden'); fcOpen(false); });
@@ -2306,6 +2306,7 @@
     S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _courseMonPre) _courseDayK[r.d] = 1; });
     var _courseMonDays = Object.keys(_courseDayK).length;
     var _courseAllSess = S.totalSess();
+    var _courseEverDays = S.totalDays(); /* 累计练功天数：四周课表的大前提 */
     /* 自我锚点定位：首次进页定为第 1 天，之后按日数亮“今日”格 */
     var cs = S.courseStart();
     var dayIdx = Math.round((new Date(S.todayStr()) - new Date(cs)) / 86400000) + 1;
@@ -2318,7 +2319,7 @@
     }
     $('#courseProg').innerHTML =
       '<div class="cp-bar"><i style="width:' + pct + '%"></i></div>' +
-      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' + (_courseMonDays ? ' · 本月练 <b>' + _courseMonDays + '</b> 天' : '') + (_courseAllSess ? ' · 累计练 <b>' + _courseAllSess + '</b> 场' : '') + locTxt +
+      '<div class="cp-txt">已完成 <b>' + doneN + '</b> / ' + total + ' 天 · ' + pct + '%' + (_courseMonDays ? ' · 本月练 <b>' + _courseMonDays + '</b> 天' : '') + (_courseAllSess ? ' · 累计练 <b>' + _courseAllSess + '</b> 场' : '') + (_courseEverDays > 1 ? ' · 累计练 <b>' + _courseEverDays + '</b> 天' : '') + locTxt +
       (doneN === total && total > 0 ? ' 🎉 四周圆满！' : '') + locBtn + '</div>';
     var box = $('#courseWeeks'); box.innerHTML = '';
     var gno = 0, todayCell = null;
