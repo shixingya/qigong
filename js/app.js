@@ -727,11 +727,12 @@
     var _setWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === curSet.id && r.d >= _setWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
     var _setAllMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === curSet.id ? (r.sec || 0) : 0); }, 0) / 60);
     var _setMonMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d && r.d.slice(0, 7) === _setMonPre) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
+    var _setWkMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d >= _setWkFrom) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
       '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
-      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + '</div>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
@@ -863,8 +864,9 @@
     var _mIsFav = S.moveFavKeys().some(function (k) { return k.set === curSet.id && k.move === curMove.id; });
     var msessToday = S.recordsOfDay(S.todayStr()).filter(function (r) { return (r.moves || []).indexOf(curMove.id) >= 0; }).length;
     var _mTotalMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
+    var _mWkMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(curMove.id) >= 0 && r.d >= _wkFrom ? (r.sec || 0) : 0); }, 0) / 60);
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (_mTotalMin ? ' · 共约 ' + _mTotalMin + ' 分' : '') + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessWk && _mWkMin ? ' 约 ' + _mWkMin + ' 分' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (msessToday ? ' · 今日 ' + msessToday + ' 次' : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
