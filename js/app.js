@@ -1559,7 +1559,8 @@
     var _bkWkMin = Math.round(S.records().reduce(function (a, r) { return a + (r.d && r.d >= _bkWkFrom ? (r.sec || 0) : 0); }, 0) / 60);
     var _bkMonMoveK = {}; S.records().forEach(function (r) { if (r.d && r.d.slice(0, 7) === _bkMonPre && r.set !== 'calm') (r.moves || []).forEach(function (m) { _bkMonMoveK[m] = 1; }); });
     var _bkMonMove = Object.keys(_bkMonMoveK).length;
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkWkMin ? ' · 本周 <b>' + _bkWkMin + '</b> 分' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + (_bkMonMove ? ' · 本月练 <b>' + _bkMonMove + '</b> 式' : '') + _span;
+    var _bkEverDays = S.totalDays(); /* 累计练功天数：备份区的大前提 */
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkWkN ? ' · 本周 <b>' + _bkWkN + '</b> 场' : '') + (_bkWkMin ? ' · 本周 <b>' + _bkWkMin + '</b> 分' : '') + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + (_bkMonMin ? ' · 本月 <b>' + _bkMonMin + '</b> 分' : '') + (_bkMonCalm ? ' · 本月定息 <b>' + _bkMonCalm + '</b> 次' : '') + (_bkMonMove ? ' · 本月练 <b>' + _bkMonMove + '</b> 式' : '') + (_bkEverDays > 1 ? ' · 累计练 <b>' + _bkEverDays + '</b> 天' : '') + _span;
   }
 
   function renderCheckin() {
@@ -2059,6 +2060,7 @@
     var _wl = S.wrongList().length;
     var _khHard = S.hardCount();
     var _khWrongSum = S.wrongSum(); /* 错题总笔数：同一篇可多次答错 */
+    var _khEverDays = S.totalDays(); /* 累计练功天数：知识页的大前提 */
     var _rdPct = total ? Math.round(S.readCount() / total * 100) : 0;
     sp.innerHTML = '已读 <b>' + S.readCount() + '</b> / ' + total + ' 篇' + (unread > 0 ? ' · 待读 <b>' + unread + '</b> 篇' : ' · 明理圆满 🎉') +
       (_rdPct > 0 && _rdPct < 100 ? ' · 明理 <b>' + _rdPct + '%</b>' : '') +
@@ -2066,7 +2068,8 @@
       (_wl ? ' · 待复习错题 <b>' + _wl + '</b> 道' : '') +
       (_khWrongSum > _wl ? ' · 错过 <b>' + _khWrongSum + '</b> 笔' : '') +
       (fs.rounds ? ' · 抽卡 <b>' + fs.rounds + '</b> 轮（上轮记住 ' + fs.lastGot + '/' + fs.lastTotal + '）' : '') +
-      (_khHard ? ' · 难卡 <b>' + _khHard + '</b> 张' : '');
+      (_khHard ? ' · 难卡 <b>' + _khHard + '</b> 张' : '') +
+      (_khEverDays > 1 ? ' · 累计练 <b>' + _khEverDays + '</b> 天' : '');
   }
   function renderKnowledge() {
     var box = $('#knowList');

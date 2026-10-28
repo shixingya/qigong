@@ -210,3 +210,13 @@
 播种：标准种子（totalDays=2、totalSess=4、calm=2）；复习台需点首页“复习台”入口或 reviewOpen 打开 #rvMask。
 
 冒烟结果：courseProg=`已完成 2 / 28 天 · 7% · 本月练 2 天 · 累计练 4 场 · 累计练 2 天 · …`；复习台定息小结行=`累计定息 2 次 · 累计练 2 天 · 今日已定息…`；console error=0。✅
+
+## v3.1.24 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3124-1 | 打卡页 `#backupInfo` | 累计练功天数 `_bkEverDays` | `本月练 3 式 · 累计练 2 天` | S.totalDays()=2；需 settings.lastBackup 非空才渲染 |
+| T-3124-2 | 知识页 `#knowStats` | 累计练功天数 `_khEverDays` | 尾部 `累计练 2 天` | totalDays=2；难卡 0 张时难卡段隐 | 
+
+播种：标准种子 + settings.lastBackup='2026-10-27 10:00'（令备份区露出）。
+
+冒烟结果：backupInfo=`… 本月定息 2 次 · 本月练 3 式 · 累计练 2 天 · 记录跨度…`；knowStats=`已读 2 / 6 篇 · 待读 4 篇 · 明理 33% · 小测过关 0 / 6 · 累计练 2 天`；console error=0。✅
