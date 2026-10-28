@@ -677,11 +677,12 @@
     var sessWkN = S.records().filter(function (r) { return r.set === curSet.id && r.d >= _setWkFrom; }).length;
     var _setMonPre = S.todayStr().slice(0, 7);
     var sessMonN = S.records().filter(function (r) { return r.set === curSet.id && r.d && r.d.slice(0, 7) === _setMonPre; }).length;
+    var _setFavMv = S.moveFavKeys().filter(function (k) { return k.set === curSet.id; }).length;
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
       '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
-      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + '</div>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
@@ -1461,7 +1462,9 @@
     el.classList.remove('hidden');
     var _ds = S.records().map(function (r) { return r.d; }).sort();
     var _span = _ds.length ? ' · 记录跨度 <b>' + _ds[0] + '</b> ~ <b>' + _ds[_ds.length - 1] + '</b>' : '';
-    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + _span;
+    var _bkMonPre = S.todayStr().slice(0, 7);
+    var _bkMonN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _bkMonPre; }).length;
+    el.innerHTML = '🗂 上次备份：' + (bi.lastBackup || '从未') + ' · 上次恢复：' + (bi.lastImport || '从未') + ' · 现有 <b>' + S.records().length + '</b> 条记录 · 累计练功 <b>' + S.totalMin() + '</b> 分钟' + (_bkMonN ? ' · 本月 <b>' + _bkMonN + '</b> 场' : '') + _span;
   }
 
   function renderCheckin() {
