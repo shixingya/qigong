@@ -811,8 +811,9 @@
     var _mAgoTxt = _mAgo === null ? '' : (_mAgo === 0 ? '今天练过' : '上次 ' + _mAgo + ' 天前');
     var _mIdx = curSet.moves.indexOf(curMove);
     var _mPosTxt = _mIdx >= 0 ? '第 ' + (_mIdx + 1) + '/' + curSet.moves.length + ' 式' : '';
+    var _mIsFav = S.moveFavKeys().some(function (k) { return k.set === curSet.id && k.move === curMove.id; });
     $('#moveHead').innerHTML =
-      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + '</span>' : '') +
+      '<h2>' + curMove.name + (_mPosTxt ? ' <span class="mv-pos">' + _mPosTxt + '</span>' : '') + (msess ? ' <span class="mv-sess">已练 ' + msess + ' 场' + (msessWk ? ' · 本周 ' + msessWk + ' 场' : '') + (msessMon && msessMon !== msessWk ? ' · 本月 ' + msessMon + ' 场' : '') + (_mAgoTxt ? ' · ' + _mAgoTxt : '') + (_mIsFav ? ' · ⭐ 常练式' : '') + '</span>' : '') +
       '<button class="btn ghost sm mv-fav-set' + (S.isFav(curSet.id) ? ' on' : '') + '" id="mvFavSet" title="收藏/取消收藏这套（' + curSet.name + '）">' + (S.isFav(curSet.id) ? '⭐ 已收藏这套' : '☆ 收藏这套') + '</button></h2><p class="desc">' + curMove.desc + '</p>';
     $('#moveSteps').innerHTML = curMove.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('#moveBreath').textContent = curMove.breath;
@@ -1805,7 +1806,9 @@
     if (!pop) return;
     var recs = S.recordsOfDay(ds);
     if (!recs.length) { pop.classList.add('hidden'); return; }
-    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场 · 共约 ' + Math.max(1, Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60)) + ' 分钟<button class="btn ghost sm" id="dpX">收起</button></div>' +
+    var _dpK = {}; recs.forEach(function (r) { if (r.set !== 'calm') _dpK[r.set] = 1; });
+    var _dpSets = Object.keys(_dpK).length;
+    pop.innerHTML = '<div class="dp-head">🗓 ' + ds + ' · 当日 ' + recs.length + ' 场' + (_dpSets >= 2 ? ' · 涉猎 ' + _dpSets + ' 套' : '') + ' · 共约 ' + Math.max(1, Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60)) + ' 分钟<button class="btn ghost sm" id="dpX">收起</button></div>' +
       recs.map(function (r) {
         var st = DATA.sets.find(function (s) { return s.id === r.set; });
         var hh = r.hour == null ? '🕒' : (r.hour < 5 || r.hour >= 23) ? '🌙' : r.hour < 11 ? '🌅' : r.hour < 17 ? '☀️' : '🌆';
