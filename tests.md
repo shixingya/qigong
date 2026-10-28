@@ -190,3 +190,13 @@
 播种：标准种子 + settings.favMoves={'baduanjin/bdj-1':true}（令 fm-head 渲染）。
 
 冒烟结果：fm-head=`⭐ 我的常练式（… 共 1 式 · 累计练过 1 式 · 累计练 2 天）`；td-head=`⏰ 练功时段分布（… 累计练 3 式 · 最勤 … · 累计练功 2 天）`；console error=0。✅
+
+## v3.1.22 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3122-1 | 功法页 `#setStat` | 累计练功天数 `_ssEverDays` | `累计练 2 天`（在“累计练 3 场”后） | S.totalDays()=2；_ssAllSess=3（排除 calm） |
+| T-3122-2 | 单式详情 `.mv-sess`（bdj-1） | 累计练功天数 `_mEverDays` | `这套练 1 场 · 累计练 2 天` | 本套 baduanjin 有记录日=1；totalDays=2 |
+
+播种：标准种子（bdj-1 已练，进单式需先点 set-card 再点 move-cell）。
+
+冒烟结果：setStat=`… 累计练 3 场 · 累计练 2 天`；mv-sess=`已练 1 场 · 共约 10 分 · … · 这套练 1 场 · 累计练 2 天`；console error=0。✅
