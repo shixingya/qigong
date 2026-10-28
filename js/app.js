@@ -481,11 +481,12 @@
     var est = estMin(st);
     var lpct = Math.round(learned / st.moves.length * 100);
     var doneToday = S.recordsOfDay(S.todayStr()).some(function (r) { return r.set === st.id; });
+    var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
       '<button class="fav-star' + (S.isFav(st.id) ? ' on' : '') + '" title="收藏/取消收藏常用功法">' + (S.isFav(st.id) ? '⭐' : '☆') + '</button>' +
       '<h3>' + st.name + '</h3>' +
-      '<div class="py">' + st.pinyin + ' · ' + st.level + '</div>' +
+      '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
       '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
@@ -527,11 +528,12 @@
     var el = $('#setStat');
     if (!el) return;
     var nf = S.favIds().length, nm = S.moveFavKeys().length;
+    var learnedAll = DATA.sets.reduce(function (a, s) { return a + Math.min(S.learnedCount(s.id), s.moves.length); }, 0);
     if (!nf && !nm) {
-      el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆';
+      el.innerHTML = '🌱 还没收藏——功法卡右上角点星⭐收进“我的常用”，单式点“常练”☆' + (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '');
       return;
     }
-    el.innerHTML = '⭐ 已收藏 <b>' + nf + '</b> 套功法 · 🔖 列常练 <b>' + nm + '</b> 式';
+    el.innerHTML = '⭐ 已收藏 <b>' + nf + '</b> 套功法 · 🔖 列常练 <b>' + nm + '</b> 式' + (learnedAll ? ' · 已学 <b>' + learnedAll + '/' + moveTotal + '</b> 式' : '');
   }
 
   /* ---- 功法页搜索与部位标签筛选 ---- */
