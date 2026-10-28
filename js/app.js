@@ -1664,7 +1664,8 @@
       meta.className = 'mr-meta';
       var _wkN = _wkRecs.filter(function (r) { return (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
       var _monN = S.records().filter(function (r) { return r.d && r.d.slice(0, 7) === _rkMonPre && (r.moves || []).indexOf(fm.move.id) >= 0; }).length;
-      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' : '');
+      var _mvMin = Math.round(S.records().reduce(function (a, r) { return a + ((r.moves || []).indexOf(fm.move.id) >= 0 ? (r.sec || 0) : 0); }, 0) / 60);
+      meta.textContent = fm.set.icon + ' ' + fm.set.name + ' · 练过 ' + it.count + ' 场 · 最近 ' + it.last + (_wkN ? ' · 本周 ' + _wkN + ' 场' : '') + (_monN && _monN !== _wkN ? ' · 本月 ' + _monN + ' 场' : '') + (_mvMin ? ' · 共约 ' + _mvMin + ' 分' : '');
       row.appendChild(meta);
       el.appendChild(row);
     });
@@ -1710,7 +1711,7 @@
       row.className = 'tm-group';
       var lb = document.createElement('span');
       lb.className = 'tm-set';
-      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })();
+      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })();
       row.appendChild(lb);
       /* 集式进度微条：已练过多少式/共多少式，凑齐的动力看得见 */
       var doneCnt = g.set.moves.length - g.todo.length;
