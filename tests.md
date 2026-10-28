@@ -280,3 +280,13 @@
 播种：标准种子 + settings.favMoves={'baduanjin/bdj-1':true}（bdj-1 已跨两日）；跟练页用 QGApp.Train.start(DATA.sets[0], DATA.sets[0].moves, 'full') 后读 #trainSetName（读完 Train.finish 收场）。需先 unregister SW + delete caches 再 reload，否则浏览器用旧 app.js。
 
 冒烟结果：首页 .fm-chip small=`🌿 八段锦 · 练 2 天`✓；跟练页 trainSetName=`🌿 八段锦 · 整套 · 累计练 2 天 · 这套练 2 天`✓；console error=0。✅
+
+## v3.1.31 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3131-1 | 功法卡 `.set-card .prog`（baduanjin） | 本周这套练过天数 `_scWkDays` | 含 `本周这套练 2 天` | baduanjin 跨 10-26/10-28，两日均在本周（周日起 10-25） |
+| T-3131-2 | 功法详情 `.set-sess`（baduanjin） | 本周这套练过天数 `_setWkDays` | 含 `本周这套练 2 天`（在“这套练 N 天”后） | 同上；_setWkFrom=10-25 |
+
+播种：标准种子（baduanjin 跨 10-26/10-28，均在 2026-10-25 起同一周）；需先 unregister SW + delete caches 再 reload。进功法页→点八段锦卡读 .prog，再点入详情读 .set-sess。
+
+冒烟结果：功法卡 .prog=`已学 3/8 式 · 本周练 3 式 · 本月练 3 式 · 这套练 2 场 · 这套练 2 天 · 本周这套练 2 天 · 共 15 分钟`✓；功法详情 .set-sess=`… · 累计练 2 天 · 这套练 2 天 · 本周这套练 2 天`✓；console error=0。✅

@@ -566,6 +566,7 @@
     var _scMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id && r.d && r.d.slice(0, 7) === _scMonPre ? (r.sec || 0) : 0); }, 0) / 60);
     var _scSetAll = S.records().filter(function (r) { return r.set === st.id && r.d; }).length;
     var _scSelfDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本套练过的天数：功法卡的大前提 */
+    var _scWkDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d >= _wkFromS) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本周练这套的天数 */
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -574,7 +575,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_scMonN && _scMonN !== _wkSetN ? '<span class="sc-wk" title="本月跟练这套的场次">本月 ' + _scMonN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + (_scSetAll ? ' · 这套练 <b>' + _scSetAll + '</b> 场' : '') + (_scSelfDays > 1 ? ' · 这套练 <b>' + _scSelfDays + '</b> 天' : '') + (_scMonMin && _scMonMin !== _scAllMin ? ' · 本月 <b>' + _scMonMin + '</b> 分' : '') + (_scAllMin ? ' · 共 <b>' + _scAllMin + '</b> 分钟' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + (_scSetAll ? ' · 这套练 <b>' + _scSetAll + '</b> 场' : '') + (_scSelfDays > 1 ? ' · 这套练 <b>' + _scSelfDays + '</b> 天' : '') + (_scWkDays > 1 ? ' · 本周这套练 <b>' + _scWkDays + '</b> 天' : '') + (_scMonMin && _scMonMin !== _scAllMin ? ' · 本月 <b>' + _scMonMin + '</b> 分' : '') + (_scAllMin ? ' · 共 <b>' + _scAllMin + '</b> 分钟' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
@@ -755,11 +756,12 @@
     var _setTodayMove = (function () { var K = {}; S.recordsOfDay(S.todayStr()).forEach(function (r) { if (r.set === curSet.id) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _setEverDays = S.totalDays(); /* 累计练功天数：功法详情头部的大前提 */
     var _setSelfDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本套练过的天数 */
+    var _setWkDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === curSet.id && r.d && r.d >= _setWkFrom) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本周练这套的天数 */
     head.innerHTML =
       '<h2>' + curSet.icon + ' ' + curSet.name + ' <span class="py">' + curSet.pinyin + '</span>' +
       '<button class="set-fav' + (S.isFav(curSet.id) ? ' on' : '') + '" id="setFavStar" title="收藏/取消收藏这套功法">' + (S.isFav(curSet.id) ? '⭐ 已收藏' : '☆ 收藏这套') + '</button></h2>' +
       '<p>' + curSet.intro + '</p>' +
-      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setTodayMove ? ' · 今日练 <b>' + _setTodayMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + (_setEverDays > 1 ? ' · 累计练 <b>' + _setEverDays + '</b> 天' : '') + (_setSelfDays > 1 ? ' · 这套练 <b>' + _setSelfDays + '</b> 天' : '') + '</div>' +
+      '<div class="set-sess">' + (sessN ? '🔥 这套你已练 <b>' + sessN + '</b> 场' + (sessWkN ? ' · 本周 <b>' + sessWkN + '</b> 场' + (_setWkMin ? ' 共 <b>' + _setWkMin + '</b> 分钟' : '') : '') + (sessMonN && sessMonN !== sessWkN ? ' · 本月 <b>' + sessMonN + '</b> 场' : '') : '🌱 还没练过这套，不如今天开个张') + (_setFavMv ? ' · 常练 <b>' + _setFavMv + '</b> 式' : '') + (_setWkMove ? ' · 本周练 <b>' + _setWkMove + '</b> 式' : '') + (_setMonMove ? ' · 本月练 <b>' + _setMonMove + '</b> 式' : '') + (_setTodayMove ? ' · 今日练 <b>' + _setTodayMove + '</b> 式' : '') + (_setMonMin ? ' · 本月共 <b>' + _setMonMin + '</b> 分钟' : '') + (_setAllMin && _setAllMin !== _setMonMin ? ' · 累计共 <b>' + _setAllMin + '</b> 分钟' : '') + (_setEverDays > 1 ? ' · 累计练 <b>' + _setEverDays + '</b> 天' : '') + (_setSelfDays > 1 ? ' · 这套练 <b>' + _setSelfDays + '</b> 天' : '') + (_setWkDays > 1 ? ' · 本周这套练 <b>' + _setWkDays + '</b> 天' : '') + '</div>' +
       '<div class="benefits">' + curSet.benefits.map(function (b) { return '<span>' + b + '</span>'; }).join('') + '</div>' +
       '<p style="margin-top:8px">💡 ' + curSet.tips + '</p>' +
       '<div class="learn-progress" title="逐式学习、跟练或跳步覆盖到的动作会标记为已学">' +
