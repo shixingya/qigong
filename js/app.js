@@ -553,6 +553,7 @@
     var _scWkMove = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d >= _wkFromS) (r.moves || []).forEach(function (m) { K[m] = 1; }); }); return Object.keys(K).length; })();
     var _scAllMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id ? (r.sec || 0) : 0); }, 0) / 60);
     var _scMonMin = Math.round(S.records().reduce(function (a, r) { return a + (r.set === st.id && r.d && r.d.slice(0, 7) === _scMonPre ? (r.sec || 0) : 0); }, 0) / 60);
+    var _scSetAll = S.records().filter(function (r) { return r.set === st.id && r.d; }).length;
     var slotTags = (st.moods || []).map(function (kk) { return SLOT_ICON[kk] || kk; }).join(' ');
     el.innerHTML =
       '<div class="icon">' + st.icon + '</div>' +
@@ -561,7 +562,7 @@
       '<div class="py">' + st.pinyin + ' · ' + st.level + (slotTags ? ' <span class="sc-slot" title="此时段宜练">' + slotTags + '</span>' : '') + '</div>' +
       '<div class="tagline">' + st.tagline + '</div>' +
       '<div class="meta"><span>' + st.moves.length + ' 式</span><span>约 ' + est + ' 分钟</span>' + (_wkSetN ? '<span class="sc-wk" title="本周跟练这套的场次">本周 ' + _wkSetN + ' 场</span>' : '') + (_scMonN && _scMonN !== _wkSetN ? '<span class="sc-wk" title="本月跟练这套的场次">本月 ' + _scMonN + ' 场</span>' : '') + (_ago !== null && _ago > 0 ? '<span class="sc-ago" title="久未跟练这套，换个口味">🕗 上次 ' + _ago + ' 天前</span>' : '') + (doneToday ? '<span class="sc-today" title="今天已跟练过这套">✓ 今日已练</span>' : '') + '</div>' +
-      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + (_scMonMin && _scMonMin !== _scAllMin ? ' · 本月 <b>' + _scMonMin + '</b> 分' : '') + (_scAllMin ? ' · 共 <b>' + _scAllMin + '</b> 分钟' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
+      '<div class="prog">已学 ' + learned + '/' + st.moves.length + ' 式' + (_favMv ? ' · 常练 <b>' + _favMv + '</b> 式' : '') + (_scWkMove ? ' · 本周练 <b>' + _scWkMove + '</b> 式' : '') + (_scMonMove ? ' · 本月练 <b>' + _scMonMove + '</b> 式' : '') + (_scSetAll ? ' · 这套练 <b>' + _scSetAll + '</b> 场' : '') + (_scMonMin && _scMonMin !== _scAllMin ? ' · 本月 <b>' + _scMonMin + '</b> 分' : '') + (_scAllMin ? ' · 共 <b>' + _scAllMin + '</b> 分钟' : '') + '<span class="prog-bar"><i style="width:' + lpct + '%"></i></span></div>';
     el.querySelector('.fav-star').addEventListener('click', function (e) {
       e.stopPropagation();
       S.toggleFav(st.id);
@@ -1854,7 +1855,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +

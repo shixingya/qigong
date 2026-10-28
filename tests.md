@@ -66,3 +66,11 @@
 | T-318-2 | 打卡页 `.tm-head` | 累计练功场 `_tmAllSess` | `累计练 4 场` | S.totalSess()=records.length=4（含 calm） |
 
 冒烟结果：knowStats=`… 小测过关 1 / 6 · 待复习错题 2 道 · 难卡 2 张`；tm-head=`…本月碰 2 套 · 累计练 4 场`；console error=0。✅
+
+## v3.1.9 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-319-1 | 打卡页 `.wk-body` 首行 | 累计练功场 `S.totalSess()` | `累计练 4 场` | records.length=4（含 calm） |
+| T-319-2 | 首页/功法页 八段锦卡 `.prog` | 本套累计场 `_scSetAll` | `这套练 2 场` | baduanjin 非空日期记录数=2 |
+
+冒烟结果：wk-body 首行=`…本月练 20 分 · 累计练 4 场`；bdj 卡 prog=`…本月练 3 式 · 这套练 2 场 · …`；console error=0。✅
