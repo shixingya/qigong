@@ -130,3 +130,13 @@
 | T-3115-2 | 打卡页 `#statRow` 新增格 | 累计练功天 `S.totalDays()` | `2 天 累计练功天` | 去重日期={10-26,10-28}=2 |
 
 播种同 v3.1.12 种子（无需 fcard，但沿用无妨）。
+
+## v3.1.16 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3116-1 | 首页 `#todayCard .tc-sub` | 累计练功天 `_stEverDays` | `累计练 2 天` | S.totalDays() 去重日期={10-26,10-28}=2（>1 才显示） |
+| T-3116-2 | 打卡页 `#statRow` 周练报告 wk-body 首行 | 累计练功天 + 已学式数 | `累计练 2 天 · 已学 3/40 式` | S.totalDays()=2；S.learnedTotal()=baduanjin 2 + wuqinxi 1=3 |
+
+播种同 v3.1.12 种子（learned={baduanjin:[bdj-1,bdj-2],wuqinxi:[wqx-0]} → learnedTotal=3）。
+
+冒烟结果：tc-sub=`… 累计练 2 天 …`；wk-body 首行=`… 明理 2 篇 · 累计练 2 天 · 已学 3/40 式`；console error=0。✅

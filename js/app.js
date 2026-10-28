@@ -368,13 +368,15 @@
     var _stTodayMove = Object.keys(_stTodayMoveK).length;
     var _stTodayMoveLine = _stTodayMove ? ' · 本套今日练 <b>' + _stTodayMove + '</b> 式' : '';
     var _todayMin = Math.round(recs.reduce(function (a, r) { return a + (r.sec || 0); }, 0) / 60);
+    var _stEverDays = S.totalDays();
+    var _stEverDaysLine = _stEverDays > 1 ? ' · 累计练 <b>' + _stEverDays + '</b> 天' : '';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次' + (_todayMin ? ' · 约 <b>' + _todayMin + '</b> 分钟' : '') + ' · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stEverDaysLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1868,7 +1870,7 @@
       var _wkMoveK = {}; S.records().forEach(function (r) { if (r.d >= w.rangeFrom && r.set !== 'calm') (r.moves || []).forEach(function (m) { _wkMoveK[m] = 1; }); });
       var _wkMoveN = Object.keys(_wkMoveK).length;
       body = '<div class="wk-body">' +
-        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + (S.totalMin() ? ' · 累计 <b>' + S.totalMin() + '</b> 分钟' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + '</div>' +
+        '<div>本周练了 <b>' + w.dayCount + '</b> 天 · 共 <b>' + w.sessions + '</b> 次 · <b>' + w.min + '</b> 分钟 · 碰了 <b>' + w.sets + '/' + DATA.sets.length + '</b> 种功法' + (dayAvg ? ' · 日均约 <b>' + dayAvg + '</b> 分钟' : '') + (_sessAvg ? ' · 场均约 <b>' + _sessAvg + '</b> 分钟' : '') + (_wkMoveN ? ' · 练了 <b>' + _wkMoveN + '</b> 式' : '') + (_monSessWk ? ' · 本月 <b>' + _monSessWk + '</b> 场' : '') + (_monMoveWk ? ' · 本月练 <b>' + _monMoveWk + '</b> 式' : '') + (_monMinWk ? ' · 本月练 <b>' + _monMinWk + '</b> 分' : '') + (S.totalSess() ? ' · 累计练 <b>' + S.totalSess() + '</b> 场' : '') + (S.totalMin() ? ' · 累计 <b>' + S.totalMin() + '</b> 分钟' : '') + (S.readCount() ? ' · 明理 <b>' + S.readCount() + '</b> 篇' : '') + (S.totalDays() > 1 ? ' · 累计练 <b>' + S.totalDays() + '</b> 天' : '') + (S.learnedTotal() ? ' · 已学 <b>' + S.learnedTotal() + '/' + moveTotal + '</b> 式' : '') + '</div>' +
         '<div>' + trendTxt + '；' + line2 + '。</div>' +
         (slotLine ? '<div class="wk-slot">' + slotLine + '</div>' : '') +
         (varLine ? '<div class="wk-var">' + varLine + '</div>' : '') +
