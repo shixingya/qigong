@@ -372,13 +372,14 @@
     var _stEverDaysLine = _stEverDays > 1 ? ' · 累计练 <b>' + _stEverDays + '</b> 天' : '';
     var _stSelfDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d) K[r.d] = 1; }); return Object.keys(K).length; })(); /* 本套练过的天数 */
     var _stSelfDaysLine = _stSelfDays > 1 ? ' · 这套练 <b>' + _stSelfDays + '</b> 天' : '';
+    var _stMonSelfDays = (function () { var K = {}; S.records().forEach(function (r) { if (r.set === st.id && r.d && r.d.slice(0, 7) === _stMonPre) K[r.d] = 1; }); return Object.keys(K).length; })(); var _stMonSelfDaysLine = _stMonSelfDays > 1 ? ' · 本月这套练 <b>' + _stMonSelfDays + '</b> 天' : '';
     $('#todayCard').innerHTML =
       '<div class="tc-icon">' + st.icon + '<span class="tc-slot">' + lab + '</span></div>' +
       '<div class="tc-main"><div class="tc-title">' + SLOT_TXT[lab] + ' · ' + st.name + '：' + st.tagline + '</div>' +
       '<div class="tc-sub">' + (recs.length
         ? '今日已练 <b>' + recs.length + '</b> 次' + (_todayMin ? ' · 约 <b>' + _todayMin + '</b> 分钟' : '') + ' · 连续 <b>' + S.streak() + '</b> 天，换个功法均衡调理？'
         : '今日未练 · 完整一套约 ' + estMin(st) + ' 分钟，练完自动点亮打卡') +
-      _learnLine + _stEverDaysLine + _stSelfDaysLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
+      _learnLine + _stEverDaysLine + _stSelfDaysLine + _stMonSelfDaysLine + _stTodayMoveLine + _stWkLine + _stWkTouchLine + _stWkMinLine + _stMonLine + _stMonMinLine + _stMonTouchLine + _stFavMvLine + _stAllLine + _stAllMinLine + _stTouchLine + _calmNudge + ' · 此时段共 <b>' + cand.length + '</b> 套可选</div></div>' +
       '<div class="tc-btns">' +
       '<button class="btn primary" id="todayGo">▶ 立即跟练</button>' +
       '<button class="btn ghost sm" id="todayQuick" title="前三式快跟一遍，见好就收">⚡ 快捷版约 ' + qMin + ' 分钟</button>' +
@@ -1812,7 +1813,7 @@
       row.className = 'tm-group';
       var lb = document.createElement('span');
       lb.className = 'tm-set';
-      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })() + (function () { var t = g.set.moves.filter(function (m) { return _tmTodayK[m.id]; }).length; return t ? ' · 今日练 ' + t + ' 式' : ''; })() + (function () { var mm = Math.round((_tmSetMin[g.set.id] || 0) / 60); return mm ? ' · 共 ' + mm + ' 分' : ''; })() + (function () { var K = {}; S.records().forEach(function (r) { if (r.set === g.set.id && r.d) K[r.d] = 1; }); var n = Object.keys(K).length; return n > 1 ? ' · 这套练 ' + n + ' 天' : ''; })();
+      lb.textContent = g.set.icon + ' ' + g.set.name + (g.full ? ' · 还没碰过' : ' · 差 ' + g.todo.length + ' 式') + (function () { var j = g.set.moves.filter(function (m) { return _tmMonK[m.id]; }).length; return j ? ' · 本月练 ' + j + ' 式' : ''; })() + (function () { var k = g.set.moves.filter(function (m) { return _tmWkK[m.id]; }).length; return k ? ' · 本周练 ' + k + ' 式' : ''; })() + (function () { var t = g.set.moves.filter(function (m) { return _tmTodayK[m.id]; }).length; return t ? ' · 今日练 ' + t + ' 式' : ''; })() + (function () { var mm = Math.round((_tmSetMin[g.set.id] || 0) / 60); return mm ? ' · 共 ' + mm + ' 分' : ''; })() + (function () { var K = {}; S.records().forEach(function (r) { if (r.set === g.set.id && r.d) K[r.d] = 1; }); var n = Object.keys(K).length; return n > 1 ? ' · 这套练 ' + n + ' 天' : ''; })() + (function () { var K = {}; S.records().forEach(function (r) { if (r.set === g.set.id && r.d && r.d.slice(0,7) === _tmMonPre) K[r.d] = 1; }); var n = Object.keys(K).length; return n > 1 ? ' · 本月这套练 ' + n + ' 天' : ''; })();
       row.appendChild(lb);
       /* 集式进度微条：已练过多少式/共多少式，凑齐的动力看得见 */
       var doneCnt = g.set.moves.length - g.todo.length;
