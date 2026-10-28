@@ -160,3 +160,13 @@
 播种：标准种子 + plan={start:'2026-10-20'}（横幅在役） + settings.quizWrong={'kn-base':2,'kn-breath':1}。
 
 冒烟结果：横幅=`… 累计 4 场 · 累计练 2 天`；knowStats=`… 待复习错题 2 道 · 错过 3 笔 …`；console error=0。✅
+
+## v3.1.19 用例
+| 编号 | 位置 | 指标 | 期望值 | 手算依据 |
+| --- | --- | --- | --- | --- |
+| T-3119-1 | 打卡页 `.mr-head` | 累计练功天数 `_mrEverDays` | `累计练 2 天`（在常练式段后、括号尾前） | S.totalDays()=2 >1；需有练过的式才渲染榜 |
+| T-3119-2 | 打卡页 `.tm-head` | 累计练功天数 `_tmEverDays` | `累计练 4 场 · 累计练 2 天` | totalSess=4（含 calm）；totalDays=2 |
+
+播种：标准种子（无需 plan/quizWrong）。
+
+冒烟结果：mr-head=`… 涉猎 2 套 · 最勤 … · 累计练 2 天，点一下重练这一式）`；tm-head=`… 累计练 4 场 · 累计练 2 天`；console error=0。✅
